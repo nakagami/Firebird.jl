@@ -24,6 +24,7 @@
 module Firebird
 
 include("consts.jl")
+include("srp.jl")
 
 greet() = print("Hello World!")
 
