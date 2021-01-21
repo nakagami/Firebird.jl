@@ -27,8 +27,8 @@ mutable struct Arc4
     x::UInt64
     y::UInt64
 
-    function Arc4(key::Vector{Uint8})
-        state::Vector{Uint8} = []
+    function Arc4(key::Vector{UInt8})
+        state::Vector{UInt8} = []
         for i in 0:255
             push!(state, i)
         end
