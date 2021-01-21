@@ -21,12 +21,29 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ################################################################################
-module Firebird
 
-include("consts.jl")
-include("srp.jl")
-include("arc4.jl")
+mutable struct Arc4
+    state::Vector{UInt8}
+    x::UInt64
+    y::UInt64
 
-greet() = print("Hello World!")
+    function Arc4(key::Vector{Uint8})
+        state::Vector{Uint8} = []
+        for i in 0:255
+            push!(state, i)
+        end
+        @assert length(state) == 256
 
-end # module
+        index1::UInt64 = 0
+        index2::UInt64 = 0
+
+        for i in 0:255
+            index2 = (key[index1+1] + state[i+1] + index2) % 256
+            (state[i+1], state[index2+1]) = (state[index2+1], state[i+1])
+            indx1 = (index1 + 1) % length(key)
+        end
+
+        new(state, 0, 0)
+    end
+end
+
