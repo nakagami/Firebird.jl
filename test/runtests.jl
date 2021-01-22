@@ -23,4 +23,14 @@
 ################################################################################
 using Test, Firebird
 
-@test 1 == 1
+@testset "arc4" begin
+    session_key = Vector{UInt8}("a key")
+    src = Vector{UInt8}("plain text")
+
+    a1 = Firebird.Arc4(session_key)
+    enc = Firebird.translate(a1, src)
+    @test enc == UInt8[0x4b, 0x4b, 0xdc, 0x65, 0x02, 0xb3, 0x08, 0x17, 0x48, 0x82]
+    a2 = Firebird.Arc4(session_key)
+    plain = Firebird.translate(a2, enc)
+    @test plain == src
+end
