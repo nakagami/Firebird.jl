@@ -21,13 +21,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ################################################################################
-module Firebird
 
-include("consts.jl")
-include("srp.jl")
-include("arc4.jl")
-include("xsqlvar.jl")
-
-greet() = print("Hello World!")
-
-end # module
+struct XSQLVAR
+    sqltype::Int
+    sqlscale::Int
+    sqlsubtype::Int
+    sqllen::Int
+    null_ok::Bool
+    fieldname::String
+    relname::String
+    ownname::String
+    aliasname::String
+end
