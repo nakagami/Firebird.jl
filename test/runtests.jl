@@ -23,6 +23,22 @@
 ################################################################################
 using Test, Firebird
 
+@testset "srp" begin
+    user = "SYSDBA"
+    password = "masterkey"
+
+    keyA, keya = Firebird.get_client_sheed()
+    salt = Firebird.get_salt()
+    v = Firebird.get_verifier(user, password, salt)
+    keyB, keyb = Firebird.get_server_seed(v)
+    server_key = Firebird.get_server_session(user, password, salt, keyA, keyB, keyb)
+    _, client_key = Firebird.get_client_proof(user, password, salt, keyA, keyB, keya, "Srp")
+    @test server_key == client_key
+
+    _, client_key = Firebird.get_client_proof(user, password, salt, keyA, keyB, keya, "Srp256")
+    @test server_key == client_key
+end
+
 @testset "arc4" begin
     session_key = Vector{UInt8}("a key")
     src = Vector{UInt8}("plain text")
