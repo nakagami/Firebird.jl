@@ -27,6 +27,7 @@ include("consts.jl")
 include("srp.jl")
 include("arc4.jl")
 include("xsqlvar.jl")
+include("decfloat.jl")
 
 greet() = print("Hello World!")
 
