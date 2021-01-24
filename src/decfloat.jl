@@ -31,53 +31,73 @@ function dpd_to_int64(dpd::UInt)::UInt64
     # dpd: DPD encoded value. 10bit unsigned int
 
     b = zeros(UInt64, 10)
-    b[9] = dpdBitToInt(dpd, 0x0200)
-    b[8] = dpdBitToInt(dpd, 0x0100)
-    b[7] = dpdBitToInt(dpd, 0x0080)
-    b[6] = dpdBitToInt(dpd, 0x0040)
-    b[5] = dpdBitToInt(dpd, 0x0020)
-    b[4] = dpdBitToInt(dpd, 0x0010)
-    b[3] = dpdBitToInt(dpd, 0x0008)
-    b[2] = dpdBitToInt(dpd, 0x0004)
-    b[1] = dpdBitToInt(dpd, 0x0002)
-    b[0] = dpdBitToInt(dpd, 0x0001)
+    b[10] = dpdBitToInt(dpd, 0x0200)
+    b[9] = dpdBitToInt(dpd, 0x0100)
+    b[8] = dpdBitToInt(dpd, 0x0080)
+    b[7] = dpdBitToInt(dpd, 0x0040)
+    b[6] = dpdBitToInt(dpd, 0x0020)
+    b[5] = dpdBitToInt(dpd, 0x0010)
+    b[4] = dpdBitToInt(dpd, 0x0008)
+    b[3] = dpdBitToInt(dpd, 0x0004)
+    b[2] = dpdBitToInt(dpd, 0x0002)
+    b[1] = dpdBitToInt(dpd, 0x0001)
 
     b = zeros(UInt64, 3)
-    if b[3] == 0
-        d[2] = b[9]*4 + b[8]*2 + b[7]
-        d[1] = b[6]*4 + b[5]*2 + b[4]
-        d[0] = b[2]*4 + b[1]*2 + b[0]
-    elseif b[3] == 1 && b[2] == 0 && b[1] == 0
-        d[2] = b[9]*4 + b[8]*2 + b[7]
-        d[1] = b[6]*4 + b[5]*2 + b[4]
-        d[0] = 8 + b[0]
-    elseif b[3] == 1 && b[2] == 0 && b[1] == 1
-        d[2] = b[9]*4 + b[8]*2 + b[7]
-        d[1] = 8 + b[4]
-        d[0] = b[6]*4 + b[5]*2 + b[0]
-    elseif b[3] == 1 && b[2] == 1 && b[1] == 0
-        d[2] = 8 + b[7]
-        d[1] = b[6]*4 + b[5]*2 + b[4]
-        d[0] = b[9]*4 + b[8]*2 + b[0]
-    elseif b[6] == 0 && b[5] == 0 && b[3] == 1 && b[2] == 1 && b[1] == 1
-        d[2] = 8 + b[7]
-        d[1] = 8 + b[4]
-        d[0] = b[9]*4 + b[8]*2 + b[0]
-    elseif b[6] == 0 && b[5] == 1 && b[3] == 1 && b[2] == 1 && b[1] == 1
-        d[2] = 8 + b[7]
-        d[1] = b[9]*4 + b[8]*2 + b[4]
-        d[0] = 8 + b[0]
-    elseif b[6] == 1 && b[5] == 0 && b[3] == 1 && b[2] == 1 && b[1] == 1
-        d[2] = b[9]*4 + b[8]*2 + b[7]
-        d[1] = 8 + b[4]
-        d[0] = 8 + b[0]
-    elseif b[6] == 1 && b[5] == 1 && b[3] == 1 && b[2] == 1 && b[1] == 1
-        d[2] = 8 + b[7]
-        d[1] = 8 + b[4]
-        d[0] = 8 + b[0]
+    if b[4] == 0
+        d[3] = b[10]*4 + b[9]*2 + b[8]
+        d[2] = b[7]*4 + b[6]*2 + b[5]
+        d[1] = b[3]*4 + b[2]*2 + b[1]
+    elseif b[4] == 1 && b[3] == 0 && b[2] == 0
+        d[3] = b[10]*4 + b[9]*2 + b[8]
+        d[2] = b[7]*4 + b[6]*2 + b[5]
+        d[1] = 8 + b[1]
+    elseif b[4] == 1 && b[3] == 0 && b[2] == 1
+        d[3] = b[10]*4 + b[9]*2 + b[8]
+        d[2] = 8 + b[5]
+        d[1] = b[7]*4 + b[6]*2 + b[1]
+    elseif b[4] == 1 && b[3] == 1 && b[2] == 0
+        d[3] = 8 + b[8]
+        d[2] = b[7]*4 + b[6]*2 + b[5]
+        d[1] = b[10]*4 + b[9]*2 + b[1]
+    elseif b[7] == 0 && b[6] == 0 && b[4] == 1 && b[3] == 1 && b[2] == 1
+        d[3] = 8 + b[8]
+        d[2] = 8 + b[5]
+        d[1] = b[10]*4 + b[9]*2 + b[1]
+    elseif b[7] == 0 && b[6] == 1 && b[4] == 1 && b[3] == 1 && b[2] == 1
+        d[3] = 8 + b[8]
+        d[2] = b[10]*4 + b[9]*2 + b[5]
+        d[1] = 8 + b[1]
+    elseif b[7] == 1 && b[6] == 0 && b[4] == 1 && b[3] == 1 && b[2] == 1
+        d[3] = b[10]*4 + b[9]*2 + b[8]
+        d[2] = 8 + b[5]
+        d[1] = 8 + b[1]
+    elseif b[7] == 1 && b[6] == 1 && b[4] == 1 && b[3] == 1 && b[2] == 1
+        d[3] = 8 + b[8]
+        d[2] = 8 + b[5]
+        d[1] = 8 + b[1]
     else
         throw(DomainError(plugin_name, "Invalid DPD encoding"))
     end
 
-    return int64(d[2])*100 + int64(d[1])*10 + int64(d[0])
+    return int64(d[3])*100 + int64(d[2])*10 + int64(d[1])
+end
+
+function calc_significand(prefix::Int64, dpd_bits::BigInt, numBits::Int)::BigInt
+    # prefix: High bits integer value
+    # dpdBits: dpd encoded bits
+    # numBits: bit length of dpd_bits
+    # https://en.wikipedia.org/wiki/Decimal128_floating-point_format#Densely_packed_decimal_significand_field
+    num_segments = div(numBits, 10)
+    segments::Vector{BigInt} = []
+
+    for _ in 1:num_segments
+        segments.append(dpd_bits & 0b1111111111)
+        dpd_bits >>= 10
+    end
+
+    v = prefix
+    for dpd in segments
+        v = v + 1000 + dpd_to_int64(dpd)
+    end
+    v
 end
