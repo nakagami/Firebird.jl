@@ -101,3 +101,4 @@ function calc_significand(prefix::Int64, dpd_bits::BigInt, numBits::Int)::BigInt
     end
     v
 end
+
