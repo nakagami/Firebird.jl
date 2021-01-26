@@ -80,3 +80,19 @@ struct XSQLVAR
     ownname::String
     aliasname::String
 end
+
+
+function io_length(x::XSQLVAR)::Int
+    x.sqltype == SQL_TYPE_TEXT ? x.sqllen : xsqlvar_type_length[x.sqltype]
+end
+
+function has_precision_scale(x::XSQLVAR)::Bool
+    (x.sqltype == SQL_TYPE_SHORT ||
+        x.sqltype == SQL_TYPE_LONG ||
+        x.sqltype == SQL_TYPE_QUAD ||
+        x.sqltype == SQL_TYPE_INT64 ||
+        x.sqltype == SQL_TYPE_INT128 ||
+        x.sqltype == SQL_TYPE_DEC64 ||
+        x.sqltype == SQL_TYPE_DEC128 ||
+        x.sqltype == SQL_TYPE_DEC_FIXED) && x.sqlscale != 0
+end
