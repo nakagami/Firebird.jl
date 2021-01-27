@@ -28,6 +28,7 @@ include("srp.jl")
 include("arc4.jl")
 include("xsqlvar.jl")
 include("decfloat.jl")
+include("wireprotocol.jl")
 
 greet() = print("Hello World!")
 
