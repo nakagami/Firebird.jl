@@ -24,6 +24,34 @@
 
 using Sockets
 
+function INFO_SQL_SELECT_DESCRIBE_VARS()::Vector{UInt8}
+    [
+        isc_info_sql_select,
+        isc_info_sql_describe_vars,
+        isc_info_sql_sqlda_seq,
+        isc_info_sql_type,
+        isc_info_sql_sub_type,
+        isc_info_sql_scale,
+        isc_info_sql_length,
+        isc_info_sql_null_ind,
+        isc_info_sql_field,
+        isc_info_sql_relation,
+        isc_info_sql_owner,
+        isc_info_sql_alias,
+        isc_info_sql_describe_end
+    ]
+end
+
 mutable struct WireChannel
     socket::TCPSocket
+    arc4in::Union{Arc4, Nothing}
+    arc4out::Union{Arc4, Nothing}
+    function WireChannel(socket::TCPSocket)
+        new(socket, nothing, nothing)
+    end
+end
+
+function set_arc4_key(chan::WireChannel, key::Vector{UInt8})
+    chan.arc4in = Arc4(key)
+    chan.arc4out = Arc4(key)
 end
