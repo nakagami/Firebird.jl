@@ -55,3 +55,31 @@ function set_arc4_key(chan::WireChannel, key::Vector{UInt8})
     chan.arc4in = Arc4(key)
     chan.arc4out = Arc4(key)
 end
+
+function read(chan::WireChannel, t::DataType)
+    bytes::Vector{UInt8} = read(chan.socket, sizeof(t))
+    if chan.arc4in != nothing
+        bytes = translate(chan.arc4in)
+    end
+    reinterpret(t, bytes)
+end
+
+function write(chan::WireChannel, data::Vector{UInt8})
+    if chan.arc4out != nothing
+        data = translate(chan.arc4out)
+    end
+    write(chan.socket, data)
+end
+
+
+struct WireProtocol
+    conn::WireChannel
+end
+
+function read(wp::WireProtocol, t::DataType)
+    read(wp.conn, t)
+end
+
+function write(wp::WireProtocol, v)
+    write(wp.conn, v)
+end
