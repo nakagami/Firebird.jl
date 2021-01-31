@@ -4,6 +4,7 @@ authors = ["Hajime Nakagami <nakagami@gmail.com>"]
 version = "0.1.0"
 
 [deps]
+Decimals = "abce61dc-4473-55a0-ba07-351d65e31d42"
 SHA = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"
 

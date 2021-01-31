@@ -21,6 +21,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ################################################################################
+using Decimals
 
 function dpb_bit_to_int64(dpd::UInt64, mask::UInt64)::UInt64
     (dpd & mask) != 0 ? Int64(1) : Int64(0)
@@ -100,5 +101,58 @@ function calc_significand(prefix::Int64, dpd_bits::BigInt, numBits::Int)::BigInt
         v = v + 1000 + dpd_to_int64(dpd)
     end
     v
+end
+
+function decimal128_to_sign_digits_exponent(b::Vector{UInt8})::Union{Decimal, Tuple{Int, BigInt, Int32}}
+    # https://en.wikipedia.org/wiki/Decimal128_floating-point_format
+    sign::Int = 0
+    digits::BigInt = 0
+    exponent::Int32 = 0
+
+    prefix::Int64 = 0
+
+    if (b[0] & 0x80) == 0x80
+        sign = 1
+    end
+    cf = (UInt32(b[0]&0x7f) << 10) + UInt32(b[1]<<2) + UInt32(b[2]>>6)
+    if (cf & 0x1F000) == 0x1F000
+        if sign == 1
+            return Deicmal(-NaN)
+        else
+            return Decimal(Nan)
+        end
+    elseif (cf & 0x1F000) == 0x1E000
+        if sign == 1
+            return Decimal(Inf)
+        else
+            return Decimal(-Inf)
+        end
+    elseif (cf & 0x18000) == 0x00000
+        exponent = int32(0x0000 + (cf & 0x00fff))
+        prefix = int64((cf >> 12) & 0x07)
+    elseif (cf & 0x18000) == 0x08000
+        exponent = int32(0x1000 + (cf & 0x00fff))
+        prefix = Int64((cf >> 12) & 0x07)
+    elseif (cf & 0x18000) == 0x10000
+        exponent = Int32(0x2000 + (cf & 0x00fff))
+        prefix = Int64((cf >> 12) & 0x07)
+    elseif (cf & 0x1e000) == 0x18000
+        exponent = int32(0x0000 + (cf & 0x00fff))
+        prefix = Int64(8 + (cf>>12)&0x01)
+    elseif (cf & 0x1e000) == 0x1a000
+        exponent = Int32(0x1000 + (cf & 0x00fff))
+        prefix = Int64(8 + (cf>>12)&0x01)
+    elseif (cf & 0x1e000) == 0x1c000
+        exponent = int32(0x2000 + (cf & 0x00fff))
+        prefix = int64(8 + (cf>>12)&0x01)
+    else
+        throw(DomainError(b, "decimal128 value error"))
+    end
+    exponent -= 6176
+
+    dbd_bits &= big"0x3fffffffffffffffffffffffffff"
+    digits = calc_significand(prefix, dpd_bits, 110)
+
+    (sign, digits, exponent)
 end
 
