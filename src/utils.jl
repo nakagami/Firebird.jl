@@ -21,17 +21,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ################################################################################
-module Firebird
 
-include("consts.jl")
-include("utils.jl")
-include("srp.jl")
-include("arc4.jl")
-include("xsqlvar.jl")
-include("decfloat.jl")
-include("wireprotocol.jl")
-include("connection.jl")
 
-greet() = print("Hello World!")
-
-end # module
+function xdr_bytes(bs::Vector{UInt8})::Vector{UInt8}
+    # XDR encoding bytes
+    n = length(bs)
+    padding = 0
+    if n % 4 != 0
+        padding = 4 - n % 4
+    end
+    buf = zeros(UInt8, 4 + n + padding)
+    buf[0] = UInt8(n >> 24 & 0xFF)
+    buf[1] = UInt8(n >> 16 & 0xFF)
+    buf[2] = UInt8(n >> 8 & 0xFF)
+    buf[3] = UInt8(n & 0xFF)
+    for i in 1:length(bs)
+        buf[4 + i] = bs[i]
+    end
+    buf
+end
