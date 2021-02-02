@@ -72,8 +72,23 @@ function write(chan::WireChannel, data::Vector{UInt8})
 end
 
 
-struct WireProtocol
+mutable struct WireProtocol
+    buf::Vector{UInt8}
+
     conn::WireChannel
+end
+
+function pack_int(wp::WireProtocol, i::Int32)
+    # pack big endian int32
+    append!(wp.buf, UInt8[UInt8(i >> 24 & 0xFF), UInt8(i >> 16 & 0xFF), UInt8(i >> 8 & 0xFF), UInt8(i & 0xFF)])
+end
+
+function pack_bytes(wp::WireProtocol, b::Vector{UInt8})
+    append!(wp.buf, xdr_bytes(b))
+end
+
+function append_bytes(wp::WireProtocol, b::Vector{UInt8})
+    append!(wp.buf, b)
 end
 
 function read(wp::WireProtocol, t::DataType)
@@ -82,4 +97,7 @@ end
 
 function write(wp::WireProtocol, v)
     write(wp.conn, v)
+end
+
+function _op_connect(wp::WireProtocol)
 end
