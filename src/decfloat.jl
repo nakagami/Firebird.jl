@@ -156,3 +156,85 @@ function decimal128_to_sign_digits_exponent(b::Vector{UInt8})::Union{Decimal, Tu
     (sign, digits, exponent)
 end
 
+function decimal_fixed_to_decimal(b::Vector{UInt8}, scale::Int32)::Decimal
+    v = decimal128_to_sign_digits_exponent(b)
+    if isa(v, Decimal)
+        return v
+    end
+    sign, digits, _ = v
+    if sign != 0
+        digits *= -1
+    end
+
+    Decimal(digits, scale)
+end
+
+function decimal64_to_decimal(b::Vector{UInt8})::Decimal
+    # https://en.wikipedia.org/wiki/Decimal64_floating-point_format
+    prefix::Int64 = 0
+    sign::Int = 0
+    if (b[0] & 0x80) == 0x80
+        sign = 1
+    end
+    cf = (UInt32(b[0]) >> 2) & 0x1f
+    exponent = ((Int32(b[0]) & 3) << 6) + ((Int32(b[1]) >> 2) & 0x3f)
+
+    dpd_bits = reinterpret(BigInt, b)
+    dpd_bits &= big"0x3ffffffffffff"
+
+    if cf == 0x1f
+        if sign == 1
+            return Deicmal(-NaN)
+        else
+            return Deicmal(NaN)
+        end
+    elseif cf == 0x1e
+        if sign == 1
+            return Decimal(-Inf)
+        else
+            return Decimal(Inf)
+        end
+    elseif (cf & 0x18) == 0x00
+        exponent = 0x000 + exponent
+        prefix = Int64(cf & 0x07)
+    elseif (cf & 0x18) == 0x08
+        exponent = 0x100 + exponent
+        prefix = Int64(cf & 0x07)
+    elseif (cf & 0x18) == 0x10
+        exponent = 0x200 + exponent
+        prefix = Int64(cf & 0x07)
+    elseif (cf & 0x1e) == 0x18
+        exponent = 0x000 + exponent
+        prefix = Int64(8 + cf&1)
+    elseif (cf & 0x1e) == 0x1a
+        exponent = 0x100 + exponent
+        prefix = Int64(8 + cf&1)
+    elseif (cf & 0x1e) == 0x1c
+        exponent = 0x200 + exponent
+        prefix = Int64(8 + cf&1)
+    else
+        throw(DomainError(b, "decimal64 value error"))
+    end
+    digits = calc_significand(prefix, dpd_bits, 50)
+    exponent -= 398
+
+    if sign != 0
+        digits *= big"-1"
+    end
+
+    Decimal(digits, eponent)
+end
+
+function decimal128_to_decimal(b::Vector{UInt8})::Decimal
+    # https://en.wikipedia.org/wiki/Decimal64_floating-point_format
+    v = decimal128_to_sign_digits_exponent(b)
+    if isa(v, Decimal)
+        return v
+    end
+    sign, _, exponent = v
+    if sign != 0
+        digits *= -1
+    end
+
+    Decimal(digits, exponent)
+end
