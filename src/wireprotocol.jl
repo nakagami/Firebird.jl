@@ -43,10 +43,11 @@ function INFO_SQL_SELECT_DESCRIBE_VARS()::Vector{UInt8}
 end
 
 mutable struct WireChannel
-    socket::TCPSocket
+    sock::TCPSocket
     arc4in::Union{Arc4, Nothing}
     arc4out::Union{Arc4, Nothing}
-    function WireChannel(socket::TCPSocket)
+    function WireChannel(host::String, port::Int)
+        sock = Sockets.connect(host, port)
         new(socket, nothing, nothing)
     end
 end
@@ -73,13 +74,34 @@ end
 
 
 mutable struct WireProtocol
-    buf::Vector{UInt8}
+    write_buf::Vector{UInt8}
 
-    conn::WireChannel
+    channel::WireChannel
+    host::String
+    port::Int
+    username::String
+    password::String
+
+    db_handle::Int32
+
+    protocol_version::Int32
+    accept_architecture::Int32
+    accept_type::Int32
+    lazy_response_count::Int
+
+    accept_plugin_name::String
+    auth_data::Vector{UInt8}
+
+    timezone::String
+
+    function WireProtocol(host::AbstractString, port::Integer)
+        channel = WireChannel(host, port)
+        new([], channel, host, port, "", "", -1, -1, -1, -1, 0, "", [], "")
+    end
 end
 
-function pack_int(wp::WireProtocol, i::Int32)
-    # pack big endian int32
+function pack_uint(wp::WireProtocol, i::UInt32)
+    # pack big endian uint32
     append!(wp.buf, UInt8[UInt8(i >> 24 & 0xFF), UInt8(i >> 16 & 0xFF), UInt8(i >> 8 & 0xFF), UInt8(i & 0xFF)])
 end
 
