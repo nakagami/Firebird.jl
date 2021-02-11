@@ -24,6 +24,11 @@
 
 using Sockets
 
+const PLUGIN_LIST = "Srp256,Srp"
+const BUFFER_LEN = 1024
+const MAX_CHAR_LENGTH = 32767
+const BLOB_SEGMENT_SIZE = 32000
+
 function INFO_SQL_SELECT_DESCRIBE_VARS()::Vector{UInt8}
     [
         isc_info_sql_select,
@@ -117,6 +122,64 @@ function append_bytes(wp::WireProtocol, b::Vector{UInt8})
     append!(wp.buf, b)
 end
 
+function get_srp_client_public_bytes(client_public::BigInt)::Vector{UInt8}
+    b::Vec{UInt8} = bytes2hex(bigint_to_bytes(client_public))
+    if length(b) > 254
+        vcat(
+            UInt8[CNCT_SPECIFIC_DATA, 255, 0],
+            b[1:254],
+            UInt8[CNCT_SPECIFIC_DATA, length(b) - 254 + 1, 1],
+            b[255:length(b)]
+        )
+    else
+        vcat(
+            UInt8[CNCT_SPECIFIC_DATA, length(b) + 1, 0],
+            b[1:length(b) + 1],
+            UInt8[CNCT_SPECIFIC_DATA, length(b) - 254 + 1, 1],
+            b
+        )
+    end
+end
+
+function uid(user::String, password::String, auth_plugin_name::String, wire_crypt::Bool, client_public::BigInt)::Vec{UInt8}
+    sys_user = if haskey(ENV, "USER")
+            ENV["USER"]
+        elseif haskey(ENV, "USERNAME")
+            ENV["USERNAME"]
+        else
+            ""
+        end
+    sys_user_bytes = Vec{UInt8}(sys_user)
+    hostname_bytes = Vec{UInt8}(gethostname)
+    plugin_list_name_bytes = Vec{UInt8}(PLUGIN_LIST)
+    plugin_name_bytes = Vec{UInt8}(auth_plugin_name)
+    user_bytes = Vec{UInt8}(user)
+    specific_data = get_srp_client_public_bytes(client_public)
+    vcat(
+        UInt8[CNCT_login, length(user_bytes)], user_bytes,
+        UInt8[CNCT_plugin_name, length(plugin_name_bytes)], plugin_name_bytes,
+        UInt8[CNCT_plugin_list, length(plugin_list_name_bytes)], plugin_list_name_bytes,
+        specific_data,
+        UInt8[CNCT_client_crypt, 4, wire_crypt ? 1 : 0, 0, 0],
+        UInt8[CNCT_user, length(sys_user_bytes)], sys_user_bytes,
+        UInt8[CNCT_host, length(hostname_bytes)], hostname_bytes,
+        UINt8[CNCT_user_verification, 0]
+    )
+end
+
+function send_packets(wp::WireProtocol)
+    wp.channel.write(wp.write_buf)
+    wp.write_buf = []
+end
+
+function suspend_buffer(wp::WireProtocol)::Vector{UInt8}
+    deepcopy(wp.write_buf)
+end
+
+function resume_buffer(wp::WireProtocol, buf::Vector{UInt8})
+    append!(wp.write_buf, buf)
+end
+
 function recv_packets(wp::WireProtocol, n::Int)::Vector{UInt8}
     buf = zeros(UInt8, n)
     read(wp.conn, buf)
@@ -130,10 +193,6 @@ function recv_packets_alignment(wp::WireProtocol, n::Int)::Vector{UInt8}
     end
     buf = recv_packets(n + padding)
     buf[1:n]
-end
-
-function write(wp::WireProtocol, v)
-    write(wp.conn, v)
 end
 
 function _op_connect(wp::WireProtocol)
