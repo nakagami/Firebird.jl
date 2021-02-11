@@ -151,5 +151,49 @@ end
 
 function value(x::XSQLVAR)
     # TODO:
-    nothing
+    if x.sqltype == SQL_TYPE_TEXT
+        raw_value
+    elseif xsql.type == SQL_TYPE_VARYING
+        String(raw_value)
+    elseif xsql.type == SQL_TYPE_SHORT
+        nothing
+    elseif x.sqltype == SQL_TYPE_LONG
+        nothing
+    elseif x.sqltype == SQL_TYPE_FLOAT
+        nothing
+    elseif x.sqltype == SQL_TYPE_DOUBLE
+        nothing
+    elseif x.sqltype == SQL_TYPE_D_FLOAT
+        nothing
+    elseif x.sqltype == SQL_TYPE_TIMESTAMP
+        nothing
+    elseif x.sqltype == SQL_TYPE_BLOB
+        nothing
+    elseif x.sqltype == SQL_TYPE_ARRAY
+        nothing
+    elseif x.sqltype == SQL_TYPE_QUAD
+        nothing
+    elseif x.sqltype == SQL_TYPE_TIME
+        nothing
+    elseif x.sqltype == SQL_TYPE_DATE
+        nothing
+    elseif x.sqltype == SQL_TYPE_INT64
+        nothing
+    elseif x.sqltype == SQL_TYPE_INT128
+        nothing
+    elseif x.sqltype == SQL_TYPE_TIMESTAMP_TZ
+        nothing
+    elseif x.sqltype == SQL_TYPE_TIME_TZ
+        nothing
+    elseif x.sqltype == SQL_TYPE_DEC_FIXED
+        nothing
+    elseif x.sqltype == SQL_TYPE_DEC64
+        nothing
+    elseif x.sqltype == SQL_TYPE_DEC128
+        nothing
+    elseif x.sqltype == SQL_TYPE_BOOLEAN
+        nothing
+    elseif x.sqltype == SQL_TYPE_NULL
+        nothing
+    end
 end
