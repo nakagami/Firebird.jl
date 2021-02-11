@@ -100,7 +100,7 @@ mutable struct WireProtocol
     end
 end
 
-function pack_uint(wp::WireProtocol, i::UInt32)
+function pack_u32(wp::WireProtocol, i::UInt32)
     # pack big endian uint32
     append!(wp.buf, UInt8[UInt8(i >> 24 & 0xFF), UInt8(i >> 16 & 0xFF), UInt8(i >> 8 & 0xFF), UInt8(i & 0xFF)])
 end
@@ -109,12 +109,27 @@ function pack_bytes(wp::WireProtocol, b::Vector{UInt8})
     append!(wp.buf, xdr_bytes(b))
 end
 
+function pack_str(wp::WireProtocol, s::String)
+    append!(wp.buf, xdr_bytes(Vector{UInt8}(s)))
+end
+
 function append_bytes(wp::WireProtocol, b::Vector{UInt8})
     append!(wp.buf, b)
 end
 
-function read(wp::WireProtocol, t::DataType)
-    read(wp.conn, t)
+function recv_packets(wp::WireProtocol, n::Int)::Vector{UInt8}
+    buf = zeros(UInt8, n)
+    read(wp.conn, buf)
+    buf
+end
+
+function recv_packets_alignment(wp::WireProtocol, n::Int)::Vector{UInt8}
+    padding = n % 4
+    if padding > 0
+        padding = 4 - padding
+    end
+    buf = recv_packets(n + padding)
+    buf[1:n]
 end
 
 function write(wp::WireProtocol, v)
