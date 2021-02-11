@@ -195,5 +195,14 @@ function recv_packets_alignment(wp::WireProtocol, n::Int)::Vector{UInt8}
     buf[1:n]
 end
 
+function parse_status_vector(wp::WireProtocol)::Tuple{Vec{UInt32}, Int, String}
+    # TODO
+    sql_code::Int = 0
+    gds_codes::Vec{UInt32} = []
+    error_message::String = ""      # TODO: fill error message
+
+    (gds_codes, sql_code, error_message)
+end
+
 function _op_connect(wp::WireProtocol)
 end
