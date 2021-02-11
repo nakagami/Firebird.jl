@@ -40,3 +40,8 @@ function xdr_bytes(bs::Vector{UInt8})::Vector{UInt8}
     end
     buf
 end
+
+function bytes_to_bint32(b::Vector{UInt8})::UInt32
+    reinterpret(UInt32, reverse(b))
+end
+

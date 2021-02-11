@@ -96,3 +96,44 @@ function has_precision_scale(x::XSQLVAR)::Bool
         x.sqltype == SQL_TYPE_DEC128 ||
         x.sqltype == SQL_TYPE_DEC_FIXED) && x.sqlscale != 0
 end
+
+function _parse_date(raw_value::Vector{UInt8})::Tuple{Int, Int, Int}
+    nday = bytes_to_bint32(raw_value) + 678882
+
+    century = div(4 * nday - 1,  146097)
+    nday = 4 * nday - 1 - 146097 * century
+    day = nday / 4
+
+    nday = div(4 * day + 3, 1461)
+    day = 4 * day + 3 - 1461 * nday
+    day = div(day + 4, 4)
+
+    month = div(5 * day - 3, 153)
+    day = 5 * day - 3 - 153 * month
+    day = div(day + 5,  5)
+    year = 100 * century + nday
+    if month < 10
+        month += 3
+    else
+        month -= 9
+        year += 1
+    end
+
+    (year, month, day)
+end
+
+function _parse_time(raw_value::Vector{UInt8})::Tuple(Int, Int, Int, Int)
+    n = bytes_to_bint32(raw_value)
+    s = div(n, 10000)
+    m = div(s, 60)
+    h = div(m, 60)
+    m = mod(m, 60)
+    s = mod(s, 60)
+
+    (h, m, s, mod(n, 10000) * 100000)
+end
+
+function value(x::XSQLVAR)
+    # TODO:
+    nothing
+end
