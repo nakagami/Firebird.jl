@@ -25,4 +25,10 @@
 
 mutable struct Connection
     wire_channel::Firebird.WireChannel
+
+    function Connection(host::String, user::String, passwd::String, db::String, port::Integer; kw...)
+        wire_channel = WireChannel(host, port)
+        return new(wire_channel)
+    end
+
 end
