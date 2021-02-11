@@ -133,6 +133,22 @@ function _parse_time(raw_value::Vector{UInt8})::Tuple(Int, Int, Int, Int)
     (h, m, s, mod(n, 10000) * 100000)
 end
 
+function parse_date(raw_value::Vector{UInt8})::Date
+    year, month, day = _parse_date(raw_value)
+    Date(year, month, day)
+end
+
+function parse_time(raw_value::Vector{UInt8})::Time
+    h, m, s, n = _parse_time(raw_value)
+    Time(h, m, s, n)
+end
+
+function parse_timestamp(raw_value::Vector{UInt8})::DateTime
+    year, month, day = _parse_date(raw_value[1:4])
+    h, m, s, n = _parse_time(raw_value[5:8])
+    DateTime(year, month, day, h, m, s, n)
+end
+
 function value(x::XSQLVAR)
     # TODO:
     nothing
