@@ -22,6 +22,9 @@
 # SOFTWARE.
 ################################################################################
 module Firebird
+using Dates, DBInterface, Tables, Parsers, DecFP
+
+export DBInterface
 
 include("consts.jl")
 include("utils.jl")
