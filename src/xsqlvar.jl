@@ -98,7 +98,7 @@ function has_precision_scale(x::XSQLVAR)::Bool
 end
 
 function _parse_date(raw_value::Vector{UInt8})::Tuple{Int, Int, Int}
-    nday = bytes_to_bint32(raw_value) + 678882
+    nday = bytes_to_buint32(raw_value) + 678882
 
     century = div(4 * nday - 1,  146097)
     nday = 4 * nday - 1 - 146097 * century
@@ -123,7 +123,7 @@ function _parse_date(raw_value::Vector{UInt8})::Tuple{Int, Int, Int}
 end
 
 function _parse_time(raw_value::Vector{UInt8})::Tuple(Int, Int, Int, Int)
-    n = bytes_to_bint32(raw_value)
+    n = bytes_to_buint32(raw_value)
     s = div(n, 10000)
     m = div(s, 60)
     h = div(m, 60)
@@ -149,14 +149,31 @@ function parse_timestamp(raw_value::Vector{UInt8})::DateTime
     DateTime(year, month, day, h, m, s, n)
 end
 
-function value(x::XSQLVAR)
+function value(x::XSQLVAR, raw_value::Vector{UInt8})
     # TODO:
     if x.sqltype == SQL_TYPE_TEXT
-        raw_value
+        if x.sqlsubtype == 1
+            raw_value
+        else
+            String(raw_value)
+        end
     elseif xsql.type == SQL_TYPE_VARYING
-        String(raw_value)
+        if x.sqlsubtype == 1
+            raw_value
+        else
+            String(raw_value)
+        end
     elseif xsql.type == SQL_TYPE_SHORT
-        nothing
+        i16::Int16 = Int16(bytes_to_int32(raw_value))
+        if x.sqlscale > 0
+            Int64(i16) * Int64(10^x.scale)
+        elseif x.sqlscale < 0
+            if i16 > 0
+                Decimal(0, i16*-1, x.sqlscale)
+            else
+                Decimal(1, i16*-1, x.sqlscale)
+            end
+        end
     elseif x.sqltype == SQL_TYPE_LONG
         nothing
     elseif x.sqltype == SQL_TYPE_FLOAT
