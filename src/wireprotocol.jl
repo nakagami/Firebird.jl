@@ -195,11 +195,43 @@ function recv_packets_alignment(wp::WireProtocol, n::Int)::Vector{UInt8}
     buf[1:n]
 end
 
-function parse_status_vector(wp::WireProtocol)::Tuple{Vec{UInt32}, Int, String}
-    # TODO
+function parse_status_vector(wp::WireProtocol)::Tuple{Vector{UInt32}, Int, String}
     sql_code::Int = 0
-    gds_codes::Vec{UInt32} = []
-    error_message::String = ""      # TODO: fill error message
+    gds_code = 0
+    gds_codes::Vector{UInt32} = []
+    num_arg = 0
+    message::String = ""
+
+    n = bytes_to_bint32(recv_packets(wp, 4))
+    while n != isc_arg_end
+        if n == isc_arg_gds
+            gds_code = bytes_to_bint32(recv_packets(wp, 4))
+            if gds_code != 0
+                push!(gds_codes, gds_code)
+                message *= errmsgs[gds_code]
+                num_arg = 0
+            end
+        elseif n == isc_arg_number
+            num = bytes_to_bint32(recv_packets(wp, 4))
+            if gds_code == 335544436
+                sql_code = num
+            end
+            num_arg += 1
+            message = replace.(message, [string("@", num_arg)=>num])
+        elseif n == isc_arg_string
+            nbytes = bytes_to_bint32(recv_packets(wp, 4))
+            s = String(recv_packets_alignment(wp, nbytes))
+            num_arg += 1
+            message = replace.(message, [string("@", num_arg)=>s])
+        elseif n == isc_arg_iterpreted
+            nbytes = bytes_to_bint32(recv_packets(wp, 4))
+            message *= String(recv_packets_alignment(nbytes))
+        elseif n == isc_arg_sql_state
+            nbytes = bytes_to_bint32(recv_packets(wp, 4))
+            recv_packets_alignment(nbytes)  # skip status code
+        end
+        n = bytes_to_bint32(recv_packets(wp, 4))
+    end
 
     (gds_codes, sql_code, error_message)
 end
