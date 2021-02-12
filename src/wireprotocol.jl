@@ -236,5 +236,155 @@ function parse_status_vector(wp::WireProtocol)::Tuple{Vector{UInt32}, Int, Strin
     (gds_codes, sql_code, error_message)
 end
 
-function _op_connect(wp::WireProtocol)
+function parse_op_response(wp::WireProtocol)
+    # TODO
 end
+
+function parse_connect_response(wp::WireProtocol)
+    # TODO
+end
+
+function parse_select_items(wp::WireProtocol)
+    # TODO
+end
+
+function parse_xsqlda(wp::WireProtocol)
+    # TODO
+end
+
+function get_blob_segments(wp::WireProtocol)
+    # TODO
+end
+
+function _op_connect(wp::WireProtocol)
+    # TODO
+end
+
+function _op_create(wp::WireProtocol)
+    # TODO
+end
+
+function _op_attach(wp::WireProtocol)
+    # TODO
+end
+
+function _op_contauth(wp::WireProtocol)
+    # TODO
+end
+
+function _op_crypt(wp::WireProtocol)
+    # TODO
+end
+
+function _op_drop_database(wp::WireProtocol)
+    # TODO
+end
+
+function _op_transaction(wp::WireProtocol)
+    # TODO
+end
+
+function _op_commit(wp::WireProtocol)
+    # TODO
+end
+
+function _op_commit_retainning(wp::WireProtocol)
+    # TODO
+end
+
+function _op_rollback(wp::WireProtocol)
+    # TODO
+end
+
+function _op_rollback_retaining(wp::WireProtocol)
+    # TODO
+end
+
+function _op_allocate_statement(wp::WireProtocol)
+    # TODO
+end
+
+function _op_info_transaction(wp::WireProtocol)
+    # TODO
+end
+
+function _op_info_database(wp::WireProtocol)
+    # TODO
+end
+
+function _op_free_statement(wp::WireProtocol)
+    # TODO
+end
+
+function _op_prepare_statement(wp::WireProtocol)
+    # TODO
+end
+
+function _op_info_sql(wp::WireProtocol)
+    # TODO
+end
+
+function _op_execute(wp::WireProtocol)
+    # TODO
+end
+
+function _op_execute2(wp::WireProtocol)
+    # TODO
+end
+
+function _op_exec_immediate(wp::WireProtocol)
+    # TODO
+end
+
+function _op_fetch(wp::WireProtocol)
+    # TODO
+end
+
+function _op_fetch_response(wp::WireProtocol)
+    # TODO
+end
+
+function _op_detatch(wp::WireProtocol)
+    # TODO
+end
+
+function _op_open_blob(wp::WireProtocol)
+    # TODO
+end
+
+function _op_create_blob2(wp::WireProtocol)
+    # TODO
+end
+
+function _op_get_segment(wp::WireProtocol)
+    # TODO
+end
+
+function _op_put_segment(wp::WireProtocol)
+    # TODO
+end
+
+function _op_batch_segments(wp::WireProtocol)
+    # TODO
+end
+
+function _op_close_blob(wp::WireProtocol)
+    # TODO
+end
+
+function _op_response(wp::WireProtocol)
+    # TODO
+end
+
+function _op_sql_response(wp::WireProtocol)
+    # TODO
+end
+
+function _op_create_blob(wp::WireProtocol)
+    # TODO
+end
+
+function params_to_blr(wp::WireProtocol)
+    # TODO
+end
+
