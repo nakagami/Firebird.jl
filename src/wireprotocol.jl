@@ -105,7 +105,7 @@ mutable struct WireProtocol
     end
 end
 
-function pack_u32(wp::WireProtocol, i::UInt32)
+function pack_uint32(wp::WireProtocol, i::UInt32)
     # pack big endian uint32
     append!(wp.buf, UInt8[UInt8(i >> 24 & 0xFF), UInt8(i >> 16 & 0xFF), UInt8(i >> 8 & 0xFF), UInt8(i & 0xFF)])
 end
@@ -202,42 +202,51 @@ function parse_status_vector(wp::WireProtocol)::Tuple{Vector{UInt32}, Int, Strin
     num_arg = 0
     message::String = ""
 
-    n = bytes_to_bint32(recv_packets(wp, 4))
+    n = bytes_to_buint32(recv_packets(wp, 4))
     while n != isc_arg_end
         if n == isc_arg_gds
-            gds_code = bytes_to_bint32(recv_packets(wp, 4))
+            gds_code = bytes_to_buint32(recv_packets(wp, 4))
             if gds_code != 0
                 push!(gds_codes, gds_code)
                 message *= errmsgs[gds_code]
                 num_arg = 0
             end
         elseif n == isc_arg_number
-            num = bytes_to_bint32(recv_packets(wp, 4))
+            num = bytes_to_buint32(recv_packets(wp, 4))
             if gds_code == 335544436
                 sql_code = num
             end
             num_arg += 1
             message = replace.(message, [string("@", num_arg)=>num])
         elseif n == isc_arg_string
-            nbytes = bytes_to_bint32(recv_packets(wp, 4))
+            nbytes = bytes_to_buint32(recv_packets(wp, 4))
             s = String(recv_packets_alignment(wp, nbytes))
             num_arg += 1
             message = replace.(message, [string("@", num_arg)=>s])
         elseif n == isc_arg_iterpreted
-            nbytes = bytes_to_bint32(recv_packets(wp, 4))
+            nbytes = bytes_to_buint32(recv_packets(wp, 4))
             message *= String(recv_packets_alignment(nbytes))
         elseif n == isc_arg_sql_state
-            nbytes = bytes_to_bint32(recv_packets(wp, 4))
+            nbytes = bytes_to_buint32(recv_packets(wp, 4))
             recv_packets_alignment(nbytes)  # skip status code
         end
-        n = bytes_to_bint32(recv_packets(wp, 4))
+        n = bytes_to_buint32(recv_packets(wp, 4))
     end
 
     (gds_codes, sql_code, error_message)
 end
 
 function parse_op_response(wp::WireProtocol)
-    # TODO
+    h = bytes_to_bint(recv_packets(wp, 4))  # Object handle
+    oid = recv_packets(wp, 8)               # Object ID
+    buf_len = bytes_to_bint32(wp, 4)        # buffer length
+    buf = recv_packets_alignment(wp, buf_len)
+
+    gds_code_list, sql_code, message = parse_status_vector(wp)
+    if gds_codes
+        throw(DomainError("response error", message))
+    end
+    (h, oid, buf)
 end
 
 function parse_connect_response(wp::WireProtocol)
@@ -282,14 +291,19 @@ end
 
 function _op_transaction(wp::WireProtocol)
     # TODO
+    pack_u
 end
 
-function _op_commit(wp::WireProtocol)
-    # TODO
+function _op_commit(wp::WireProtocol, trans_handle::Int32)
+    pack_uint32(wp, op_commit)
+    pack_uint32(wp, trans_handle)
+    send_packets(wp)
 end
 
-function _op_commit_retainning(wp::WireProtocol)
-    # TODO
+function _op_commit_retainning(wp::WireProtocol, trans_handle::Int32)
+    pack_uint32(wp, op_commit_retaining)
+    pack_uint32(wp, trans_handle)
+    send_packets(wp)
 end
 
 function _op_rollback(wp::WireProtocol)
@@ -368,8 +382,10 @@ function _op_batch_segments(wp::WireProtocol)
     # TODO
 end
 
-function _op_close_blob(wp::WireProtocol)
-    # TODO
+function _op_close_blob(wp::WireProtocol, blob_handle::Int32)
+    pack_uint32(wp, op_commit)
+    pack_uint32(wp, trans_handle)
+    send_packets(wp)
 end
 
 function _op_response(wp::WireProtocol)

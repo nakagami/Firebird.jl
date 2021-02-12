@@ -27,6 +27,7 @@ using Dates, DBInterface, Tables, Parsers, DecFP
 export DBInterface
 
 include("consts.jl")
+include("errmsgs.jl")
 include("utils.jl")
 include("srp.jl")
 include("arc4.jl")
