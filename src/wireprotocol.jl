@@ -393,23 +393,45 @@ function _op_fetch_response(wp::WireProtocol)
 end
 
 function _op_detatch(wp::WireProtocol)
-    # TODO
+    pack_uint32(wp, op_detatch)
+    pack_uint32(wp, wp.db_handle)
+    send_packets(wp)
 end
 
-function _op_open_blob(wp::WireProtocol)
-    # TODO
+function _op_open_blob(wp::WireProtocol, blob_id::Vector{UInt8}, trans_handle::Int32))
+    pack_uint32(wp, op_open_blob)
+    pack_uint32(wp, trans_handle)
+    append_bytes(wp, blob_id)
+    send_packets(wp)
 end
 
-function _op_create_blob2(wp::WireProtocol)
-    # TODO
+function _op_create_blob2(wp::WireProtocol, trans_handle::Int32)
+    pack_uint32(wp, op_create_blob2)
+    pack_uint32(0)
+    pack_uint32(trans_handle)
+    pack_uint32(0)
+    pack_uint32(0)
+    send_packets(wp)
 end
 
-function _op_get_segment(wp::WireProtocol)
-    # TODO
+function _op_get_segment(wp::WireProtocol, blob_handle::Int32)
+    pack_uint32(wp, op_get_segment)
+    pack_uint32(wp, blob_handle)
+    pack_uint32(wp, BUFFER_LEN)
+    send_packets(wp)
 end
 
-function _op_put_segment(wp::WireProtocol)
-    # TODO
+function _op_put_segment(wp::WireProtocol, blob_handle::Int32, seg_data::Vector{UInt8})
+    ln::UInt32 = length(seg_data)
+
+    pack_uint32(wp, op_put_segment)
+    pack_uint32(wp, blob_handle)
+    pack_uint32(wp, ln)
+    pack_uint32(wp, ln)
+    append_bytes(seg_data)
+    padding = Vector{UInt8}[0, 0, 0]
+    append_bytes(padding[1:((4 - ln) & 3)])
+    send_packets(wp)
 end
 
 function _op_batch_segments(wp::WireProtocol)
@@ -481,8 +503,25 @@ function _op_sql_response(wp::WireProtocol, xsqlda::XSQLVAR)::Vector{Any}
     r
 end
 
-function create_blob(wp::WireProtocol, trans_handle::Int32, b::Vector{UInt8})
-    # TODO
+function create_blob(wp::WireProtocol, b::Vector{UInt8}, trans_handle::Int32)::Vector{UInt8}
+    buf = suspebd_buffer(wp)
+    resume_buffer(wp, buf)
+
+    _op_create_blob2(wp, trans_handle)
+    blob_handle, blob_id, _ = op_response(wp)
+
+    i = 1
+    while i < length(b)
+        _op_put_segent(wp, blob_handle, b[i:i+BLOB_SEGMENT_SIZE])
+        h, oid, buf = op_response(wp)
+        i += BLOB_SEGMENT_SIZE
+    end
+    op_close_blob(wp, blob_handle)
+    h, oid, buf = op_response(wp)
+
+    resule_buffer(buf)
+
+    blob_id
 end
 
 function params_to_blr(wp::WireProtocol, trans_handle::Int32, params)::Tuple{Vector{UInt8}, Vector{UInt8}}
