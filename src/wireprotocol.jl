@@ -114,7 +114,7 @@ function pack_bytes(wp::WireProtocol, b::Vector{UInt8})
     append!(wp.buf, xdr_bytes(b))
 end
 
-function pack_str(wp::WireProtocol, s::String)
+function pack_string(wp::WireProtocol, s::String)
     append!(wp.buf, xdr_bytes(Vector{UInt8}(s)))
 end
 
@@ -306,36 +306,68 @@ function _op_commit_retainning(wp::WireProtocol, trans_handle::Int32)
     send_packets(wp)
 end
 
-function _op_rollback(wp::WireProtocol)
-    # TODO
+function _op_rollback(wp::WireProtocol, trans_handle::Int32)
+    pack_uint32(wp, op_rollback)
+    pack_uint32(wp, trans_handle)
+    send_packets(wp)
 end
 
 function _op_rollback_retaining(wp::WireProtocol)
-    # TODO
+    pack_uint32(wp, op_rollback_retaining)
+    pack_uint32(wp, trans_handle)
+    send_packets(wp)
 end
 
 function _op_allocate_statement(wp::WireProtocol)
-    # TODO
+    pack_uint32(wp, op_allocate_statement)
+    pack_uint32(wp, wp.db_handle)
+    send_packets(wp)
 end
 
-function _op_info_transaction(wp::WireProtocol)
-    # TODO
+function _op_info_transaction(wp::WireProtocol, trans_handle::Int32, b::Vector{UInt8})
+    pack_uint32(wp, op_info_transaction)
+    pack_uint32(wp, trans_handle)
+    pack_uint32(wp, 0)
+    pack_bytes(wp, b)
+    pack_uint32(wp, BUFFER_LEN)
+    send_packets(wp)
 end
 
-function _op_info_database(wp::WireProtocol)
-    # TODO
+function _op_info_database(wp::WireProtocol, b::Vector{UInt8})
+    pack_uint32(wp, op_info_database)
+    pack_uint32(wp, wp.db_handle)
+    pack_uint32(wp, 0)
+    pack_bytes(wp, b)
+    pack_uint32(wp, BUFFER_LEN)
+    send_packets(wp)
 end
 
-function _op_free_statement(wp::WireProtocol)
-    # TODO
+function _op_free_statement(wp::WireProtocol, stmt_handle::Int32, mode::Int32)
+    pack_uint32(wp, op_free_statement)
+    pack_uint32(wp, stmt_handle)
+    pack_uint32(wp, mode)
+    send_packets(wp)
 end
 
-function _op_prepare_statement(wp::WireProtocol)
-    # TODO
+function _op_prepare_statement(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32, query::String)
+    bs::Vector{UInt8} = vcat([isc_info_sql_stmt_type], INFO_SQL_SELECT_DESCRIBE_VARS())
+    pack_uint32(op_prepare_statement)
+    pack_uint32(trans_handle)
+    pack_uint32(stmt_handle)
+    pack_uint32(3)  # dialect = 3
+    pack_string(query)
+    pack_bytes(bs)
+    pack_uint32(wp, BUFFER_LEN)
+    send_packets(wp)
 end
 
-function _op_info_sql(wp::WireProtocol)
-    # TODO
+function _op_info_sql(wp::WireProtocol, stmt_handle::Int32, vars::Vector{UInt8})
+    pack_uint32(wp, op_info_sql)
+    pack_uint32(wp, stmt_handle)
+    pack_uint32(wp, 0)
+    pack_bytes(vars)
+    pack_uint32(wp, BUFFER_LEN)
+    send_packets(wp)
 end
 
 function _op_execute(wp::WireProtocol)

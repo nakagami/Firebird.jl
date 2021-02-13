@@ -22,6 +22,57 @@
 # SOFTWARE.
 ################################################################################
 
+function int32_to_bytes(i32::Int32)::Vector{UInt8}
+    vcat(
+        UInt8(i32 & 0xFF),
+        UInt8(i32 >> 8 & 0xFF),
+        UInt8(i32 >> 16 & 0xFF),
+        UInt8(i32 >> 24 & 0xFF),
+    )
+end
+
+function bint64_to_bytes(i64::Int64)::Vector{UInt8}
+    vcat(
+        UInt8(i64 >> 56 & 0xFF),
+        UInt8(i64 >> 48 & 0xFF),
+        UInt8(i64 >> 40 & 0xFF),
+        UInt8(i64 >> 32 & 0xFF),
+        UInt8(i64 >> 24 & 0xFF),
+        UInt8(i64 >> 16 & 0xFF),
+        UInt8(i64 >> 8 & 0xFF),
+        UInt8(i64 & 0xFF),
+    )
+end
+
+function bint32_to_bytes(i32::Int32)::Vector{UInt8}
+    vcat(
+        UInt8(i32 >> 24 & 0xFF),
+        UInt8(i32 >> 16 & 0xFF),
+        UInt8(i32 >> 8 & 0xFF),
+        UInt8(i32 & 0xFF),
+    )
+end
+
+function bint16_to_bytes(i16::Int16)::Vector{UInt8}
+    vcat(
+        UInt8(i16 >> 24 & 0xFF),
+        UInt8(i16 >> 16 & 0xFF),
+        UInt8(i16 >> 8 & 0xFF),
+        UInt8(i16 & 0xFF),
+    )
+end
+
+function bytes_to_buint32(b::Vector{UInt8})::UInt32
+    reinterpret(UInt32, reverse(b))
+end
+
+function bytes_to_bint32(b::Vector{UInt8})::Int32
+    reinterpret(Int32, reverse(b))
+end
+
+function bytes_to_bint16(b::Vector{UInt8})::Int16
+    reinterpret(Int16, reverse(b))
+end
 
 function xdr_bytes(bs::Vector{UInt8})::Vector{UInt8}
     # XDR encoding bytes
@@ -41,15 +92,6 @@ function xdr_bytes(bs::Vector{UInt8})::Vector{UInt8}
     buf
 end
 
-function bytes_to_buint32(b::Vector{UInt8})::UInt32
-    reinterpret(UInt32, reverse(b))
-end
+function int64_to_blr(i64::Int64)::Tuple{Vector{UInt8}, Vector{UInt8}}
 
-function bytes_to_bint32(b::Vector{UInt8})::Int32
-    reinterpret(Int32, reverse(b))
 end
-
-function bytes_to_bint16(b::Vector{UInt8})::Int16
-    reinterpret(Int16, reverse(b))
-end
-
