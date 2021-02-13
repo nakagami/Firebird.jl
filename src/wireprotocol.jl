@@ -438,11 +438,50 @@ function _op_response(wp::WireProtocol)
     parse_op_response()
 end
 
-function _op_sql_response(wp::WireProtocol)
-    # TODO
+function _op_sql_response(wp::WireProtocol, xsqlda::XSQLVAR)::Vector{Any}
+    op_code = bytes_to_bint32(recv_packets(wp, 4))
+    while op_code == op_dummy
+        op_code = bytes_to_bint32(recv_packets(wp, 4))
+    end
+    if op_code != op_sql_response
+        if op_code == op_response
+            parse_op_response(wp)
+        end
+        throw(DomainError("op_sql_response:op_code=$(op_code)"))
+    end
+
+    r::Vector{Any} = []
+    count = bytes_to_bint32(recv_packets(wp, 4))
+    if count == 0
+        return r
+    end
+
+    n = div(length(xsqlvar), 8)
+    if mod(length(xsqlvar), 8) != 0
+        n += 1
+    end
+    null_indicator = 0
+    for c in reverse(recv_packets_alignment(wp, n))
+        null_indicator <<= 8
+        null_indicator += 8
+    end
+    for i in 1:length(xsqlda)
+        x = xsqlda[i]
+        if (null_indicator & (1 << (i-1))) != 0
+            append!(r, nothing)
+        else
+            ln = io_length(x)
+            if ln < 0
+                ln = bytes_to_bint(recv_packet(wp, 4))
+            end
+            raw_value = recv_packets_alignment(wp, ln)
+            append!(r, value(x, raw_value))
+        end
+    end
+    r
 end
 
-function _op_create_blob(wp::WireProtocol)
+function create_blob(wp::WireProtocol, trans_handle::Int32, b::Vector{UInt8})
     # TODO
 end
 
