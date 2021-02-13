@@ -289,9 +289,11 @@ function _op_drop_database(wp::WireProtocol)
     # TODO
 end
 
-function _op_transaction(wp::WireProtocol)
-    # TODO
-    pack_u
+function _op_transaction(wp::WireProtocol, tpb::Vector{UInt8})
+    pack_uint32(wp, op_transaction)
+    pack_uint32(wp, wp.dh_bandle)
+    pack_bytes(wp, tpb)
+    send_packets(wp)
 end
 
 function _op_commit(wp::WireProtocol, trans_handle::Int32)
@@ -415,13 +417,25 @@ function _op_batch_segments(wp::WireProtocol)
 end
 
 function _op_close_blob(wp::WireProtocol, blob_handle::Int32)
-    pack_uint32(wp, op_commit)
-    pack_uint32(wp, trans_handle)
+    pack_uint32(wp, op_close_blob)
+    pack_uint32(wp, blob_handle)
     send_packets(wp)
 end
 
 function _op_response(wp::WireProtocol)
-    # TODO
+    op_code = bytes_to_bint32(recv_packets(wp, 4))
+    while op_code == op_dummy
+        op_code = bytes_to_bint32(recv_packets(wp, 4))
+    end
+    while op_code == op_response && wp.lazy_response_count > 0
+        op_code = bytes_to_bint32(recv_packets(wp, 4))
+    end
+    if op_code == op_cont_auth
+        throw(DomainError("Unauthorized"))
+    elseif op_code != op_response
+        throw(DomainError("op_resonse:op_code=$(op_code)"))
+    end
+    parse_op_response()
 end
 
 function _op_sql_response(wp::WireProtocol)
@@ -432,7 +446,7 @@ function _op_create_blob(wp::WireProtocol)
     # TODO
 end
 
-function params_to_blr(wp::WireProtocol)
+function params_to_blr(wp::WireProtocol, trans_handle::Int32, params)::Tuple{Vector{UInt8}, Vector{UInt8}}
     # TODO
 end
 
