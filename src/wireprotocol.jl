@@ -255,12 +255,12 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
         op_code = bytes_to_bint32(recv_packets(wp, 4))
     end
     if op_code == op_reject
-        throw(DomainError("op_reject")
+        throw(DomainError("op_reject"))
     end
     if op_code == op_response
         parse_op_response(wp)
         # NOT REACH HERE
-        throw(DomainError("op_response")
+        throw(DomainError("op_response"))
     end
 
     wp.protocol_version = bytes_to_int32(recv_packets(wp, 4))
@@ -314,10 +314,10 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
         client_secret,
         accept_plugin_name,
     )
-    if opcode == op_cond_accept {
+    if opcode == op_cond_accept
         _op_cont_auth(wp, auth_data)
         _op_response(wp)
-    }
+    end
 
     # TODO: wirecrypt
     wp.auth_data = auth_data
