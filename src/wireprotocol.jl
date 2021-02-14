@@ -278,7 +278,36 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
     # is_authenticated == 0
     @assert bytes_to_buint32(recv_packets(4)) == 0
 
+    # skip keys
+    ln = butes_to_buint32(recv_packets(4))
+    recv_packts_alignment(ln)
+
+    @assert self.accept_plugin_name == "Srp" || self.accept_plugin_name == "Srp256"
+
+    if length(data) == 0
+        _op_cont_auth(wp, bigint_to_bytes(client_public))
+        @assert bytes_to_bint32(recv_packets(wp, 4)) == op_cont_auth
+
+        ln = butes_to_buint32(recv_packets(4))
+        data = recv_packts_alignment(ln)
+
+        # skip plugin name
+        ln = butes_to_buint32(recv_packets(4))
+        recv_packts_alignment(ln)
+
+        # skip plugin name list
+        ln = butes_to_buint32(recv_packets(4))
+        recv_packts_alignment(ln)
+
+        # skip keys
+        ln = butes_to_buint32(recv_packets(4))
+        recv_packts_alignment(ln)
+    end
+    ln = butes_to_buint16(recv_packets(2))
+    server_salt = data[3:3+ln]
+
     # TODO
+
 end
 
 function parse_select_items(wp::WireProtocol)
@@ -305,7 +334,7 @@ function _op_attach(wp::WireProtocol)
     # TODO
 end
 
-function _op_contauth(wp::WireProtocol)
+function _op_cont_auth(wp::WireProtocol)
     # TODO
 end
 
