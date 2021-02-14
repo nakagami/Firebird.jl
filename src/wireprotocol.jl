@@ -249,7 +249,35 @@ function parse_op_response(wp::WireProtocol)
     (h, oid, buf)
 end
 
-function parse_connect_response(wp::WireProtocol)
+function parse_connect_response(wp::WireProtocol, username::String, password::String, options::Dict{String, String}, client_public::BigInt, client_secret::BigInt)
+    op_code = bytes_to_bint32(recv_packets(wp, 4))
+    while op_code == op_dummy
+        op_code = bytes_to_bint32(recv_packets(wp, 4))
+    end
+    if op_code == op_reject
+        throw(DomainError("op_reject")
+    end
+    if op_code == op_response
+        parse_op_response(wp)
+        # NOT REACH HERE
+        throw(DomainError("op_response")
+    end
+
+    wp.protocol_version = bytes_to_int32(recv_packets(wp, 4))
+    wp.accept_architecture = bytes_to_bint32(recv_packets(wp, 4))
+    wp.accept_type = bytes_to_bint32(recv_packets(wp, 4))
+
+    @assert opcode == op_cond_accept || opcode == op_accept_data
+
+    ln = bytes_to_buint32(recv_packets(wp, 4))
+    data = recv_packets(wp, ln)
+
+    ln = butes_to_buint32(recv_packets(4))
+    wp.accept_plugin_name = String(recv_packts_alignment(ln))
+
+    # is_authenticated == 0
+    @assert bytes_to_buint32(recv_packets(4)) == 0
+
     # TODO
 end
 
@@ -398,7 +426,7 @@ function _op_detatch(wp::WireProtocol)
     send_packets(wp)
 end
 
-function _op_open_blob(wp::WireProtocol, blob_id::Vector{UInt8}, trans_handle::Int32))
+function _op_open_blob(wp::WireProtocol, blob_id::Vector{UInt8}, trans_handle::Int32)
     pack_uint32(wp, op_open_blob)
     pack_uint32(wp, trans_handle)
     append_bytes(wp, blob_id)
