@@ -300,13 +300,27 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
         recv_packts_alignment(ln)
 
         # skip keys
-        ln = butes_to_buint32(recv_packets(4))
+        ln = bytes_to_buint32(recv_packets(4))
         recv_packts_alignment(ln)
     end
-    ln = butes_to_buint16(recv_packets(2))
+    ln = bytes_to_uint16(data[1:2])
     server_salt = data[3:3+ln]
+    server_public = bytes_to_bigint(hex2bytes(data[5+ln:length(data)]))
+    auth_data, session_key = get_client_proof(
+        uppercase(user_name),
+        password, server_salt,
+        client_ublic,
+        server_public,
+        client_secret,
+        accept_plugin_name,
+    )
+    if opcode == op_cond_accept {
+        _op_cont_auth(wp, auth_data)
+        _op_response(wp)
+    }
 
-    # TODO
+    # TODO: wirecrypt
+    wp.auth_data = auth_data
 
 end
 
