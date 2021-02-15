@@ -249,7 +249,7 @@ function parse_op_response(wp::WireProtocol)
     (h, oid, buf)
 end
 
-function parse_connect_response(wp::WireProtocol, username::String, password::String, options::Dict{String, String}, client_public::BigInt, client_secret::BigInt)
+function parse_connect_response(wp::WireProtocol, username::String, password::String, wire_crypt:Bool, client_public::BigInt, client_secret::BigInt)
     op_code = bytes_to_bint32(recv_packets(wp, 4))
     while op_code == op_dummy
         op_code = bytes_to_bint32(recv_packets(wp, 4))
@@ -319,8 +319,12 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
         _op_response(wp)
     end
 
-    # TODO: wirecrypt
-    wp.auth_data = auth_data
+    if wire_crypt && session_key != nothing
+        wp._op_crypt()
+        set_arc4_key(wp.chan, session_key)
+    else
+        wp.auth_data = auth_data
+    end
 
 end
 
@@ -505,8 +509,18 @@ function _op_put_segment(wp::WireProtocol, blob_handle::Int32, seg_data::Vector{
     send_packets(wp)
 end
 
-function _op_batch_segments(wp::WireProtocol)
-    # TODO
+function _op_batch_segments(wp::WireProtocol, blob_handle::Int32, seg_data::Vector{UInt8})
+    ln = length(sqg_data)
+    pack_uint(wp, op_batch_segments)
+    pack_uint32(wp, blob_handle)
+    pack_uint32(wp, ln+2)
+    pack_uint32(wp, ln+2)
+    pad_length = ((4-(ln+2)) & 3)
+    padding = Vector{UInt8}[0, 0, 0]
+    pack_bytes(wp, Vector{UInt8}[UInt8(ln & 255), UInt8(ln >> 8)])  # little endian int 16
+    pack_bytes(wp, seg_data)
+    append_bytes(wp, padding[1:((4 - ln) & 3)])
+    send_packets(wp)
 end
 
 function _op_close_blob(wp::WireProtocol, blob_handle::Int32)
