@@ -352,16 +352,22 @@ function _op_attach(wp::WireProtocol)
     # TODO
 end
 
-function _op_cont_auth(wp::WireProtocol)
+function _op_cont_auth(wp::WireProtocol, auth_data::Vector{UInt8}, auth_plugin_name::String, keys::String)
+    pack_uint32(wp, op_cont_auth)
     # TODO
 end
 
 function _op_crypt(wp::WireProtocol)
-    # TODO
+    pack_uint32(wp, op_cont_auth)
+    pack_string(wp, "Arc4")
+    pack_string("Symmetric")
+    send_packets(wp)
 end
 
 function _op_drop_database(wp::WireProtocol)
-    # TODO
+    pack_uint32(wp, op_drop_database)
+    pack_uint32(wp, wp.db_handle)
+    send_packets(wp)
 end
 
 function _op_transaction(wp::WireProtocol, tpb::Vector{UInt8})
