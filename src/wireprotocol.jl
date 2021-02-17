@@ -249,7 +249,7 @@ function parse_op_response(wp::WireProtocol)
     (h, oid, buf)
 end
 
-function parse_connect_response(wp::WireProtocol, username::String, password::String, wire_crypt:Bool, client_public::BigInt, client_secret::BigInt)
+function parse_connect_response(wp::WireProtocol, username::String, password::String, wire_crypt::Bool, client_public::BigInt, client_secret::BigInt)
     op_code = bytes_to_bint32(recv_packets(wp, 4))
     while op_code == op_dummy
         op_code = bytes_to_bint32(recv_packets(wp, 4))
