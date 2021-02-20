@@ -168,26 +168,35 @@ function value(x::XSQLVAR, raw_value::Vector{UInt8})
         if x.sqlscale > 0
             Int64(i16) * Int64(10^x.scale)
         elseif x.sqlscale < 0
-            if i16 > 0
-                Decimal(0, i16*-1, x.sqlscale)
-            else
+            if i16 < 0
                 Decimal(1, i16*-1, x.sqlscale)
+            else
+                Decimal(0, i16, x.sqlscale)
             end
+        else
+            i16
         end
     elseif x.sqltype == SQL_TYPE_LONG
-        nothing
+        i32::Int32 = Int32(bytes_to_int32(raw_value))
+        if x.sqlscale > 0
+            Int64(i32) * Int64(10^x.scale)
+        elseif x.sqlscale < 0
+            if i32 < 0
+                Decimal(1, i32*-1, x.sqlscale)
+            else
+                Decimal(0, i32, x.sqlscale)
+            end
+        else
+            i32
+        end
     elseif x.sqltype == SQL_TYPE_FLOAT
-        nothing
+        reinterpret(Float32, b)
     elseif x.sqltype == SQL_TYPE_DOUBLE
-        nothing
-    elseif x.sqltype == SQL_TYPE_D_FLOAT
-        nothing
+        reinterpret(Float64, b)
     elseif x.sqltype == SQL_TYPE_TIMESTAMP
         nothing
     elseif x.sqltype == SQL_TYPE_BLOB
-        nothing
-    elseif x.sqltype == SQL_TYPE_ARRAY
-        nothing
+        raw_value
     elseif x.sqltype == SQL_TYPE_QUAD
         nothing
     elseif x.sqltype == SQL_TYPE_TIME

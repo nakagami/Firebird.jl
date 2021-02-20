@@ -62,6 +62,14 @@ function bint16_to_bytes(i16::Int16)::Vector{UInt8}
     )
 end
 
+function bytes_to_uint128(b::Vector{UInt8})::UInt128
+    reinterpret(UInt128, b)
+end
+
+function bytes_to_int64(b::Vector{UInt8})::Int64
+    reinterpret(Int64, b)
+end
+
 function bytes_to_uint32(b::Vector{UInt8})::UInt32
     reinterpret(UInt32, b)
 end
@@ -74,8 +82,25 @@ function bytes_to_int16(b::Vector{UInt8})::Int16
     reinterpret(Int16, b)
 end
 
+
+function bytes_to_buint128(b::Vector{UInt8})::UInt128
+    reinterpret(UInt128, reverse(b))
+end
+
+function bytes_to_buint64(b::Vector{UInt8})::UInt64
+    reinterpret(UInt64, reverse(b))
+end
+
 function bytes_to_buint32(b::Vector{UInt8})::UInt32
     reinterpret(UInt32, reverse(b))
+end
+
+function bytes_to_bint128(b::Vector{UInt8})::Int128
+    reinterpret(Int128, reverse(b))
+end
+
+function bytes_to_bint64(b::Vector{UInt8})::Int64
+    reinterpret(Int64, reverse(b))
 end
 
 function bytes_to_bint32(b::Vector{UInt8})::Int32
