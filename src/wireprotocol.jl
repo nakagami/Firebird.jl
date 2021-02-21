@@ -328,8 +328,13 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
 
 end
 
-function parse_select_items(wp::WireProtocol)
+function parse_select_items(wp::WireProtocol, buf::Vector{UInt8}, xsqlda::Vector{XSQLVAR})
+    ln::Int = 0
+    index:Int = 0
+
+
     # TODO
+
 end
 
 function parse_xsqlda(wp::WireProtocol)
