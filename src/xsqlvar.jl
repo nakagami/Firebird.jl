@@ -150,7 +150,6 @@ function parse_timestamp(raw_value::Vector{UInt8})::DateTime
 end
 
 function value(x::XSQLVAR, raw_value::Vector{UInt8})
-    # TODO:
     if x.sqltype == SQL_TYPE_TEXT
         if x.sqlsubtype == 1
             raw_value
@@ -194,31 +193,31 @@ function value(x::XSQLVAR, raw_value::Vector{UInt8})
     elseif x.sqltype == SQL_TYPE_DOUBLE
         reinterpret(Float64, b)
     elseif x.sqltype == SQL_TYPE_TIMESTAMP
-        nothing
+        parse_timestamp(raw_value)
     elseif x.sqltype == SQL_TYPE_BLOB
         raw_value
-    elseif x.sqltype == SQL_TYPE_QUAD
-        nothing
     elseif x.sqltype == SQL_TYPE_TIME
-        nothing
+        parse_time(raw_value)
     elseif x.sqltype == SQL_TYPE_DATE
-        nothing
+        parse_date(raw_value)
     elseif x.sqltype == SQL_TYPE_INT64
-        nothing
+        bytes_to_bint64(raw_value)
     elseif x.sqltype == SQL_TYPE_INT128
-        nothing
+        bytes_to_bint64(raw_value)
     elseif x.sqltype == SQL_TYPE_TIMESTAMP_TZ
+        # TODO:
         nothing
     elseif x.sqltype == SQL_TYPE_TIME_TZ
+        # TODO:
         nothing
     elseif x.sqltype == SQL_TYPE_DEC_FIXED
-        nothing
+        decimal_fiexed_to_decimal(value_value)
     elseif x.sqltype == SQL_TYPE_DEC64
-        nothing
+        decimal64_to_decimal(value_value)
     elseif x.sqltype == SQL_TYPE_DEC128
-        nothing
+        decimal128_to_decimal(value_value)
     elseif x.sqltype == SQL_TYPE_BOOLEAN
-        nothing
+        raw_value[0] != 0
     elseif x.sqltype == SQL_TYPE_NULL
         nothing
     end
