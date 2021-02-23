@@ -487,11 +487,11 @@ function _op_connect(wp::WireProtocol, db_name::String, user::String, password::
     send_packets(wp)
 end
 
-function _op_create(wp::WireProtocol)
+function _op_create(wp::WireProtocol, db_name::String, user::String, password::String)
     # TODO
 end
 
-function _op_attach(wp::WireProtocol)
+function _op_attach(wp::WireProtocol, db_name::String, user::String, password::String)
     # TODO
 end
 
@@ -600,20 +600,65 @@ function _op_info_sql(wp::WireProtocol, stmt_handle::Int32, vars::Vector{UInt8})
     send_packets(wp)
 end
 
-function _op_execute(wp::WireProtocol)
-    # TODO
+function _op_execute(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32, params::Vector{Any})
+    pack_uint32(wp, op_execute)
+    pack_uint32(wp, stmt_handle)
+    pack_uint32(wp, trans_handle)
+
+    if length(params) == 0
+        pack_uint32(wp, 0)  # pack_bytes(wp, [])
+        pack_uint32(wp, 0)
+        pack_uint32(wp, 0)
+    else
+        blr, values = params_to_blr(wp, trans_handle, params, wp.protocol_version)
+        pack_bytes(wp, blr)
+        pack_uint32(wp, 0)
+        pack_uint32(wp, 1)
+        append_bytes(values)
+    end
+    send_packets(wp)
 end
 
-function _op_execute2(wp::WireProtocol)
-    # TODO
+function _op_execute2(wp::WireProtocol, stmt_handle:Int32, trans_handle::Int32, params::Vector{Any}, output_blr::Vector{UInt8})
+    pack_uint32(wp, op_execute2)
+    pack_uint32(wp, stmt_handle)
+    pack_uint32(wp, trans_handle)
+
+    if length(params) == 0
+        pack_uint32(wp, 0)  # pack_bytes(wp, [])
+        pack_uint32(wp, 0)
+        pack_uint32(wp, 0)
+    else
+        blr, values = params_to_blr(wp, trans_handle, params, wp.protocol_version)
+        pack_bytes(wp, blr)
+        pack_uint32(wp, 0)
+        pack_uint32(wp, 1)
+        append_bytes(values)
+    end
+
+    pack_bytes(output_blr)
+    pack_uint32(0)
+    send_packets(wp)
 end
 
-function _op_exec_immediate(wp::WireProtocol)
-    # TODO
+function _op_exec_immediate(wp::WireProtocol, trans_handle::Int32, query::String)
+    pack_uint32(wp, op_exec_immediate)
+    pack_uint32(wp, trans_handle)
+    pack_uint32(wp, wp.db_handle)
+    pack_uint32(3)      # dialect = 3
+    pack_string(wp, query)
+    pack_bytes(wp, [])
+    pack_uint32(wp, BUFFER_LEN)
+    send_packets(wp)
 end
 
-function _op_fetch(wp::WireProtocol)
-    # TODO
+function _op_fetch(wp::WireProtocol, stmt_handle::Int32, blr::Vector{UInt8})
+    pack_uint32(wp, op_fetch)
+    pack_uint32(wp, stmt_handle)
+    pack_bytes(wp, blr)
+    pack_uint32(wp, 0)
+    pack_uint32(wp, 400)
+    send_packets(wp)
 end
 
 function _op_fetch_response(wp::WireProtocol)
