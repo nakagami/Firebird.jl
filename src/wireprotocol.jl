@@ -619,7 +619,7 @@ function _op_execute(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32, 
     send_packets(wp)
 end
 
-function _op_execute2(wp::WireProtocol, stmt_handle:Int32, trans_handle::Int32, params::Vector{Any}, output_blr::Vector{UInt8})
+function _op_execute2(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32, params::Vector{Any}, output_blr::Vector{UInt8})
     pack_uint32(wp, op_execute2)
     pack_uint32(wp, stmt_handle)
     pack_uint32(wp, trans_handle)
@@ -662,7 +662,17 @@ function _op_fetch(wp::WireProtocol, stmt_handle::Int32, blr::Vector{UInt8})
 end
 
 function _op_fetch_response(wp::WireProtocol)
+    op_code = bytes_to_bint32(recv_packets(wp, 4))
+    while op_code == op_dummy
+        op_code = bytes_to_bint32(recv_packets(wp, 4))
+    end
+    while op_code == op_response && wp.lazy_response_count > 0
+        wp.lazy_response_count -= 1
+        op_code = bytes_to_bint32(recv_packets(wp, 4))
+    end
+
     # TODO
+
 end
 
 function _op_detatch(wp::WireProtocol)
@@ -733,6 +743,7 @@ function _op_response(wp::WireProtocol)
         op_code = bytes_to_bint32(recv_packets(wp, 4))
     end
     while op_code == op_response && wp.lazy_response_count > 0
+        wp.lazy_response_count -= 1
         op_code = bytes_to_bint32(recv_packets(wp, 4))
     end
     if op_code == op_cont_auth
