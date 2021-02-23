@@ -496,14 +496,14 @@ function _op_create(wp::WireProtocol, db_name::String, user::String, password::S
 
     dpb = vcat(
         [isc_dpb_version1],
-        [isc_dpb_set_db_charset, byte(len(encode))}, encode,
-        [isc_dpb_lc_ctype, byte(len(encode))}, encode,
-        [isc_dpb_user_name, byte(len(user_bytes))}, user_bytes,
-        [isc_dpb_password, byte(len(password_bytes))}, password_bytes,
-        [isc_dpb_sql_dialect, 4}, int32_to_bytes(3),
-        [isc_dpb_force_write, 4}, bint32_to_bytes(1),
-        [isc_dpb_overwrite, 4}, bint32_to_bytes(1),
-        [isc_dpb_page_size, 4}, int32_to_bytes(page_size),
+        [isc_dpb_set_db_charset, byte(len(encode))], encode,
+        [isc_dpb_lc_ctype, byte(len(encode))], encode,
+        [isc_dpb_user_name, byte(len(user_bytes))], user_bytes,
+        [isc_dpb_password, byte(len(password_bytes))], password_bytes,
+        [isc_dpb_sql_dialect, 4], int32_to_bytes(3),
+        [isc_dpb_force_write, 4], bint32_to_bytes(1),
+        [isc_dpb_overwrite, 4], bint32_to_bytes(1),
+        [isc_dpb_page_size, 4], int32_to_bytes(page_size),
     )
 
     if length(wp.auth_data) != 0
