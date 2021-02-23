@@ -721,7 +721,7 @@ function _op_fetch(wp::WireProtocol, stmt_handle::Int32, blr::Vector{UInt8})
     send_packets(wp)
 end
 
-function _op_fetch_response(wp::WireProtocol)
+function _op_fetch_response(wp::WireProtocol, stmt_handle::Int32, xsqlda::Vector{XSQLVAR})::Tuple{Vector{Vector{Any}}, Bool}
     op_code = bytes_to_bint32(recv_packets(wp, 4))
     while op_code == op_dummy
         op_code = bytes_to_bint32(recv_packets(wp, 4))
@@ -731,8 +731,15 @@ function _op_fetch_response(wp::WireProtocol)
         op_code = bytes_to_bint32(recv_packets(wp, 4))
     end
 
-    # TODO
+    status = bytes_to_bint32(recv_packets(wp, 4))
+    count = bytes_to_bint32(recv_packets(wp, 4))
+    rows::Vector{Vector{Any}} = []
 
+    while count > 0
+        # TODO
+    end
+
+    rows, status != 100
 end
 
 function _op_detatch(wp::WireProtocol)
