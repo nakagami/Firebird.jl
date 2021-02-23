@@ -762,7 +762,34 @@ function create_blob(wp::WireProtocol, b::Vector{UInt8}, trans_handle::Int32)::V
     blob_id
 end
 
-function params_to_blr(wp::WireProtocol, trans_handle::Int32, params)::Tuple{Vector{UInt8}, Vector{UInt8}}
-    # TODO
-end
+function params_to_blr(wp::WireProtocol, trans_handle::Int32, params::Vector{Any})::Tuple{Vector{UInt8}, Vector{UInt8}}
+    ln = length(params) * 2
+    blr_list::Vector{UInt8} = Vector{UInt8}[5, 2, 4, 0, UInt8(ln & 255), UInt8(ln >> 8)]
+    values::Vector{UInt8} = []
 
+    # NULL indicator
+    null_indicator::BigInt = 0
+    for i in 1:length(params)
+        if params[i] == nothing
+            null_indicator |= (1 << i)
+        end
+    end
+    n = div(length(params), 8)
+    if mod(length(params), 8) != 0
+        n += 1
+    end
+    if mod(n, 4)    # padding
+        n += mod(4 - n,  4)
+    end
+    for i in 1:n
+        append!(values, null_indicator & 255)
+        null_indicator >>= 8
+    end
+
+    for i in 1:length(params)
+        # TODO
+    end
+
+    blr = vcat(blr, Vector{UInt8}[255, 76])     # [blr_end, blr_eoc]
+    blr, values
+end
