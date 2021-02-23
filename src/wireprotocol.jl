@@ -497,7 +497,11 @@ end
 
 function _op_cont_auth(wp::WireProtocol, auth_data::Vector{UInt8}, auth_plugin_name::String, keys::String)
     pack_uint32(wp, op_cont_auth)
-    # TODO
+    pack_string(wp, bytes2hex(auth_data))
+    pack_string(wp, auth_plugin_name)
+    pack_string(wp, "Srp256,Srp")
+    pack_string(wp, keys)
+    send_packets(wp)
 end
 
 function _op_crypt(wp::WireProtocol)
