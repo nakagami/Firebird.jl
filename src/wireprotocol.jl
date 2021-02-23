@@ -488,7 +488,39 @@ function _op_connect(wp::WireProtocol, db_name::String, user::String, password::
 end
 
 function _op_create(wp::WireProtocol, db_name::String, user::String, password::String)
-    # TODO
+    page_size::Int = 4096
+    encode = b"UTF8"
+
+    user_bytes = Vector{UInt8}(user)
+    password_bytes = Vector{UInt8}(user)
+
+    dpb = vcat(
+        [isc_dpb_version1],
+        [isc_dpb_set_db_charset, byte(len(encode))}, encode,
+        [isc_dpb_lc_ctype, byte(len(encode))}, encode,
+        [isc_dpb_user_name, byte(len(user_bytes))}, user_bytes,
+        [isc_dpb_password, byte(len(password_bytes))}, password_bytes,
+        [isc_dpb_sql_dialect, 4}, int32_to_bytes(3),
+        [isc_dpb_force_write, 4}, bint32_to_bytes(1),
+        [isc_dpb_overwrite, 4}, bint32_to_bytes(1),
+        [isc_dpb_page_size, 4}, int32_to_bytes(page_size),
+    )
+
+    if length(wp.auth_data) != 0
+        specific_auth_data = bytes2hex(wp.auth_data)
+        dpb = vcat(dpb, [isc_dpb_specific_auth_data, length(specific_auth_data)], specific_auth_data)
+    end
+
+    if wp.timezone != ""
+        tzname_bytes = Vector{UInt8}(wp.timezone)
+        dpb = vcat(dpb, [isc_dpb_session_time_zone, length(tzname_bytes)], tzname_bytes)
+    end
+
+    pack_uint32(wp, op_create)
+    pack_uint32(wp, 0)
+    pack_string(wp, db_name)
+    pack_bytes(dpb)
+    send_packets(wp)
 end
 
 function _op_attach(wp::WireProtocol, db_name::String, user::String, password::String)
