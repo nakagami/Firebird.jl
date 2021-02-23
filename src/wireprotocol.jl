@@ -328,13 +328,78 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
 
 end
 
-function parse_select_items(wp::WireProtocol, buf::Vector{UInt8}, xsqlda::Vector{XSQLVAR})
+function parse_select_items(wp::WireProtocol, buf::Vector{UInt8}, xsqlda::Vector{XSQLVAR})::Int
     ln::Int = 0
     index:Int = 0
+    i = 1
 
+    item = buf[i]
+    while item != isc_info_end
+        i += 1
+        if item ==  isc_info_sql_sqlda_seq
+			ln = bytes_to_int16(buf[i:i+2])
+			i += 2
+			index = bytes_to_int32(buf[i:i+ln])
+			i += ln
+        elseif item == isc_info_sql_type
+			ln = bytes_to_int16(buf[i:i+2])
+			i += 2
+			sqltype = bytes_to_int32(buf[i:i+ln])
+			if sqltype % 2 != 0
+				sqltype -= 1
+			end
+			xsqlda[index].sqltype = sqltype
+			i += ln
+		elseif item == isc_info_sql_sub_type
+			ln = bytes_to_int16(buf[i:i+2])
+			i += 2
+			xsqlda[index].sqlsubtype = bytes_to_int32(buf[i:i+ln])
+			i += ln
+		elseif item == isc_info_sql_scale
+			ln = bytes_to_int16(buf[i:i+2])
+			i += 2
+			xsqlda[index].sqlscale = bytes_to_int32(buf[i:i+ln])
+			i += ln
+		elseif item == isc_info_sql_length
+			ln = bytes_to_int16(buf[i:i+2])
+			i += 2
+			xsqlda[index].sqllen = bytes_to_int32(buf[i:i+ln])
+			i += ln
+		elseif item == isc_info_sql_null_ind
+			ln = bytes_to_int16(buf[i:i+2])
+			i += 2
+			xsqlda[index].null_ok = bytes_to_int32(buf[i:i+ln]) != 0
+			i += ln
+		elseif item == isc_info_sql_field
+			ln = bytes_to_int16(buf[i:i+2])
+			i += 2
+			xsqlda[index].fieldname = bytes_to_str(buf[i:i+ln])
+			i += ln
+		elseif item == isc_info_sql_relation
+			ln = bytes_to_int16(buf[i:i+2])
+			i += 2
+			xsqlda[index].relname = bytes_to_str(buf[i:i+ln])
+			i += ln
+		elseif item == isc_info_sql_owner
+			ln = bytes_to_int16(buf[i : i+2])
+			i += 2
+			xsqlda[index].ownname = bytes_to_str(buf[i:i+ln])
+			i += ln
+		elseif item == isc_info_sql_alias
+			ln = bytes_to_int16(buf[i : i+2])
+			i += 2
+			xsqlda[index].aliasname = bytes_to_str(buf[i:i+ln])
+			i += ln
+		elseif item == isc_info_truncated
+			return index        # return next index
+		elseif item == isc_info_sql_describe_end
+			# NOTHING
+		else
+            throw(DomainError("Invalid item", "$i:$(buf[i])"))
+		end
+    end
 
-    # TODO
-
+    -1  # no more info
 end
 
 function parse_xsqlda(wp::WireProtocol)
