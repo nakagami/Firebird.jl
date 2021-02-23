@@ -402,8 +402,45 @@ function parse_select_items(wp::WireProtocol, buf::Vector{UInt8}, xsqlda::Vector
     -1  # no more info
 end
 
-function parse_xsqlda(wp::WireProtocol, buf::Vector{UInt8}, stmt_handle::Int32)::Tuple{Int, XSQLVAR}
-    # TODO
+function parse_xsqlda(wp::WireProtocol, buf::Vector{UInt8}, stmt_handle::Int32)::Tuple{Int, Vector{XSQLVAR}}
+    stmt_type::Int = 0
+    xsqlda::Vector{XSQLVAR} = []
+    i = 1
+
+    while i <= length(buf)
+        if buf[i] == UInt8(isc_info_sql_stmt_type) && buf[i+1] == UInt8(0x04) && buf[i+2] == UInt8(0x00)
+            i += 1
+            ln = bytes_to_int16(buf[i : i+2])
+            i += 2
+            stmt_type = bytes_to_int32(buf[i : i+ln])
+            i += ln
+        elseif buf[i] == UInt8(isc_info_sql_select) && buf[i+1] == UInt8(isc_info_sql_describe_vars)
+            i += 2
+            ln = bytes_to_int16(buf[i : i+2])
+            i += 2
+            col_len = bytes_to_int32(buf[i:i+ln])
+            xsqlda = Vector{XSQLVAR}(col_len)
+            next_index = parse_select_items(wp, buf[i+ln:length(buf)], xsqlda)
+            while next_index > 0    # more describe vars
+                _op_info_sql(stmt_handle,
+                    vcat(
+                        Vector{UInt8}[isc_info_sql_sqlda_start, 2],
+                        int16_to_bytes(int16(next_index)),
+                        INFO_SQL_SELECT_DESCRIBE_VARS(),
+                    )
+                )
+                _, _, buf = op_response(wp)
+                # buf[1:2] == [0x04,0x07]
+                ln = bytes_to_int16(buf[3:4])
+                # bytes_to_int(buf[5:5+ln]) == col_len
+                next_index = p._parse_select_items(buf[5+ln:length(buf)], xsqlda)
+            end
+        else
+            break
+        end
+    end
+
+    stmt_type, xsqlda
 end
 
 function get_blob_segments(wp::WireProtocol)
