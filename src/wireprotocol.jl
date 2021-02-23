@@ -443,12 +443,48 @@ function parse_xsqlda(wp::WireProtocol, buf::Vector{UInt8}, stmt_handle::Int32):
     stmt_type, xsqlda
 end
 
-function get_blob_segments(wp::WireProtocol)
-    # TODO
+function get_blob_segments(wp::WireProtocol, blob_id::Vector{UInt8}, trans_handle::Int32)::Vector{UInt8}
+    suspend_buf = suspend_buffer(wp)
+    blob = Vector{UInt8}
+    _op_open_blob(wp, blob_id, trans_handle)
+    blob_handle, _, _ = _op_response(wp)
+
+    more_data = 1
+    while more_data != 2
+        _op_get_segments(wp, blob_handle)
+        more_data, _, buf = _op_response(wp)
+        while length(buf) > 0
+            ln = bytes_to_int16(buf[1:2])
+            blob = vcat(blob, buf[3:ln+2])
+            buf = buf[ln+3:length(buf)]
+        end
+    end
+
+    _op_close_blob(wp, blob_handle)
+    if accept_type == ptype_lazy_send
+        wp.lazy_response_count += 1
+    else
+        _op_response(wp)
+    end
+
+    resume_buffer(suspend_buf)
+    blob
 end
 
-function _op_connect(wp::WireProtocol)
-    # TODO
+function _op_connect(wp::WireProtocol, db_name::String, user::String, password::String, wire_crypt::Bool, client_public::BigInt)
+    # PROTOCOL_VERSION, Arch type (Generic=1), min, max, weight = 13, 1, 0, 5, 8
+    protocols = "ffff800d00000001000000000000000500000008"
+    protocols_len = div(hex2bytes(protocols), 20)
+
+    pack_uint32(wp, op_connect)
+    pack_uint32(wp, op_attach)
+    pack_uint32(wp, 3)  # CONNECT_VERSION3
+    pack_uint32(wp, 1)  # Arc type(GENERIC)
+    pack_string(db_name)
+    pack_uint32(wp, protocols_len)  # number of protocols
+    pack_bytes(uid(wp, user, password, "Srp256", wire_crypt, client_public))
+    append_bytes(wp, hex2bytes(protocols))
+    send_packets(wp)
 end
 
 function _op_create(wp::WireProtocol)
