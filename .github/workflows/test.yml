@@ -24,7 +24,6 @@ jobs:
         sudo systemctl restart firebird3.0
         sudo chmod 0664 /etc/firebird/3.0/SYSDBA.password
         grep '=' /etc/firebird/3.0/SYSDBA.password |sed 's/^/export /' >test_user.env
-        cat test_user.env
 
     - uses: julia-actions/setup-julia@v1
       with:
@@ -33,6 +32,5 @@ jobs:
 
     - name: Test
       run: |
-        cat test_user.env
         source test_user.env
         julia --project -e 'using Pkg;Pkg.test()'
