@@ -34,7 +34,7 @@ using Test, Firebird
     else
         "masterkey"
     end
-    conn = DBInterface.connect(Firebird.Connection, "127.0.0.1", user, password, "/tmp/test.fdb")
+    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, "/tmp/test.fdb")
 end
 
 @testset "srp" begin

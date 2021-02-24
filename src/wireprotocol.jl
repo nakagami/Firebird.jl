@@ -53,7 +53,7 @@ mutable struct WireChannel
     arc4out::Union{Arc4, Nothing}
     function WireChannel(host::String, port::Int)
         sock = Sockets.connect(host, port)
-        new(socket, nothing, nothing)
+        new(sock, nothing, nothing)
     end
 end
 
