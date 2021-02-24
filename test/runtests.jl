@@ -23,6 +23,20 @@
 ################################################################################
 using Test, Firebird
 
+@testset "connection" begin
+    user = if haskey(ENV, "ISC_USER")
+        ENV["ISC_USER"]
+    else
+        "sysdba"
+    end
+    password = if haskey(ENV, "ISC_PASSWORD")
+        ENV["ISC_PASSWORD"]
+    else
+        "masterkey"
+    end
+    conn = DBInterface.connect(Firebird.Connection, "127.0.0.1", user, password, "/tmp/test.fdb")
+end
+
 @testset "srp" begin
     user = "SYSDBA"
     password = "masterkey"
