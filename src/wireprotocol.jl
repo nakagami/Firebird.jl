@@ -731,6 +731,13 @@ function _op_fetch_response(wp::WireProtocol, stmt_handle::Int32, xsqlda::Vector
         op_code = bytes_to_bint32(recv_packets(wp, 4))
     end
 
+    if op_code != op_fetch_response
+        if op_code == op_response
+            parse_op_response()
+        end
+        throw(DomainError("op_fetch_resonse:op_code=$(op_code)"))
+    end
+
     status = bytes_to_bint32(recv_packets(wp, 4))
     count = bytes_to_bint32(recv_packets(wp, 4))
     rows::Vector{Vector{Any}} = []
