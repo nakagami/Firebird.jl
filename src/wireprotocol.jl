@@ -52,7 +52,6 @@ mutable struct WireChannel
     arc4in::Union{Arc4, Nothing}
     arc4out::Union{Arc4, Nothing}
     function WireChannel(host::String, port::Int)
-        println("host=$(host), port=$(port)")
         sock = Sockets.connect(host, port)
         new(sock, nothing, nothing)
     end
