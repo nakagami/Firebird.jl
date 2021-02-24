@@ -25,11 +25,10 @@ jobs:
         sudo chmod 0664 /etc/firebird/3.0/SYSDBA.password
         grep '=' /etc/firebird/3.0/SYSDBA.password |sed 's/^/export /' >test_user.env
 
-    - name: Set up julia
-      - uses: julia-actions/setup-julia@v1
+    - uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.julia-version }}
-      - uses: julia-actions/julia-buildpkg@v1
+    - uses: julia-actions/julia-buildpkg@v1
 
     - name: Test
       run: |
