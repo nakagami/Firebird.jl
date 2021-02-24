@@ -23,10 +23,15 @@ jobs:
         sudo cp misc/firebird.conf /etc/firebird/3.0
         sudo systemctl restart firebird3.0
         sudo chmod 0664 /etc/firebird/3.0/SYSDBA.password
-        grep '=' /etc/firebird/3.0/SYSDBA.password |sed 's/^/export /' >> $GITHUB_ENV
+        grep '=' /etc/firebird/3.0/SYSDBA.password |sed 's/^/export /' >test_user.env
 
+    - name: Set up julia
       - uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.julia-version }}
       - uses: julia-actions/julia-buildpkg@v1
-      - uses: julia-actions/julia-runtest@v1
+
+    - name: Test
+      run: |
+        source test_user.env
+        julia --project -e 'using Pkg;Pkg.test()'
