@@ -743,7 +743,32 @@ function _op_fetch_response(wp::WireProtocol, stmt_handle::Int32, xsqlda::Vector
     rows::Vector{Vector{Any}} = []
 
     while count > 0
-        # TODO
+        n = div(length(xsqlda), 8)
+        if mod(xsqlda, 8) != 0
+            n += 1
+        end
+        null_indicator::BigInt = 0
+        for b in reverse(recv_packets_alignment(wp, n))
+            null_indicator <<= 8
+            null_indicator += b
+        end
+        r = []
+        for i in 1:length(xsqlda)
+            x = xsqlda[i]
+            if null_indicator & (1 << i)
+                append!(r, nothing)
+            end
+            ln = io_length(x)
+            if ln < 0
+                ln = bytes_to_bint(recv_packet(wp, 4))
+            end
+            raw_value = recv_packets_alignment(wp, ln)
+            append!(r, value(x, raw_value))
+        end
+        append!(rows, r)
+        op_code = bytes_to_bint(recv_packets(wp, 4))
+        status = bytes_to_bint(recv_packets(wp, 4))
+        count = bytes_to_bint(recv_packets(wp, 4))
     end
 
     rows, status != 100
