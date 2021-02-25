@@ -129,6 +129,31 @@ function xdr_bytes(bs::Vector{UInt8})::Vector{UInt8}
     buf
 end
 
-function int64_to_blr(i64::Int64)::Tuple{Vector{UInt8}, Vector{UInt8}}
+function to_blr(i64::Int64)::Tuple{Vector{UInt8}, Vector{UInt8}}
+    # TODO
 
+end
+
+function to_blr(i32::Int32)::Tuple{Vector{UInt8}, Vector{UInt8}}
+    # TODO
+end
+
+function to_blr(f64::Float64)::Tuple{Vector{UInt8}, Vector{UInt8}}
+    # TODO
+end
+
+function to_blr(bytes::Vector{UInt8})::Tuple{Vector{UInt8}, Vector{UInt8}}
+    # TODO
+end
+
+function to_blr(t::Time)::Tuple{Vector{UInt8}, Vector{UInt8}}
+    # TODO
+end
+
+function to_blr(dt::DateTime)::Tuple{Vector{UInt8}, Vector{UInt8}}
+    # TODO
+end
+
+function calc_blr(xsqlda::Vector{UInt8})::Vector{UInt8}
+    # TODO
 end
