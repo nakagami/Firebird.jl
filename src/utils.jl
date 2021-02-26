@@ -130,20 +130,27 @@ function xdr_bytes(bs::Vector{UInt8})::Vector{UInt8}
 end
 
 function to_blr(i64::Int64)::Tuple{Vector{UInt8}, Vector{UInt8}}
-    # TODO
-
+    bint64_to_bytes(i64), UInt8[16, 0]
 end
 
 function to_blr(i32::Int32)::Tuple{Vector{UInt8}, Vector{UInt8}}
-    # TODO
+    bint32_to_bytes(i32), UInt8[8, 0]
 end
 
 function to_blr(f64::Float64)::Tuple{Vector{UInt8}, Vector{UInt8}}
-    # TODO
+    buf = IOBuffer()
+    write(buf, f64)
+    seek(buf, 0)
+    v = read(buf)
+    v, UInt8[27]
 end
 
 function to_blr(bytes::Vector{UInt8})::Tuple{Vector{UInt8}, Vector{UInt8}}
-    # TODO
+    nbytes = length(bytes)
+    pad_length = ((4 - nbytes) & 3)
+    padding = Vector{UInt8}[0, 0, 0]
+    v = vcat(bytes, padding[1:pad_length])
+    v, UInt8[14, UInt8(nbytes & 255), UInt8(nbytes >> 8)]
 end
 
 function to_blr(t::Time)::Tuple{Vector{UInt8}, Vector{UInt8}}
