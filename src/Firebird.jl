@@ -36,8 +36,8 @@ include("decfloat.jl")
 include("wireprotocol.jl")
 include("connection.jl")
 
-DBInterface.connect(::Type{Connection}, host::String, user::String, passwd::String, db::String; port::Integer=3050, wire_crypt=true) =
-    Connection(host, user, passwd, db, port, wire_crypt)
+DBInterface.connect(::Type{Connection}, host::String, user::String, passwd::String, db::String; port::Integer=3050, wire_crypt::Bool=true, create_db::Bool=false) =
+    Connection(host, user, passwd, db, port, wire_crypt, create_db)
 
 
 end # module
