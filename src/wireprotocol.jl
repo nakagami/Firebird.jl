@@ -62,7 +62,7 @@ function set_arc4_key(chan::WireChannel, key::Vector{UInt8})
     chan.arc4out = Arc4(key)
 end
 
-function read(chan::WireChannel, t::DataType)
+function recv(chan::WireChannel, t::DataType)
     data::Vector{UInt8} = read(chan.socket, sizeof(t))
     if chan.arc4in != nothing
         bytes = translate(chan.arc4in, data)
@@ -70,7 +70,7 @@ function read(chan::WireChannel, t::DataType)
     reinterpret(t, data)
 end
 
-function write(chan::WireChannel, data::Vector{UInt8})
+function send(chan::WireChannel, data::Vector{UInt8})
     if chan.arc4out != nothing
         data = translate(chan.arc4out, data)
     end
@@ -178,7 +178,7 @@ function uid(user::String, password::String, auth_plugin_name::String, wire_cryp
 end
 
 function send_packets(wp::WireProtocol)
-    write(wp.channel.socket, wp.buf)
+    send(wp.channel, wp.buf)
     wp.buf = []
 end
 
@@ -192,7 +192,7 @@ end
 
 function recv_packets(wp::WireProtocol, n::Int)::Vector{UInt8}
     buf = zeros(UInt8, n)
-    read(wp.conn, buf)
+    recv(wp.channel, buf)
     buf
 end
 
