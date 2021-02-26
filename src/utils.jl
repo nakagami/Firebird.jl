@@ -150,17 +150,47 @@ function to_blr(bytes::Vector{UInt8})::Tuple{Vector{UInt8}, Vector{UInt8}}
     pad_length = ((4 - nbytes) & 3)
     padding = Vector{UInt8}[0, 0, 0]
     v = vcat(bytes, padding[1:pad_length])
+
     v, UInt8[14, UInt8(nbytes & 255), UInt8(nbytes >> 8)]
 end
 
+function _convert_date(year::Int, month::Int, day::Int)::Vector{UInt8}
+    i = month + 9
+    jy = year + div(i, 12) - 1
+    jm = mod(i, 12)
+    c = div(jy, 100)
+    jy -= 100 * c
+    j = (146097*c)/4 + (1461*jy)/4 + (153*jm+2)/5 + day - 678882
+
+    bint32_to_bytes(Int32(j))
+end
+
+function _convert_time(hour::Int, minute::Int, second::Int, microsecond::Int, nanosecond::Int)::Vector{UInt8}
+    v = (hour*3600+mintes*60+second)*10000 + div(microsecond, 100) + div(nanosecond, 100000)
+
+    bint32_to_bytes(Int32(v))
+end
+
+function to_blr(d::Date)::Tuple{Vector{UInt8}, Vector{Uint8}}
+    v = _convert_date(Dates.year(d), Dates.month(d), Dates.day(d))
+
+    v, UInt8[12]
+end
+
 function to_blr(t::Time)::Tuple{Vector{UInt8}, Vector{UInt8}}
-    # TODO
+    v = _convert_time(Time.hour(t), Time.minute(t), Time.second(t), Time.microsecond(t), Time.nanosecond(t))
+
+    v, UInt8[13]
 end
 
 function to_blr(dt::DateTime)::Tuple{Vector{UInt8}, Vector{UInt8}}
-    # TODO
+    v = vcat(
+        _convet_date(DateTime.year(dt), DateTime.month(dt), DateTime.day(dt)),
+        _convet_time(DateTime.hour(dt), DateTime.minute(dt), DateTime.second(dt), DateTime.microsecond(dt), DateTime.nanosecond(dt))
+    )
+    v, UInt8[35]
 end
 
-function calc_blr(xsqlda::Vector{UInt8})::Vector{UInt8}
+function calc_blr(xsqlda::XSQLVAR)::Vector{UInt8}
     # TODO
 end
