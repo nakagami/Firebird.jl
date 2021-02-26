@@ -36,8 +36,8 @@ include("decfloat.jl")
 include("wireprotocol.jl")
 include("connection.jl")
 
-DBInterface.connect(::Type{Connection}, host::String, user::String, passwd::String, db::String; port::Integer=3050, wire_crypt::Bool=true, create_new::Bool=false) =
-    Connection(host, user, passwd, db, port, wire_crypt, create_new)
+DBInterface.connect(::Type{Connection}, host::String, user::String, password::String, db_name::String; port::UInt16=3050, wire_crypt::Bool=true, create_new::Bool=false) =
+    Connection(host, user, password, db_name, port, wire_crypt, create_new)
 
 Base.close(conn::Connection) = DBInterface.close!(conn)
 

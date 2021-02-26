@@ -51,7 +51,7 @@ mutable struct WireChannel
     sock::TCPSocket
     arc4in::Union{Arc4, Nothing}
     arc4out::Union{Arc4, Nothing}
-    function WireChannel(host::String, port::Int)
+    function WireChannel(host::String, port::UInt16)
         sock = Sockets.connect(host, port)
         new(sock, nothing, nothing)
     end
@@ -77,13 +77,19 @@ function write(chan::WireChannel, data::Vector{UInt8})
     write(chan.socket, data)
 end
 
+function close!(chan::WireChannel)
+    if chan.socket != nothing
+        close!(chan.socket)
+        chan.socket = nothing
+    end
+end
 
 mutable struct WireProtocol
-    write_buf::Vector{UInt8}
+    buf::Vector{UInt8}
 
     channel::WireChannel
     host::String
-    port::Int
+    port::UInt16
     username::String
     password::String
 
@@ -99,31 +105,35 @@ mutable struct WireProtocol
 
     timezone::String
 
-    function WireProtocol(host::AbstractString, port::Integer)
+    function WireProtocol(host::AbstractString, user::AbstractString, password::AbstractString, port::UInt16)
         channel = WireChannel(host, port)
-        new([], channel, host, port, "", "", -1, -1, -1, -1, 0, "", [], "")
+        new([], channel, host, port, user, password, -1, -1, -1, -1, 0, "", [], "")
     end
+end
+
+function pack_uint32(wp::WireProtocol, i::Int)
+    pack_uint32(wp, UInt32(i))
 end
 
 function pack_uint32(wp::WireProtocol, i::UInt32)
     # pack big endian uint32
-    append!(wp.buf, UInt8[UInt8(i >> 24 & 0xFF), UInt8(i >> 16 & 0xFF), UInt8(i >> 8 & 0xFF), UInt8(i & 0xFF)])
+    wp.buf = vcat(wp.buf, UInt8[UInt8(i >> 24 & 0xFF), UInt8(i >> 16 & 0xFF), UInt8(i >> 8 & 0xFF), UInt8(i & 0xFF)])
 end
 
 function pack_bytes(wp::WireProtocol, b::Vector{UInt8})
-    append!(wp.buf, xdr_bytes(b))
+    wp.buf = vcat(wp.buf, xdr_bytes(b))
 end
 
 function pack_string(wp::WireProtocol, s::String)
-    append!(wp.buf, xdr_bytes(Vector{UInt8}(s)))
+    wp.buf = vcat(wp.buf, xdr_bytes(Vector{UInt8}(s)))
 end
 
 function append_bytes(wp::WireProtocol, b::Vector{UInt8})
-    append!(wp.buf, b)
+    wp.buf = vcat(wp.buf, b)
 end
 
 function get_srp_client_public_bytes(client_public::BigInt)::Vector{UInt8}
-    b::Vec{UInt8} = bytes2hex(bigint_to_bytes(client_public))
+    b::Vector{UInt8} = bytes2hex(bigint_to_bytes(client_public))
     if length(b) > 254
         vcat(
             UInt8[CNCT_SPECIFIC_DATA, 255, 0],
@@ -141,7 +151,7 @@ function get_srp_client_public_bytes(client_public::BigInt)::Vector{UInt8}
     end
 end
 
-function uid(user::String, password::String, auth_plugin_name::String, wire_crypt::Bool, client_public::BigInt)::Vec{UInt8}
+function uid(user::String, password::String, auth_plugin_name::String, wire_crypt::Bool, client_public::BigInt)::Vector{UInt8}
     sys_user = if haskey(ENV, "USER")
             ENV["USER"]
         elseif haskey(ENV, "USERNAME")
@@ -149,11 +159,11 @@ function uid(user::String, password::String, auth_plugin_name::String, wire_cryp
         else
             ""
         end
-    sys_user_bytes = Vec{UInt8}(sys_user)
-    hostname_bytes = Vec{UInt8}(gethostname)
-    plugin_list_name_bytes = Vec{UInt8}(PLUGIN_LIST)
-    plugin_name_bytes = Vec{UInt8}(auth_plugin_name)
-    user_bytes = Vec{UInt8}(user)
+    sys_user_bytes = Vector{UInt8}(sys_user)
+    hostname_bytes = Vector{UInt8}(gethostname())
+    plugin_list_name_bytes = Vector{UInt8}(PLUGIN_LIST)
+    plugin_name_bytes = Vector{UInt8}(auth_plugin_name)
+    user_bytes = Vector{UInt8}(user)
     specific_data = get_srp_client_public_bytes(client_public)
     vcat(
         UInt8[CNCT_login, length(user_bytes)], user_bytes,
@@ -168,16 +178,16 @@ function uid(user::String, password::String, auth_plugin_name::String, wire_cryp
 end
 
 function send_packets(wp::WireProtocol)
-    wp.channel.write(wp.write_buf)
-    wp.write_buf = []
+    wp.channel.write(wp.buf)
+    wp.buf = []
 end
 
 function suspend_buffer(wp::WireProtocol)::Vector{UInt8}
-    deepcopy(wp.write_buf)
+    deepcopy(wp.buf)
 end
 
 function resume_buffer(wp::WireProtocol, buf::Vector{UInt8})
-    append!(wp.write_buf, buf)
+    append!(wp.buf, buf)
 end
 
 function recv_packets(wp::WireProtocol, n::Int)::Vector{UInt8}
@@ -473,17 +483,17 @@ end
 
 function _op_connect(wp::WireProtocol, db_name::String, user::String, password::String, wire_crypt::Bool, client_public::BigInt)
     # PROTOCOL_VERSION, Arch type (Generic=1), min, max, weight = 13, 1, 0, 5, 8
-    protocols = "ffff800d00000001000000000000000500000008"
-    protocols_len = div(hex2bytes(protocols), 20)
+    protocols = hex2bytes("ffff800d00000001000000000000000500000008")
+    protocols_len = div(length(protocols), 20)
 
     pack_uint32(wp, op_connect)
     pack_uint32(wp, op_attach)
     pack_uint32(wp, 3)  # CONNECT_VERSION3
     pack_uint32(wp, 1)  # Arc type(GENERIC)
-    pack_string(db_name)
+    pack_string(wp, db_name)
     pack_uint32(wp, protocols_len)  # number of protocols
-    pack_bytes(uid(wp, user, password, "Srp256", wire_crypt, client_public))
-    append_bytes(wp, hex2bytes(protocols))
+    pack_bytes(wp, uid(user, password, "Srp256", wire_crypt, client_public))
+    append_bytes(wp, protocols)
     send_packets(wp)
 end
 
@@ -551,7 +561,7 @@ function _op_attach(wp::WireProtocol, db_name::String, user::String, password::S
     pack_uint32(wp, op_attach)
     pack_uint32(wp, 0)
     pack_string(wp, db_name)
-    pack_bytes(dpb)
+    pack_bytes(wp, dpb)
     send_packets(wp)
 end
 
@@ -567,7 +577,7 @@ end
 function _op_crypt(wp::WireProtocol)
     pack_uint32(wp, op_cont_auth)
     pack_string(wp, "Arc4")
-    pack_string("Symmetric")
+    pack_string(wp, "Symmetric")
     send_packets(wp)
 end
 
@@ -645,7 +655,7 @@ function _op_prepare_statement(wp::WireProtocol, stmt_handle::Int32, trans_handl
     pack_uint32(trans_handle)
     pack_uint32(stmt_handle)
     pack_uint32(3)  # dialect = 3
-    pack_string(query)
+    pack_string(wp, query)
     pack_bytes(bs)
     pack_uint32(wp, BUFFER_LEN)
     send_packets(wp)
