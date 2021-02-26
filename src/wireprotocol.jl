@@ -942,9 +942,26 @@ function params_to_blr(wp::WireProtocol, trans_handle::Int32, params::Vector{Any
     end
 
     for i in 1:length(params)
-        # TODO
+        p = if typeof(p) == String
+            p = Vector{UInt8}(params[i])
+        else
+            p = params[i]
+        end
+        v, blr = if typeof(p) == Vector{UInt8}
+            if length(p) < MAX_CHAR_LENGTH
+                bytes_to_blr(p)
+            else
+                create_blob(wp, p, trans_handle), UInt8[9, 0]
+            end
+        else
+            to_blr(p)
+        end
+        append!(values, v)
+        append!(blr_list, blr)
+        append!(blr_list, 7)
+        append!(blr_list, 0)
     end
 
-    blr = vcat(blr, Vector{UInt8}[255, 76])     # [blr_end, blr_eoc]
-    blr, values
+    blr_list = vcat(blr_list, Vector{UInt8}[255, 76])     # [blr_end, blr_eoc]
+    blr_list, values
 end

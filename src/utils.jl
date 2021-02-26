@@ -191,6 +191,18 @@ function to_blr(dt::DateTime)::Tuple{Vector{UInt8}, Vector{UInt8}}
     v, UInt8[35]
 end
 
+function to_blr(b::Bool)::Tuple{Vector{UInt8}, Vector{UInt8}}
+    if b
+        UInt8[1, 0, 0, 0], UInt8[23]
+    else
+        UInt8[0, 0, 0, 0], UInt8[23]
+    end
+end
+
+function to_blr(Nothing)::Tuple{Vector{UINt8}, Vector{UInt8}}
+    [], UInt8[14, 0, 0]
+end
+
 function calc_blr(xsqlda::Vector{XSQLVAR})::Vector{UInt8}
     # Calculate  BLR from XSQLVAR array.
     ln = length(xsqlda) * 2
