@@ -48,12 +48,12 @@ function INFO_SQL_SELECT_DESCRIBE_VARS()::Vector{UInt8}
 end
 
 mutable struct WireChannel
-    sock::TCPSocket
+    socket::TCPSocket
     arc4in::Union{Arc4, Nothing}
     arc4out::Union{Arc4, Nothing}
     function WireChannel(host::String, port::UInt16)
-        sock = Sockets.connect(host, port)
-        new(sock, nothing, nothing)
+        socket = Sockets.connect(host, port)
+        new(socket, nothing, nothing)
     end
 end
 
@@ -63,16 +63,16 @@ function set_arc4_key(chan::WireChannel, key::Vector{UInt8})
 end
 
 function read(chan::WireChannel, t::DataType)
-    bytes::Vector{UInt8} = read(chan.socket, sizeof(t))
+    data::Vector{UInt8} = read(chan.socket, sizeof(t))
     if chan.arc4in != nothing
-        bytes = translate(chan.arc4in)
+        bytes = translate(chan.arc4in, data)
     end
-    reinterpret(t, bytes)
+    reinterpret(t, data)
 end
 
 function write(chan::WireChannel, data::Vector{UInt8})
     if chan.arc4out != nothing
-        data = translate(chan.arc4out)
+        data = translate(chan.arc4out, data)
     end
     write(chan.socket, data)
 end
@@ -133,19 +133,19 @@ function append_bytes(wp::WireProtocol, b::Vector{UInt8})
 end
 
 function get_srp_client_public_bytes(client_public::BigInt)::Vector{UInt8}
-    b::Vector{UInt8} = bytes2hex(bigint_to_bytes(client_public))
+    b::Vector{UInt8} = Vector{UInt8}(bytes2hex(bigint_to_bytes(client_public)))
     if length(b) > 254
         vcat(
-            UInt8[CNCT_SPECIFIC_DATA, 255, 0],
+            UInt8[CNCT_specific_data, 255, 0],
             b[1:254],
-            UInt8[CNCT_SPECIFIC_DATA, length(b) - 254 + 1, 1],
+            UInt8[CNCT_specific_data, length(b) - 254 + 1, 1],
             b[255:length(b)]
         )
     else
         vcat(
-            UInt8[CNCT_SPECIFIC_DATA, length(b) + 1, 0],
+            UInt8[CNCT_specific_data, length(b) + 1, 0],
             b[1:length(b) + 1],
-            UInt8[CNCT_SPECIFIC_DATA, length(b) - 254 + 1, 1],
+            UInt8[CNCT_specific_data, length(b) - 254 + 1, 1],
             b
         )
     end
@@ -173,12 +173,12 @@ function uid(user::String, password::String, auth_plugin_name::String, wire_cryp
         UInt8[CNCT_client_crypt, 4, wire_crypt ? 1 : 0, 0, 0],
         UInt8[CNCT_user, length(sys_user_bytes)], sys_user_bytes,
         UInt8[CNCT_host, length(hostname_bytes)], hostname_bytes,
-        UINt8[CNCT_user_verification, 0]
+        UInt8[CNCT_user_verification, 0]
     )
 end
 
 function send_packets(wp::WireProtocol)
-    wp.channel.write(wp.buf)
+    write(wp.channel.socket, wp.buf)
     wp.buf = []
 end
 

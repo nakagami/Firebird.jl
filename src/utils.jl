@@ -199,7 +199,7 @@ function to_blr(b::Bool)::Tuple{Vector{UInt8}, Vector{UInt8}}
     end
 end
 
-function to_blr(Nothing)::Tuple{Vector{UINt8}, Vector{UInt8}}
+function to_blr(Nothing)::Tuple{Vector{UInt8}, Vector{UInt8}}
     [], UInt8[14, 0, 0]
 end
 
