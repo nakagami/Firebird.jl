@@ -28,10 +28,10 @@ export DBInterface
 
 include("consts.jl")
 include("errmsgs.jl")
+include("xsqlvar.jl")
 include("utils.jl")
 include("srp.jl")
 include("arc4.jl")
-include("xsqlvar.jl")
 include("decfloat.jl")
 include("wireprotocol.jl")
 include("connection.jl")

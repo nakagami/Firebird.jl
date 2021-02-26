@@ -191,6 +191,6 @@ function to_blr(dt::DateTime)::Tuple{Vector{UInt8}, Vector{UInt8}}
     v, UInt8[35]
 end
 
-function calc_blr(xsqlda::XSQLVAR)::Vector{UInt8}
+function calc_blr(xsqlda::Vector{XSQLVAR})::Vector{UInt8}
     # TODO
 end
