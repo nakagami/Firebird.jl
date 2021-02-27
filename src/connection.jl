@@ -30,6 +30,9 @@ mutable struct Connection <: DBInterface.Connection
         wp = WireProtocol(host, user, password, port)
         client_public, client_secret = get_client_sheed()
         _op_connect(wp, db_name, user, password, wire_crypt, client_public)
+        parse_connect_response(wp, user, password, wire_crypt, client_public, client_secret)
+
+
         # TODO
 
         new(wp)
