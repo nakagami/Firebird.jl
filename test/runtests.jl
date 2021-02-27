@@ -35,6 +35,11 @@ using Test, Firebird
         "masterkey"
     end
     conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, "/tmp/test.fdb", port=UInt16(3050), wire_crypt=true, create_new=true)
+
+    # TODO:
+
+    DBInterface.close!(conn)
+    @test !isopen(conn)
 end
 
 @testset "srp" begin

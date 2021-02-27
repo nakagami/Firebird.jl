@@ -24,12 +24,13 @@
 
 
 mutable struct Connection <: DBInterface.Connection
-    wire_protocol::Firebird.WireProtocol
+    wp::Firebird.WireProtocol
 
     function Connection(host::String, user::String, password::String, db_name::String, port::UInt16, wire_crypt::Bool, create_new::Bool)
         wp = WireProtocol(host, user, password, port)
         client_public, client_secret = get_client_sheed()
         _op_connect(wp, db_name, user, password, wire_crypt, client_public)
+        # TODO
 
         new(wp)
     end
@@ -37,5 +38,9 @@ mutable struct Connection <: DBInterface.Connection
 end
 
 function close!(conn::Connection)
-    # TODO
+    close!(conn.wp.chan)
+end
+
+function isopen(conn::Connection)::Bool
+    isopen(conn.wp.chan)
 end

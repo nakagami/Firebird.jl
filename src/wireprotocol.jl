@@ -48,7 +48,7 @@ function INFO_SQL_SELECT_DESCRIBE_VARS()::Vector{UInt8}
 end
 
 mutable struct WireChannel
-    socket::TCPSocket
+    socket::Union{TCPSocket, Nothing}
     arc4in::Union{Arc4, Nothing}
     arc4out::Union{Arc4, Nothing}
     function WireChannel(host::String, port::UInt16)
@@ -79,15 +79,19 @@ end
 
 function close!(chan::WireChannel)
     if chan.socket != nothing
-        close!(chan.socket)
+        close(chan.socket)
         chan.socket = nothing
     end
+end
+
+function isopen(chan::WireChannel)::Bool
+    chan.socket != nothing
 end
 
 mutable struct WireProtocol
     buf::Vector{UInt8}
 
-    channel::WireChannel
+    chan::WireChannel
     host::String
     port::UInt16
     username::String
@@ -106,8 +110,8 @@ mutable struct WireProtocol
     timezone::String
 
     function WireProtocol(host::AbstractString, user::AbstractString, password::AbstractString, port::UInt16)
-        channel = WireChannel(host, port)
-        new([], channel, host, port, user, password, -1, -1, -1, -1, 0, "", [], "")
+        chan = WireChannel(host, port)
+        new([], chan, host, port, user, password, -1, -1, -1, -1, 0, "", [], "")
     end
 end
 
@@ -178,7 +182,7 @@ function uid(user::String, password::String, auth_plugin_name::String, wire_cryp
 end
 
 function send_packets(wp::WireProtocol)
-    send(wp.channel, wp.buf)
+    send(wp.chan, wp.buf)
     wp.buf = []
 end
 
@@ -192,7 +196,7 @@ end
 
 function recv_packets(wp::WireProtocol, n::Int)::Vector{UInt8}
     buf = zeros(UInt8, n)
-    recv(wp.channel, buf)
+    recv(wp.chan, buf)
     buf
 end
 
