@@ -240,12 +240,12 @@ function parse_status_vector(wp::WireProtocol)::Tuple{Vector{UInt32}, Int, Strin
                 sql_code = num
             end
             num_arg += 1
-            message = replace.(message, [string("@", num_arg)=>num])
+            message = replace.(message, [string("@", num_arg)=>num])[1]
         elseif n == isc_arg_string
             nbytes = bytes_to_buint32(recv_packets(wp, 4))
             s = String(recv_packets_alignment(wp, nbytes))
             num_arg += 1
-            message = replace.(message, [string("@", num_arg)=>s])
+            message = replace.(message, [string("@", num_arg)=>s])[1]
         elseif n == isc_arg_iterpreted
             nbytes = bytes_to_buint32(recv_packets(wp, 4))
             message *= String(recv_packets_alignment(nbytes))
@@ -256,7 +256,7 @@ function parse_status_vector(wp::WireProtocol)::Tuple{Vector{UInt32}, Int, Strin
         n = bytes_to_buint32(recv_packets(wp, 4))
     end
 
-    (gds_codes, sql_code, error_message)
+    (gds_codes, sql_code, message)
 end
 
 function parse_op_response(wp::WireProtocol)
@@ -265,8 +265,8 @@ function parse_op_response(wp::WireProtocol)
     buf_len = Int(bytes_to_bint32(recv_packets(wp, 4))) # buffer length
     buf = recv_packets_alignment(wp, buf_len)
 
-    gds_code_list, sql_code, message = parse_status_vector(wp)
-    if gds_codes
+    gds_codes, sql_code, message = parse_status_vector(wp)
+    if length(gds_codes) == 0
         throw(DomainError("response error", message))
     end
     (h, oid, buf)
@@ -282,7 +282,7 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
     end
     if op_code == op_response
         parse_op_response(wp)
-        # NOT REACH HERE
+        # NOT REACH HERE?
         throw(DomainError("op_response"))
     end
 
