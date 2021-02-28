@@ -62,12 +62,13 @@ function set_arc4_key(chan::WireChannel, key::Vector{UInt8})
     chan.arc4out = Arc4(key)
 end
 
-function recv(chan::WireChannel, t::DataType)
-    data::Vector{UInt8} = read(chan.socket, sizeof(t))
+function recv(chan::WireChannel, nbytes::Int)::Vector{UInt8}
+    data::Vector{UInt8} = zeros(UInt8, nbytes)
+    read!(chan.socket, data)
     if chan.arc4in != nothing
-        bytes = translate(chan.arc4in, data)
+        data = translate(chan.arc4in, data)
     end
-    reinterpret(t, data)
+    data
 end
 
 function send(chan::WireChannel, data::Vector{UInt8})
@@ -195,17 +196,15 @@ function resume_buffer(wp::WireProtocol, buf::Vector{UInt8})
 end
 
 function recv_packets(wp::WireProtocol, n::Int)::Vector{UInt8}
-    buf = zeros(UInt8, n)
-    recv(wp.chan, buf)
-    buf
+    recv(wp.chan, n)
 end
 
 function recv_packets_alignment(wp::WireProtocol, n::Int)::Vector{UInt8}
-    padding = n % 4
+    padding::Int = n % 4
     if padding > 0
         padding = 4 - padding
     end
-    buf = recv_packets(n + padding)
+    buf = recv_packets(wp, n + padding)
     buf[1:n]
 end
 
@@ -215,6 +214,8 @@ function parse_status_vector(wp::WireProtocol)::Tuple{Vector{UInt32}, Int, Strin
     gds_codes::Vector{UInt32} = []
     num_arg = 0
     message::String = ""
+
+    errmsgs = get_errmsgs()
 
     n = bytes_to_buint32(recv_packets(wp, 4))
     while n != isc_arg_end
@@ -251,9 +252,9 @@ function parse_status_vector(wp::WireProtocol)::Tuple{Vector{UInt32}, Int, Strin
 end
 
 function parse_op_response(wp::WireProtocol)
-    h = bytes_to_bint(recv_packets(wp, 4))  # Object handle
-    oid = recv_packets(wp, 8)               # Object ID
-    buf_len = bytes_to_bint32(wp, 4)        # buffer length
+    h = bytes_to_bint32(recv_packets(wp, 4))            # Object handle
+    oid = recv_packets(wp, 8)                           # Object ID
+    buf_len = Int(bytes_to_bint32(recv_packets(wp, 4))) # buffer length
     buf = recv_packets_alignment(wp, buf_len)
 
     gds_code_list, sql_code, message = parse_status_vector(wp)
@@ -286,14 +287,14 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
     ln = bytes_to_buint32(recv_packets(wp, 4))
     data = recv_packets(wp, ln)
 
-    ln = butes_to_buint32(recv_packets(4))
+    ln = butes_to_buint32(recv_packets(wp, 4))
     wp.accept_plugin_name = String(recv_packts_alignment(ln))
 
     # is_authenticated == 0
-    @assert bytes_to_buint32(recv_packets(4)) == 0
+    @assert bytes_to_buint32(recv_packets(wp, 4)) == 0
 
     # skip keys
-    ln = butes_to_buint32(recv_packets(4))
+    ln = butes_to_buint32(recv_packets(wp, 4))
     recv_packts_alignment(ln)
 
     @assert self.accept_plugin_name == "Srp" || self.accept_plugin_name == "Srp256"
@@ -302,19 +303,19 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
         _op_cont_auth(wp, bigint_to_bytes(client_public))
         @assert bytes_to_bint32(recv_packets(wp, 4)) == op_cont_auth
 
-        ln = butes_to_buint32(recv_packets(4))
+        ln = butes_to_buint32(recv_packets(wp, 4))
         data = recv_packts_alignment(ln)
 
         # skip plugin name
-        ln = butes_to_buint32(recv_packets(4))
+        ln = butes_to_buint32(recv_packets(wp, 4))
         recv_packts_alignment(ln)
 
         # skip plugin name list
-        ln = butes_to_buint32(recv_packets(4))
+        ln = butes_to_buint32(recv_packets(wp, 4))
         recv_packts_alignment(ln)
 
         # skip keys
-        ln = bytes_to_buint32(recv_packets(4))
+        ln = bytes_to_buint32(recv_packets(wp, 4))
         recv_packts_alignment(ln)
     end
     ln = bytes_to_uint16(data[1:2])

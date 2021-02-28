@@ -79,36 +79,36 @@ function bytes_to_int32(b::Vector{UInt8})::Int32
 end
 
 function bytes_to_int16(b::Vector{UInt8})::Int16
-    reinterpret(Int16, b)
+    reinterpret(Int16, b)[1]
 end
 
 
 function bytes_to_buint128(b::Vector{UInt8})::UInt128
-    reinterpret(UInt128, reverse(b))
+    reinterpret(UInt128, reverse(b))[1]
 end
 
 function bytes_to_buint64(b::Vector{UInt8})::UInt64
-    reinterpret(UInt64, reverse(b))
+    reinterpret(UInt64, reverse(b))[1]
 end
 
 function bytes_to_buint32(b::Vector{UInt8})::UInt32
-    reinterpret(UInt32, reverse(b))
+    reinterpret(UInt32, reverse(b))[1]
 end
 
 function bytes_to_bint128(b::Vector{UInt8})::Int128
-    reinterpret(Int128, reverse(b))
+    reinterpret(Int128, reverse(b))[1]
 end
 
 function bytes_to_bint64(b::Vector{UInt8})::Int64
-    reinterpret(Int64, reverse(b))
+    reinterpret(Int64, reverse(b))[1]
 end
 
 function bytes_to_bint32(b::Vector{UInt8})::Int32
-    reinterpret(Int32, reverse(b))
+    reinterpret(Int32, reverse(b))[1]
 end
 
 function bytes_to_bint16(b::Vector{UInt8})::Int16
-    reinterpret(Int16, reverse(b))
+    reinterpret(Int16, reverse(b))[1]
 end
 
 function xdr_bytes(bs::Vector{UInt8})::Vector{UInt8}
