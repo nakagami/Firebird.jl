@@ -199,6 +199,10 @@ function recv_packets(wp::WireProtocol, n::Int)::Vector{UInt8}
     recv(wp.chan, n)
 end
 
+function recv_packets(wp::WireProtocol, n::UInt32)::Vector{UInt8}
+    recv_packets_alignment(wp, Int(n))
+end
+
 function recv_packets_alignment(wp::WireProtocol, n::Int)::Vector{UInt8}
     padding::Int = n % 4
     if padding > 0
@@ -206,6 +210,10 @@ function recv_packets_alignment(wp::WireProtocol, n::Int)::Vector{UInt8}
     end
     buf = recv_packets(wp, n + padding)
     buf[1:n]
+end
+
+function recv_packets_alignment(wp::WireProtocol, n::UInt32)::Vector{UInt8}
+    recv_packets_alignment(wp, Int(n))
 end
 
 function parse_status_vector(wp::WireProtocol)::Tuple{Vector{UInt32}, Int, String}
