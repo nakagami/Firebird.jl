@@ -266,7 +266,7 @@ function parse_op_response(wp::WireProtocol)
     buf = recv_packets_alignment(wp, buf_len)
 
     gds_codes, sql_code, message = parse_status_vector(wp)
-    if length(gds_codes) == 0
+    if length(gds_codes) != 0
         throw(DomainError("response error", message))
     end
     (h, oid, buf)
