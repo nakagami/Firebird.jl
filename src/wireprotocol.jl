@@ -175,7 +175,7 @@ function uid(user::String, password::String, auth_plugin_name::String, wire_cryp
         UInt8[CNCT_plugin_name, length(plugin_name_bytes)], plugin_name_bytes,
         UInt8[CNCT_plugin_list, length(plugin_list_name_bytes)], plugin_list_name_bytes,
         specific_data,
-        UInt8[CNCT_client_crypt, 4, wire_crypt ? 1 : 0, 0, 0],
+        UInt8[CNCT_client_crypt, 4, wire_crypt ? 1 : 0, 0, 0, 0],
         UInt8[CNCT_user, length(sys_user_bytes)], sys_user_bytes,
         UInt8[CNCT_host, length(hostname_bytes)], hostname_bytes,
         UInt8[CNCT_user_verification, 0]
