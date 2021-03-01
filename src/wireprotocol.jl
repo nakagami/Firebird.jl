@@ -248,10 +248,10 @@ function parse_status_vector(wp::WireProtocol)::Tuple{Vector{UInt32}, Int, Strin
             message = replace.(message, [string("@", num_arg)=>s])[1]
         elseif n == isc_arg_iterpreted
             nbytes = bytes_to_buint32(recv_packets(wp, 4))
-            message *= String(recv_packets_alignment(nbytes))
+            message *= String(recv_packets_alignment(wp, nbytes))
         elseif n == isc_arg_sql_state
             nbytes = bytes_to_buint32(recv_packets(wp, 4))
-            recv_packets_alignment(nbytes)  # skip status code
+            recv_packets_alignment(wp, nbytes)  # skip status code
         end
         n = bytes_to_buint32(recv_packets(wp, 4))
     end
@@ -296,14 +296,14 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
     data = recv_packets(wp, ln)
 
     ln = bytes_to_buint32(recv_packets(wp, 4))
-    wp.accept_plugin_name = String(recv_packets_alignment(ln))
+    wp.accept_plugin_name = String(recv_packets_alignment(wp, ln))
 
     # is_authenticated == 0
     @assert bytes_to_buint32(recv_packets(wp, 4)) == 0
 
     # skip keys
     ln = bytes_to_buint32(recv_packets(wp, 4))
-    recv_packets_alignment(ln)
+    recv_packets_alignment(wp, ln)
 
     @assert self.accept_plugin_name == "Srp" || self.accept_plugin_name == "Srp256"
 
@@ -312,19 +312,19 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
         @assert bytes_to_bint32(recv_packets(wp, 4)) == op_cont_auth
 
         ln = bytes_to_buint32(recv_packets(wp, 4))
-        data = recv_packets_alignment(ln)
+        data = recv_packets_alignment(wp, ln)
 
         # skip plugin name
         ln = bytes_to_buint32(recv_packets(wp, 4))
-        recv_packets_alignment(ln)
+        recv_packets_alignment(wp, ln)
 
         # skip plugin name list
         ln = bytes_to_buint32(recv_packets(wp, 4))
-        recv_packets_alignment(ln)
+        recv_packets_alignment(wp, ln)
 
         # skip keys
         ln = bytes_to_buint32(recv_packets(wp, 4))
-        recv_packets_alignment(ln)
+        recv_packets_alignment(wp, ln)
     end
     ln = bytes_to_uint16(data[1:2])
     server_salt = data[3:3+ln]
