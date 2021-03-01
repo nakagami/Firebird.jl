@@ -305,10 +305,10 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
     ln = bytes_to_buint32(recv_packets(wp, 4))
     recv_packets_alignment(wp, ln)
 
-    @assert self.accept_plugin_name == "Srp" || self.accept_plugin_name == "Srp256"
+    @assert wp.accept_plugin_name == "Srp" || wp.accept_plugin_name == "Srp256"
 
     if length(data) == 0
-        _op_cont_auth(wp, bigint_to_bytes(client_public))
+        _op_cont_auth(wp, bigint_to_bytes(client_public), wp.accept_plugin_name, "")
         @assert bytes_to_bint32(recv_packets(wp, 4)) == op_cont_auth
 
         ln = bytes_to_buint32(recv_packets(wp, 4))
@@ -330,15 +330,15 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
     server_salt = data[3:3+ln]
     server_public = bytes_to_bigint(hex2bytes(data[5+ln:length(data)]))
     auth_data, session_key = get_client_proof(
-        uppercase(user_name),
+        uppercase(username),
         password, server_salt,
-        client_ublic,
+        client_public,
         server_public,
         client_secret,
-        accept_plugin_name,
+        wp.accept_plugin_name,
     )
     if op_code == op_cond_accept
-        _op_cont_auth(wp, auth_data)
+        _op_cont_auth(wp, auth_data, wp.accept_plugin_name, "")
         _op_response(wp)
     end
 

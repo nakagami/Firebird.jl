@@ -78,6 +78,10 @@ function bytes_to_int32(b::Vector{UInt8})::Int32
     reinterpret(Int32, b)[1]
 end
 
+function bytes_to_uint16(b::Vector{UInt8})::UInt16
+    reinterpret(UInt16, b)[1]
+end
+
 function bytes_to_int16(b::Vector{UInt8})::Int16
     reinterpret(Int16, b)[1]
 end
