@@ -200,7 +200,7 @@ function recv_packets(wp::WireProtocol, n::Int)::Vector{UInt8}
 end
 
 function recv_packets(wp::WireProtocol, n::UInt32)::Vector{UInt8}
-    recv_packets_alignment(wp, Int(n))
+    recv_packets(wp, Int(n))
 end
 
 function recv_packets_alignment(wp::WireProtocol, n::Int)::Vector{UInt8}
@@ -290,20 +290,20 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
     wp.accept_architecture = bytes_to_bint32(recv_packets(wp, 4))
     wp.accept_type = bytes_to_bint32(recv_packets(wp, 4))
 
-    @assert opcode == op_cond_accept || opcode == op_accept_data
+    @assert op_code == op_cond_accept || op_code == op_accept_data
 
     ln = bytes_to_buint32(recv_packets(wp, 4))
     data = recv_packets(wp, ln)
 
-    ln = butes_to_buint32(recv_packets(wp, 4))
-    wp.accept_plugin_name = String(recv_packts_alignment(ln))
+    ln = bytes_to_buint32(recv_packets(wp, 4))
+    wp.accept_plugin_name = String(recv_packets_alignment(ln))
 
     # is_authenticated == 0
     @assert bytes_to_buint32(recv_packets(wp, 4)) == 0
 
     # skip keys
-    ln = butes_to_buint32(recv_packets(wp, 4))
-    recv_packts_alignment(ln)
+    ln = bytes_to_buint32(recv_packets(wp, 4))
+    recv_packets_alignment(ln)
 
     @assert self.accept_plugin_name == "Srp" || self.accept_plugin_name == "Srp256"
 
@@ -311,20 +311,20 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
         _op_cont_auth(wp, bigint_to_bytes(client_public))
         @assert bytes_to_bint32(recv_packets(wp, 4)) == op_cont_auth
 
-        ln = butes_to_buint32(recv_packets(wp, 4))
-        data = recv_packts_alignment(ln)
+        ln = bytes_to_buint32(recv_packets(wp, 4))
+        data = recv_packets_alignment(ln)
 
         # skip plugin name
-        ln = butes_to_buint32(recv_packets(wp, 4))
-        recv_packts_alignment(ln)
+        ln = bytes_to_buint32(recv_packets(wp, 4))
+        recv_packets_alignment(ln)
 
         # skip plugin name list
-        ln = butes_to_buint32(recv_packets(wp, 4))
-        recv_packts_alignment(ln)
+        ln = bytes_to_buint32(recv_packets(wp, 4))
+        recv_packets_alignment(ln)
 
         # skip keys
         ln = bytes_to_buint32(recv_packets(wp, 4))
-        recv_packts_alignment(ln)
+        recv_packets_alignment(ln)
     end
     ln = bytes_to_uint16(data[1:2])
     server_salt = data[3:3+ln]
@@ -337,7 +337,7 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
         client_secret,
         accept_plugin_name,
     )
-    if opcode == op_cond_accept
+    if op_code == op_cond_accept
         _op_cont_auth(wp, auth_data)
         _op_response(wp)
     end

@@ -63,19 +63,19 @@ function bint16_to_bytes(i16::Int16)::Vector{UInt8}
 end
 
 function bytes_to_uint128(b::Vector{UInt8})::UInt128
-    reinterpret(UInt128, b)
+    reinterpret(UInt128, b)[1]
 end
 
 function bytes_to_int64(b::Vector{UInt8})::Int64
-    reinterpret(Int64, b)
+    reinterpret(Int64, b)[1]
 end
 
 function bytes_to_uint32(b::Vector{UInt8})::UInt32
-    reinterpret(UInt32, b)
+    reinterpret(UInt32, b)[1]
 end
 
 function bytes_to_int32(b::Vector{UInt8})::Int32
-    reinterpret(Int32, b)
+    reinterpret(Int32, b)[1]
 end
 
 function bytes_to_int16(b::Vector{UInt8})::Int16
