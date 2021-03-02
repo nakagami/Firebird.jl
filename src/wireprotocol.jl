@@ -156,7 +156,7 @@ function get_srp_client_public_bytes(client_public::BigInt)::Vector{UInt8}
     end
 end
 
-function uid(user::String, password::String, auth_plugin_name::String, wire_crypt::Bool, client_public::BigInt)::Vector{UInt8}
+function uid(username::String, password::String, auth_plugin_name::String, wire_crypt::Bool, client_public::BigInt)::Vector{UInt8}
     sys_user = if haskey(ENV, "USER")
             ENV["USER"]
         elseif haskey(ENV, "USERNAME")
@@ -168,10 +168,10 @@ function uid(user::String, password::String, auth_plugin_name::String, wire_cryp
     hostname_bytes = Vector{UInt8}(gethostname())
     plugin_list_name_bytes = Vector{UInt8}(PLUGIN_LIST)
     plugin_name_bytes = Vector{UInt8}(auth_plugin_name)
-    user_bytes = Vector{UInt8}(user)
+    username_bytes = Vector{UInt8}(username)
     specific_data = get_srp_client_public_bytes(client_public)
     vcat(
-        UInt8[CNCT_login, length(user_bytes)], user_bytes,
+        UInt8[CNCT_login, length(username_bytes)], username_bytes,
         UInt8[CNCT_plugin_name, length(plugin_name_bytes)], plugin_name_bytes,
         UInt8[CNCT_plugin_list, length(plugin_list_name_bytes)], plugin_list_name_bytes,
         specific_data,
@@ -494,7 +494,7 @@ function get_blob_segments(wp::WireProtocol, blob_id::Vector{UInt8}, trans_handl
     blob
 end
 
-function _op_connect(wp::WireProtocol, db_name::String, user::String, password::String, wire_crypt::Bool, client_public::BigInt)
+function _op_connect(wp::WireProtocol, db_name::String, username::String, password::String, wire_crypt::Bool, client_public::BigInt)
     # PROTOCOL_VERSION, Arch type (Generic=1), min, max, weight = 13, 1, 0, 5, 8
     protocols = hex2bytes("ffff800d00000001000000000000000500000008")
     protocols_len = div(length(protocols), 20)
@@ -505,23 +505,23 @@ function _op_connect(wp::WireProtocol, db_name::String, user::String, password::
     pack_uint32(wp, 1)  # Arc type(GENERIC)
     pack_string(wp, db_name)
     pack_uint32(wp, protocols_len)  # number of protocols
-    pack_bytes(wp, uid(user, password, "Srp256", wire_crypt, client_public))
+    pack_bytes(wp, uid(username, password, "Srp256", wire_crypt, client_public))
     append_bytes(wp, protocols)
     send_packets(wp)
 end
 
-function _op_create(wp::WireProtocol, db_name::String, user::String, password::String)
+function _op_create(wp::WireProtocol, db_name::String, username::String, password::String)
     page_size::Int = 4096
     encode = b"UTF8"
 
-    user_bytes = Vector{UInt8}(user)
-    password_bytes = Vector{UInt8}(user)
+    username_bytes = Vector{UInt8}(username)
+    password_bytes = Vector{UInt8}(password)
 
     dpb = vcat(
         [isc_dpb_version1],
         [isc_dpb_set_db_charset, byte(len(encode))], encode,
         [isc_dpb_lc_ctype, byte(len(encode))], encode,
-        [isc_dpb_user_name, byte(len(user_bytes))], user_bytes,
+        [isc_dpb_user_name, byte(len(username_bytes))], username_bytes,
         [isc_dpb_password, byte(len(password_bytes))], password_bytes,
         [isc_dpb_sql_dialect, 4], int32_to_bytes(3),
         [isc_dpb_force_write, 4], bint32_to_bytes(1),
@@ -546,17 +546,17 @@ function _op_create(wp::WireProtocol, db_name::String, user::String, password::S
     send_packets(wp)
 end
 
-function _op_attach(wp::WireProtocol, db_name::String, user::String, password::String)
+function _op_attach(wp::WireProtocol, db_name::String, username::String, password::String)
     encode = b"UTF8"
 
-    user_bytes = Vector{UInt8}(user)
-    password_bytes = Vector{UInt8}(user)
+    username_bytes = Vector{UInt8}(username)
+    password_bytes = Vector{UInt8}(password)
 
     dpb = vcat(
         [isc_dpb_version1],
         [isc_dpb_set_db_charset, byte(len(encode))], encode,
         [isc_dpb_lc_ctype, byte(len(encode))], encode,
-        [isc_dpb_user_name, byte(len(user_bytes))], user_bytes,
+        [isc_dpb_user_name, byte(len(username_bytes))], username_bytes,
         [isc_dpb_password, byte(len(password_bytes))], password_bytes,
         [isc_dpb_sql_dialect, 4], int32_to_bytes(3),
     )

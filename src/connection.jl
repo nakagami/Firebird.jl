@@ -26,11 +26,12 @@
 mutable struct Connection <: DBInterface.Connection
     wp::Firebird.WireProtocol
 
-    function Connection(host::String, user::String, password::String, db_name::String, port::UInt16, wire_crypt::Bool, create_new::Bool)
-        wp = WireProtocol(host, user, password, port)
+    function Connection(host::String, username::String, password::String, db_name::String, port::UInt16, wire_crypt::Bool, create_new::Bool)
+        username = uppercase(username)
+        wp = WireProtocol(host, username, password, port)
         client_public, client_secret = get_client_sheed()
-        _op_connect(wp, db_name, user, password, wire_crypt, client_public)
-        parse_connect_response(wp, user, password, wire_crypt, client_public, client_secret)
+        _op_connect(wp, db_name, username, password, wire_crypt, client_public)
+        parse_connect_response(wp, username, password, wire_crypt, client_public, client_secret)
 
 
         # TODO
