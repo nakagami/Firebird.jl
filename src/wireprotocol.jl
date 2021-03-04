@@ -293,7 +293,7 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
     @assert op_code == op_cond_accept || op_code == op_accept_data
 
     ln = bytes_to_buint32(recv_packets(wp, 4))
-    data = recv_packets(wp, ln)
+    data = recv_packets_alignment(wp, ln)
 
     ln = bytes_to_buint32(recv_packets(wp, 4))
     wp.accept_plugin_name = String(recv_packets_alignment(wp, ln))
