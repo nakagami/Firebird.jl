@@ -29,7 +29,7 @@ mutable struct Connection <: DBInterface.Connection
     function Connection(host::String, username::String, password::String, db_name::String, port::UInt16, wire_crypt::Bool, create_new::Bool)
         username = uppercase(username)
         wp = WireProtocol(host, username, password, port)
-        client_public, client_secret = get_client_sheed()
+        client_public, client_secret = get_client_seed()
         _op_connect(wp, db_name, username, password, wire_crypt, client_public)
         parse_connect_response(wp, username, password, wire_crypt, client_public, client_secret)
 

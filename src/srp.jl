@@ -85,7 +85,7 @@ function get_user_hash(salt::Vector{UInt8}, user::AbstractString, password::Abst
     bytes_to_bigint(hash2)
 end
 
-function get_client_sheed()::Tuple{BigInt, BigInt}
+function get_client_seed()::Tuple{BigInt, BigInt}
     prime, g, _ = get_prime()
     keya = rand(big"1":big"340282366920938463463374607431768211456") # 1 << 128
     keyA = powermod(g, keya, prime)
