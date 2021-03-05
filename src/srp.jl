@@ -158,7 +158,7 @@ function get_client_proof(user::AbstractString, password::AbstractString, salt::
     if plugin_name == "Srp"
         keyM = sha1(buf)
     elseif plugin_name == "Srp256"
-        keyM = sha1(buf)
+        keyM = sha256(buf)
     else
         throw(DomainError(plugin_name, "unknown plugin"))
     end
