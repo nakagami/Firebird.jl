@@ -88,6 +88,8 @@ end
 function get_client_seed()::Tuple{BigInt, BigInt}
     prime, g, _ = get_prime()
     keya = rand(big"1":big"340282366920938463463374607431768211456") # 1 << 128
+    # keya = big"0x60975527035CF2AD1989806F0407210BC81EDC04E2762A56AFD529DDDA2D4393
+"
     keyA = powermod(g, keya, prime)
     (keyA, keya)
 end
