@@ -327,11 +327,13 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
         recv_packets_alignment(wp, ln)
     end
     ln = bytes_to_uint16(data[1:2])
-    server_salt = data[3:3+ln]
+    server_salt = data[3:ln+2]
     server_public = bytes_to_bigint(hex2bytes(data[5+ln:length(data)]))
+
     auth_data, session_key = get_client_proof(
         uppercase(username),
-        password, server_salt,
+        password,
+        server_salt,
         client_public,
         server_public,
         client_secret,

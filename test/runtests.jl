@@ -26,24 +26,24 @@ using Test, Firebird
 const DEBUG_PRIVATE_KEY = big"0x60975527035CF2AD1989806F0407210BC81EDC04E2762A56AFD529DDDA2D4393"
 const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1601C000000054F")
 
-#@testset "connection" begin
-#    user = if haskey(ENV, "ISC_USER")
-#        ENV["ISC_USER"]
-#    else
-#        "sysdba"
-#    end
-#    password = if haskey(ENV, "ISC_PASSWORD")
-#        ENV["ISC_PASSWORD"]
-#    else
-#        "masterkey"
-#    end
-#    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, "/tmp/test.fdb", port=UInt16(3050), wire_crypt=true, create_new=true)
-#
-#    # TODO:
-#
-#    DBInterface.close!(conn)
-#    @test !isopen(conn)
-#end
+@testset "connection" begin
+    user = if haskey(ENV, "ISC_USER")
+        ENV["ISC_USER"]
+    else
+        "sysdba"
+    end
+    password = if haskey(ENV, "ISC_PASSWORD")
+        ENV["ISC_PASSWORD"]
+    else
+        "masterkey"
+    end
+    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, "/tmp/test.fdb", port=UInt16(3050), wire_crypt=true, create_new=true)
+
+    # TODO:
+
+    DBInterface.close!(conn)
+    @test !isopen(conn)
+end
 
 @testset "srp" begin
     user = "SYSDBA"
