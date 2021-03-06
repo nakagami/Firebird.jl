@@ -758,7 +758,7 @@ function _op_fetch_response(wp::WireProtocol, stmt_handle::Int32, xsqlda::Vector
 
     if op_code != op_fetch_response
         if op_code == op_response
-            parse_op_response()
+            parse_op_response(wp)
         end
         throw(DomainError("op_fetch_resonse:op_code=$(op_code)"))
     end
@@ -875,7 +875,7 @@ function _op_response(wp::WireProtocol)
     elseif op_code != op_response
         throw(DomainError("op_resonse:op_code=$(op_code)"))
     end
-    parse_op_response()
+    parse_op_response(wp)
 end
 
 function _op_sql_response(wp::WireProtocol, xsqlda::XSQLVAR)::Vector{Any}
