@@ -26,6 +26,9 @@ using SHA
 const SRP_KEY_SIZE = 128
 const SRP_SALT_SIZE = 32
 
+const DEBUG_PRIVATE_KEY = big"0x60975527035CF2AD1989806F0407210BC81EDC04E2762A56AFD529DDDA2D4393"
+const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1601C000000054F")
+
 function pad(n::BigInt)::Vector{UInt8}
     v::Vector{UInt8} = []
     for x in 1:SRP_KEY_SIZE
@@ -85,11 +88,14 @@ function get_user_hash(salt::Vector{UInt8}, user::AbstractString, password::Abst
     bytes_to_bigint(hash2)
 end
 
-function get_client_seed()::Tuple{BigInt, BigInt}
+function get_client_seed(keya::BigInt)::Tuple{BigInt, BigInt}
     prime, g, _ = get_prime()
-    keya = rand(1:340282366920938463463374607431768211456)
     keyA = powermod(g, keya, prime)
     (keyA, keya)
+end
+
+function get_client_seed()::Tuple{BigInt, BigInt}
+    get_client_seed(BigInt(rand(1:340282366920938463463374607431768211456)))
 end
 
 function get_salt()::Vector{UInt8}
@@ -106,13 +112,16 @@ function get_verifier(user::AbstractString, password::AbstractString, salt::Vect
     powermod(g, x, prime)
 end
 
-function get_server_seed(v::BigInt)::Tuple{BigInt, BigInt}
+function get_server_seed(v::BigInt, keyb::BigInt)::Tuple{BigInt, BigInt}
     prime, g, k = get_prime()
-    keyb = rand(1:340282366920938463463374607431768211456)
     gb = powermod(g, keyb, prime)
     kv = (k * v) % prime
     keyB = (kv + gb) % prime
     keyB, keyb
+end
+
+function get_server_seed(v::BigInt)::Tuple{BigInt, BigInt}
+    get_server_seed(v, BigInt(rand(1:340282366920938463463374607431768211456)))
 end
 
 function get_client_session(user::AbstractString, password::AbstractString, salt::Vector{UInt8}, keyA::BigInt, keyB::BigInt, keya::BigInt)::Vector{UInt8}
