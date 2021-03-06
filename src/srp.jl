@@ -87,9 +87,7 @@ end
 
 function get_client_seed()::Tuple{BigInt, BigInt}
     prime, g, _ = get_prime()
-    keya = rand(big"1":big"340282366920938463463374607431768211456") # 1 << 128
-    # keya = big"0x60975527035CF2AD1989806F0407210BC81EDC04E2762A56AFD529DDDA2D4393
-"
+    keya = rand(1:340282366920938463463374607431768211456)
     keyA = powermod(g, keya, prime)
     (keyA, keya)
 end
@@ -110,7 +108,7 @@ end
 
 function get_server_seed(v::BigInt)::Tuple{BigInt, BigInt}
     prime, g, k = get_prime()
-    keyb = rand(big"1":big"340282366920938463463374607431768211456") # 1 << 128
+    keyb = rand(1:340282366920938463463374607431768211456)
     gb = powermod(g, keyb, prime)
     kv = (k * v) % prime
     keyB = (kv + gb) % prime

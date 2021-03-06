@@ -46,7 +46,7 @@ using Test, Firebird
     user = "SYSDBA"
     password = "masterkey"
 
-    keyA, keya = Firebird.get_client_sheed()
+    keyA, keya = Firebird.get_client_seed()
     salt = Firebird.get_salt()
     v = Firebird.get_verifier(user, password, salt)
     keyB, keyb = Firebird.get_server_seed(v)
