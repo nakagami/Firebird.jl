@@ -590,7 +590,7 @@ function _op_cont_auth(wp::WireProtocol, auth_data::Vector{UInt8}, auth_plugin_n
 end
 
 function _op_crypt(wp::WireProtocol)
-    pack_uint32(wp, op_cont_auth)
+    pack_uint32(wp, op_crypt)
     pack_string(wp, "Arc4")
     pack_string(wp, "Symmetric")
     send_packets(wp)
