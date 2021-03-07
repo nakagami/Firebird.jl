@@ -259,7 +259,7 @@ function parse_status_vector(wp::WireProtocol)::Tuple{Vector{UInt32}, Int, Strin
     (gds_codes, sql_code, message)
 end
 
-function parse_op_response(wp::WireProtocol)
+function parse_op_response(wp::WireProtocol)::Tuple{Int32, Vector{UInt8}, Vector{UInt8}}
     h = bytes_to_bint32(recv_packets(wp, 4))            # Object handle
     oid = recv_packets(wp, 8)                           # Object ID
     buf_len = Int(bytes_to_bint32(recv_packets(wp, 4))) # buffer length
@@ -512,22 +512,22 @@ function _op_connect(wp::WireProtocol, db_name::String, username::String, passwo
     send_packets(wp)
 end
 
-function _op_create(wp::WireProtocol, db_name::String, username::String, password::String)
-    page_size::Int = 4096
+function _op_create(wp::WireProtocol, db_name::String, username::String, password::String, page_size::Int32)
     encode = b"UTF8"
 
     username_bytes = Vector{UInt8}(username)
     password_bytes = Vector{UInt8}(password)
+    dpb::Vector{UInt8} = []
 
     dpb = vcat(
         [isc_dpb_version1],
-        [isc_dpb_set_db_charset, byte(len(encode))], encode,
-        [isc_dpb_lc_ctype, byte(len(encode))], encode,
-        [isc_dpb_user_name, byte(len(username_bytes))], username_bytes,
-        [isc_dpb_password, byte(len(password_bytes))], password_bytes,
-        [isc_dpb_sql_dialect, 4], int32_to_bytes(3),
-        [isc_dpb_force_write, 4], bint32_to_bytes(1),
-        [isc_dpb_overwrite, 4], bint32_to_bytes(1),
+        [isc_dpb_set_db_charset, UInt8(length(encode))], encode,
+        [isc_dpb_lc_ctype, UInt8(length(encode))], encode,
+        [isc_dpb_user_name, UInt8(length(username_bytes))], username_bytes,
+        [isc_dpb_password, UInt8(length(password_bytes))], password_bytes,
+        [isc_dpb_sql_dialect, 4], int32_to_bytes(Int32(3)),
+        [isc_dpb_force_write, 4], int32_to_bytes(Int32(1)),
+        [isc_dpb_overwrite, 4], int32_to_bytes(Int32(1)),
         [isc_dpb_page_size, 4], int32_to_bytes(page_size),
     )
 
@@ -544,7 +544,7 @@ function _op_create(wp::WireProtocol, db_name::String, username::String, passwor
     pack_uint32(wp, op_create)
     pack_uint32(wp, 0)
     pack_string(wp, db_name)
-    pack_bytes(dpb)
+    pack_bytes(wp, dpb)
     send_packets(wp)
 end
 
@@ -556,10 +556,10 @@ function _op_attach(wp::WireProtocol, db_name::String, username::String, passwor
 
     dpb = vcat(
         [isc_dpb_version1],
-        [isc_dpb_set_db_charset, byte(len(encode))], encode,
-        [isc_dpb_lc_ctype, byte(len(encode))], encode,
-        [isc_dpb_user_name, byte(len(username_bytes))], username_bytes,
-        [isc_dpb_password, byte(len(password_bytes))], password_bytes,
+        [isc_dpb_set_db_charset, UInt8(length(encode))], encode,
+        [isc_dpb_lc_ctype, UInt8(length(encode))], encode,
+        [isc_dpb_user_name, UInt8(length(username_bytes))], username_bytes,
+        [isc_dpb_password, UInt8(length(password_bytes))], password_bytes,
         [isc_dpb_sql_dialect, 4], int32_to_bytes(3),
     )
 
@@ -671,7 +671,7 @@ function _op_prepare_statement(wp::WireProtocol, stmt_handle::Int32, trans_handl
     pack_uint32(stmt_handle)
     pack_uint32(3)  # dialect = 3
     pack_string(wp, query)
-    pack_bytes(bs)
+    pack_bytes(wp, bs)
     pack_uint32(wp, BUFFER_LEN)
     send_packets(wp)
 end
@@ -680,7 +680,7 @@ function _op_info_sql(wp::WireProtocol, stmt_handle::Int32, vars::Vector{UInt8})
     pack_uint32(wp, op_info_sql)
     pack_uint32(wp, stmt_handle)
     pack_uint32(wp, 0)
-    pack_bytes(vars)
+    pack_bytes(wp, vars)
     pack_uint32(wp, BUFFER_LEN)
     send_packets(wp)
 end
@@ -721,7 +721,7 @@ function _op_execute2(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32,
         append_bytes(values)
     end
 
-    pack_bytes(output_blr)
+    pack_bytes(wp, output_blr)
     pack_uint32(0)
     send_packets(wp)
 end
@@ -861,7 +861,7 @@ function _op_close_blob(wp::WireProtocol, blob_handle::Int32)
     send_packets(wp)
 end
 
-function _op_response(wp::WireProtocol)
+function _op_response(wp::WireProtocol)::Tuple{Int32, Vector{UInt8}, Vector{UInt8}}
     op_code = bytes_to_bint32(recv_packets(wp, 4))
     while op_code == op_dummy
         op_code = bytes_to_bint32(recv_packets(wp, 4))
