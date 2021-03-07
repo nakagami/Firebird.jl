@@ -28,9 +28,9 @@ mutable struct Connection <: DBInterface.Connection
 
     function Connection(host::String, username::String, password::String, db_name::String, opts::Dict)
         username = uppercase(username)
-        port = UInt16(haskey(opts, "port") ? opts["port"] : 3050)
-        wire_crypt = Bool(haskey(opts, "wire_crypt") ? opts["wire_crypt"] : true)
-        create_new = Bool(haskey(opts, "create_new") ? opts["create_new"] : false)
+        port = UInt16(haskey(opts, :port) ? opts[:port] : 3050)
+        wire_crypt = Bool(haskey(opts, :wire_crypt) ? opts[:wire_crypt] : true)
+        create_new = Bool(haskey(opts, :create_new) ? opts[:create_new] : false)
 
         wp = WireProtocol(host, username, password, port)
         client_public, client_secret = get_client_seed()
