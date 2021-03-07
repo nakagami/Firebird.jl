@@ -21,30 +21,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ################################################################################
-module Firebird
-using Dates, DBInterface, Tables, Parsers, DecFP
 
-export DBInterface
 
-include("consts.jl")
-include("errmsgs.jl")
-include("xsqlvar.jl")
-include("utils.jl")
-include("srp.jl")
-include("arc4.jl")
-include("decfloat.jl")
-include("wireprotocol.jl")
-include("connection.jl")
-include("statement.jl")
+mutable struct Statement <: DBInterface.Statement
+    conn::Connection
+    stmt_handle::Int32
 
-DBInterface.connect(::Type{Connection}, host::String, user::String, password::String, db_name::String; kwargs...) =
-    Connection(host, user, password, db_name, Dict(kwargs))
+    function Statement(conn::Connection, stmt_handle::Int32)
+    end
 
-function DBInterface.close!(conn::Connection)
-    close!(conn)
 end
-
-Base.close(conn::Connection) = DBInterface.close!(conn)
-Base.isopen(conn::Connection) = Firebird.isopen(conn)
-
-end # module
