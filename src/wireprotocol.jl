@@ -532,7 +532,7 @@ function _op_create(wp::WireProtocol, db_name::String, username::String, passwor
     )
 
     if length(wp.auth_data) != 0
-        specific_auth_data = bytes2hex(wp.auth_data)
+        specific_auth_data = Vector{UInt8}(bytes2hex(wp.auth_data))
         dpb = vcat(dpb, [isc_dpb_specific_auth_data, length(specific_auth_data)], specific_auth_data)
     end
 
@@ -564,7 +564,7 @@ function _op_attach(wp::WireProtocol, db_name::String, username::String, passwor
     )
 
     if length(wp.auth_data) != 0
-        specific_auth_data = bytes2hex(wp.auth_data)
+        specific_auth_data = Vector{UInt8}(bytes2hex(wp.auth_data))
         dpb = vcat(dpb, [isc_dpb_specific_auth_data, length(specific_auth_data)], specific_auth_data)
     end
 
