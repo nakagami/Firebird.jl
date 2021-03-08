@@ -99,6 +99,7 @@ mutable struct WireProtocol
     password::String
 
     db_handle::Int32
+    trans_handle::Int32
 
     protocol_version::Int32
     accept_architecture::Int32
@@ -112,11 +113,15 @@ mutable struct WireProtocol
 
     function WireProtocol(host::AbstractString, user::AbstractString, password::AbstractString, port::UInt16)
         chan = WireChannel(host, port)
-        new([], chan, host, port, user, password, -1, -1, -1, -1, 0, "", [], "")
+        new([], chan, host, port, user, password, -1, -1, -1, -1, -1, 0, "", [], "")
     end
 end
 
 function pack_uint32(wp::WireProtocol, i::Int)
+    pack_uint32(wp, UInt32(i))
+end
+
+function pack_uint32(wp::WireProtocol, i::Int32)
     pack_uint32(wp, UInt32(i))
 end
 
@@ -604,7 +609,7 @@ end
 
 function _op_transaction(wp::WireProtocol, tpb::Vector{UInt8})
     pack_uint32(wp, op_transaction)
-    pack_uint32(wp, wp.dh_bandle)
+    pack_uint32(wp, wp.db_handle)
     pack_bytes(wp, tpb)
     send_packets(wp)
 end

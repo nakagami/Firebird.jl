@@ -25,7 +25,6 @@
 
 mutable struct Connection <: DBInterface.Connection
     wp::Firebird.WireProtocol
-    db_handle::Int32
 
     function Connection(host::String, username::String, password::String, db_name::String, opts::Dict)
         username = uppercase(username)
@@ -44,7 +43,22 @@ mutable struct Connection <: DBInterface.Connection
             _op_attach(wp, db_name, username, password)
         end
         db_handle, _, _ = _op_response(wp)
-        new(wp, db_handle)
+        if db_handle < 0
+            throw(DomainError("connection error"))
+        end
+        wp.db_handle = db_handle
+
+        tpb::Vector{UInt8} = [
+            isc_tpb_version3, isc_tpb_write, isc_tpb_wait, isc_tpb_autocommit
+        ]
+        _op_transaction(wp, tpb)
+        trans_handle, _, _ = _op_response(wp)
+        if trans_handle < 0
+            throw(DomainError("transaction error"))
+        end
+        wp.trans_handle = trans_handle
+
+        new(wp)
     end
 
 end
