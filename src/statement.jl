@@ -28,6 +28,7 @@ mutable struct Statement <: DBInterface.Statement
     stmt_handle::Int32
 
     function Statement(conn::Connection, stmt_handle::Int32)
+        new(conn, stmt_handle)
     end
 
 end
