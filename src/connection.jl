@@ -63,10 +63,13 @@ mutable struct Connection <: DBInterface.Connection
 
 end
 
-function close!(conn::Connection)
-    close!(conn.wp.chan)
-end
-
 function isopen(conn::Connection)::Bool
     isopen(conn.wp.chan)
+end
+
+DBInterface.connect(::Type{Connection}, host::String, user::String, password::String, db_name::String; kwargs...) =
+    Connection(host, user, password, db_name, Dict(kwargs))
+
+function DBInterface.close!(conn::Connection)
+    close!(conn.wp.chan)
 end

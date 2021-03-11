@@ -32,3 +32,18 @@ mutable struct Statement <: DBInterface.Statement
     end
 
 end
+
+function DBInterface.prepare(conn::Connection, sql::AbstractString)
+    _op_allocate_statement(conn.wp)
+    op_code = bytes_to_bint32(recv_packets(conn.wp, 4))
+    while op_code == op_response && conn.wp.lazy_response_count > 0
+        conn.wp.lazy_response_count -= 1
+        op_code = bytes_to_bint32(recv_packets(conn.wp, 4))
+    end
+    stmt_handle, _, _ = parse_op_response(conn.wp)
+    Statement(conn, stmt_handle)
+end
+
+function DBInterface.close!(stmt::Statement)
+    # TODO:
+end
