@@ -43,6 +43,9 @@ const CNCT_login             = 9
 const CNCT_plugin_list       = 10
 const CNCT_client_crypt      = 11
 
+const DSQL_close = 1
+const DSQL_drop = 2
+
 const isc_info_end            = 1
 const isc_info_truncated      = 2
 const isc_info_error          = 3

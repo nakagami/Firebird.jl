@@ -662,7 +662,7 @@ function _op_info_database(wp::WireProtocol, b::Vector{UInt8})
     send_packets(wp)
 end
 
-function _op_free_statement(wp::WireProtocol, stmt_handle::Int32, mode::Int32)
+function _op_free_statement(wp::WireProtocol, stmt_handle::Int32, mode::Int)
     pack_uint32(wp, op_free_statement)
     pack_uint32(wp, stmt_handle)
     pack_uint32(wp, mode)

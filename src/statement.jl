@@ -45,5 +45,11 @@ function DBInterface.prepare(conn::Connection, sql::AbstractString)
 end
 
 function DBInterface.close!(stmt::Statement)
-    # TODO:
+    wp = stmt.conn.wp
+    _op_free_statement(wp, stmt.stmt_handle, DSQL_drop)
+    op_code = bytes_to_bint32(recv_packets(wp, 4))
+    while op_code == op_response && wp.lazy_response_count > 0
+        wp.lazy_response_count -= 1
+        op_code = bytes_to_bint32(recv_packets(wp, 4))
+    end
 end
