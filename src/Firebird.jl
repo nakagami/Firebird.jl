@@ -36,6 +36,8 @@ include("decfloat.jl")
 include("wireprotocol.jl")
 include("connection.jl")
 include("statement.jl")
+include("cursor.jl")
+include("execute.jl")
 
 Base.close(conn::Connection) = DBInterface.close!(conn)
 Base.isopen(conn::Connection) = Firebird.isopen(conn)

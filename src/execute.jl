@@ -22,35 +22,8 @@
 # SOFTWARE.
 ################################################################################
 
-
-mutable struct Statement <: DBInterface.Statement
-    conn::Connection
-    sql::String
-    stmt_handle::Int32
-
-    function Statement(conn::Connection, sql::String)
-        _op_allocate_statement(conn.wp)
-        op_code = bytes_to_bint32(recv_packets(conn.wp, 4))
-        while op_code == op_response && conn.wp.lazy_response_count > 0
-            conn.wp.lazy_response_count -= 1
-            op_code = bytes_to_bint32(recv_packets(conn.wp, 4))
-        end
-        stmt_handle, _, _ = parse_op_response(conn.wp)
-        new(conn, sql, stmt_handle)
-    end
-
+function DBInterface.execute(conn::Connection, stmt::Statement, params=())
 end
 
-function DBInterface.prepare(conn::Connection, sql::AbstractString)
-    Statement(conn, sql)
-end
-
-function DBInterface.close!(stmt::Statement)
-    wp = stmt.conn.wp
-    _op_free_statement(wp, stmt.stmt_handle, DSQL_drop)
-    op_code = bytes_to_bint32(recv_packets(wp, 4))
-    while op_code == op_response && wp.lazy_response_count > 0
-        wp.lazy_response_count -= 1
-        op_code = bytes_to_bint32(recv_packets(wp, 4))
-    end
+function DBInterface.execute(conn::Connection, sql::AbstractString, params=())
 end
