@@ -22,12 +22,13 @@
 # SOFTWARE.
 ################################################################################
 
-mutable struct Cursor{buffered} <: DBInterface.Cursor
+mutable struct Cursor <: DBInterface.Cursor
     conn::Connection
     stmt::Statement
 end
 
-struct Row{buffered} <: Tables.AbstractRow
-    cursor::Cursor{buffered}
+struct Row <: Tables.AbstractRow
+    cursor::Cursor
 end
+
 

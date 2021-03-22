@@ -22,8 +22,11 @@
 # SOFTWARE.
 ################################################################################
 
-function DBInterface.execute(conn::Connection, stmt::Statement, params=())
+function DBInterface.execute(conn::Connection, stmt::Statement, params=())::Cursor
+    Cursor(conn, stmt)
 end
 
-function DBInterface.execute(conn::Connection, sql::AbstractString, params=())
+function DBInterface.execute(conn::Connection, sql::AbstractString, params=())::Cursor
+    stmt = DBInterface.prepare(conn, sql)
+    DBInterface.execute(conn, stmt, params)
 end
