@@ -669,12 +669,12 @@ function _op_free_statement(wp::WireProtocol, stmt_handle::Int32, mode::Int)
     send_packets(wp)
 end
 
-function _op_prepare_statement(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32, query::String)
+function _op_prepare_statement(wp::WireProtocol, stmt_handle::Int32, query::String)
     bs::Vector{UInt8} = vcat([isc_info_sql_stmt_type], INFO_SQL_SELECT_DESCRIBE_VARS())
-    pack_uint32(op_prepare_statement)
-    pack_uint32(trans_handle)
-    pack_uint32(stmt_handle)
-    pack_uint32(3)  # dialect = 3
+    pack_uint32(wp, op_prepare_statement)
+    pack_uint32(wp, wp.trans_handle)
+    pack_uint32(wp, stmt_handle)
+    pack_uint32(wp, 3)  # dialect = 3
     pack_string(wp, query)
     pack_bytes(wp, bs)
     pack_uint32(wp, BUFFER_LEN)
@@ -690,10 +690,10 @@ function _op_info_sql(wp::WireProtocol, stmt_handle::Int32, vars::Vector{UInt8})
     send_packets(wp)
 end
 
-function _op_execute(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32, params::Vector{Any})
+function _op_execute(wp::WireProtocol, stmt_handle::Int32, params::Vector{Any})
     pack_uint32(wp, op_execute)
     pack_uint32(wp, stmt_handle)
-    pack_uint32(wp, trans_handle)
+    pack_uint32(wp, wp.trans_handle)
 
     if length(params) == 0
         pack_uint32(wp, 0)  # pack_bytes(wp, [])
