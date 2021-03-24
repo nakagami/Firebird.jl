@@ -27,6 +27,8 @@ mutable struct Statement <: DBInterface.Statement
     conn::Connection
     sql::String
     stmt_handle::Int32
+    stmt_type::Int32
+    xsqlda::Vector{XSQLVAR}
 
     function Statement(conn::Connection, sql::String)
         _op_allocate_statement(conn.wp)
@@ -44,9 +46,8 @@ mutable struct Statement <: DBInterface.Statement
             op_code = bytes_to_bint32(recv_packets(conn.wp, 4))
         end
         _, _, buf = parse_op_response(conn.wp)
-        # TODO: parse_sqlda and get stmt_type
-
-        new(conn, sql, stmt_handle)
+        stmt_type, xsqlda = parse_xsqlda(conn.wp, buf, stmt_handle)
+        new(conn, sql, stmt_handle, stmt_type, xsqlda)
     end
 
 end
