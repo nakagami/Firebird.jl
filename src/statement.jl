@@ -25,12 +25,22 @@
 
 mutable struct Statement <: DBInterface.Statement
     conn::Connection
+    trans_handle::Int32
     sql::String
     stmt_handle::Int32
     stmt_type::Int32
     xsqlda::Vector{XSQLVAR}
 
     function Statement(conn::Connection, sql::String)
+        tpb::Vector{UInt8} = [
+            isc_tpb_version3, isc_tpb_write, isc_tpb_wait, isc_tpb_autocommit
+        ]
+        _op_transaction(conn.wp, tpb)
+        trans_handle, _, _ = _op_response(conn.wp)
+        if trans_handle < 0
+            throw(DomainError("transaction error"))
+        end
+
         _op_allocate_statement(conn.wp)
         op_code = bytes_to_bint32(recv_packets(conn.wp, 4))
         while op_code == op_response && conn.wp.lazy_response_count > 0
@@ -39,7 +49,7 @@ mutable struct Statement <: DBInterface.Statement
         end
         stmt_handle, _, _ = parse_op_response(conn.wp)
 
-        _op_prepare_statement(conn.wp, stmt_handle, sql)
+        _op_prepare_statement(conn.wp, trans_handle, stmt_handle, sql)
         op_code = bytes_to_bint32(recv_packets(conn.wp, 4))
         while op_code == op_response && conn.wp.lazy_response_count > 0
             conn.wp.lazy_response_count -= 1
@@ -47,7 +57,8 @@ mutable struct Statement <: DBInterface.Statement
         end
         _, _, buf = parse_op_response(conn.wp)
         stmt_type, xsqlda = parse_xsqlda(conn.wp, buf, stmt_handle)
-        new(conn, sql, stmt_handle, stmt_type, xsqlda)
+
+        new(conn, trans_handle, sql, stmt_handle, stmt_type, xsqlda)
     end
 
 end

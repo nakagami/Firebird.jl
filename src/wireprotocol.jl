@@ -669,10 +669,10 @@ function _op_free_statement(wp::WireProtocol, stmt_handle::Int32, mode::Int)
     send_packets(wp)
 end
 
-function _op_prepare_statement(wp::WireProtocol, stmt_handle::Int32, query::String)
+function _op_prepare_statement(wp::WireProtocol, trans_handle::Int32, stmt_handle::Int32, query::String)
     bs::Vector{UInt8} = vcat([isc_info_sql_stmt_type], INFO_SQL_SELECT_DESCRIBE_VARS())
     pack_uint32(wp, op_prepare_statement)
-    pack_uint32(wp, wp.trans_handle)
+    pack_uint32(wp, trans_handle)
     pack_uint32(wp, stmt_handle)
     pack_uint32(wp, 3)  # dialect = 3
     pack_string(wp, query)
