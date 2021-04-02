@@ -21,26 +21,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ################################################################################
-module Firebird
-using Dates, DBInterface, Tables, Parsers, DecFP
 
-export DBInterface
+mutable struct Transaction
+    conn::Connection
+    trans_handle::Int32
+    need_begin::Bool
 
-include("consts.jl")
-include("errmsgs.jl")
-include("xsqlvar.jl")
-include("utils.jl")
-include("srp.jl")
-include("arc4.jl")
-include("decfloat.jl")
-include("wireprotocol.jl")
-include("connection.jl")
-include("transaction.jl")
-include("statement.jl")
-include("cursor.jl")
-include("execute.jl")
+    function Transaction(conn::Connection)
+        tpb::Vector{UInt8} = [
+            isc_tpb_version3, isc_tpb_write, isc_tpb_wait, isc_tpb_autocommit
+        ]
+        _op_transaction(conn.wp, tpb)
+        trans_handle, _, _ = _op_response(conn.wp)
+        if trans_handle < 0
+            throw(DomainError("transaction error"))
+        end
+        new(conn, trans_handle, true)
+    end
 
-Base.close(conn::Connection) = DBInterface.close!(conn)
-Base.isopen(conn::Connection) = Firebird.isopen(conn)
-
-end # module
+end
