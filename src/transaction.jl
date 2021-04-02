@@ -23,20 +23,20 @@
 ################################################################################
 
 mutable struct Transaction
-    conn::Connection
-    trans_handle::Int32
+    wp::WireProtocol
+    handle::Int32
     need_begin::Bool
 
-    function Transaction(conn::Connection)
+    function Transaction(wp::WireProtocol)
         tpb::Vector{UInt8} = [
             isc_tpb_version3, isc_tpb_write, isc_tpb_wait, isc_tpb_autocommit
         ]
-        _op_transaction(conn.wp, tpb)
-        trans_handle, _, _ = _op_response(conn.wp)
+        _op_transaction(wp, tpb)
+        trans_handle, _, _ = _op_response(wp)
         if trans_handle < 0
             throw(DomainError("transaction error"))
         end
-        new(conn, trans_handle, true)
+        new(wp, trans_handle, true)
     end
 
 end
