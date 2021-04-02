@@ -22,11 +22,14 @@
 # SOFTWARE.
 ################################################################################
 
-function DBInterface.execute(conn::Connection, stmt::Statement, params=())::Cursor
+function DBInterface.execute(conn::Connection, stmt::Statement, params=[])::Cursor
+    _op_execute(conn.wp, stmt.handle, stmt.transaction.handle, params)
+    _op_response(conn.wp)
+
     Cursor(conn, stmt)
 end
 
-function DBInterface.execute(conn::Connection, sql::AbstractString, params=())::Cursor
+function DBInterface.execute(conn::Connection, sql::AbstractString, params=[])::Cursor
     stmt = DBInterface.prepare(conn, sql)
     DBInterface.execute(conn, stmt, params)
 end

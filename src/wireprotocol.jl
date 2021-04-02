@@ -690,10 +690,10 @@ function _op_info_sql(wp::WireProtocol, stmt_handle::Int32, vars::Vector{UInt8})
     send_packets(wp)
 end
 
-function _op_execute(wp::WireProtocol, stmt_handle::Int32, params::Vector{Any})
+function _op_execute(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32, params::Vector{Any})
     pack_uint32(wp, op_execute)
     pack_uint32(wp, stmt_handle)
-    pack_uint32(wp, wp.trans_handle)
+    pack_uint32(wp, trans_handle)
 
     if length(params) == 0
         pack_uint32(wp, 0)  # pack_bytes(wp, [])
