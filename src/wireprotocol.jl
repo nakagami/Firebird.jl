@@ -130,7 +130,7 @@ function pack_uint32(wp::WireProtocol, i::UInt32)
     wp.buf = vcat(wp.buf, UInt8[UInt8(i >> 24 & 0xFF), UInt8(i >> 16 & 0xFF), UInt8(i >> 8 & 0xFF), UInt8(i & 0xFF)])
 end
 
-function pack_bytes(wp::WireProtocol, b::Vector{UInt8})
+function pack_bytes(wp::WireProtocol, b::Vector{UInt8})::Vector{UInt8}
     wp.buf = vcat(wp.buf, xdr_bytes(b))
 end
 
@@ -559,18 +559,19 @@ function _op_attach(wp::WireProtocol, db_name::String, username::String, passwor
     username_bytes = Vector{UInt8}(username)
     password_bytes = Vector{UInt8}(password)
 
-    dpb = vcat(
-        [isc_dpb_version1],
-        [isc_dpb_set_db_charset, UInt8(length(encode))], encode,
-        [isc_dpb_lc_ctype, UInt8(length(encode))], encode,
-        [isc_dpb_user_name, UInt8(length(username_bytes))], username_bytes,
-        [isc_dpb_password, UInt8(length(password_bytes))], password_bytes,
-        [isc_dpb_sql_dialect, 4], int32_to_bytes(3),
+    dpb::Vector{UInt8} = vcat(
+        [UInt8(isc_dpb_version1)],
+        [UInt8(isc_dpb_set_db_charset), UInt8(length(encode))], encode,
+        [UInt8(isc_dpb_lc_ctype), UInt8(length(encode))], encode,
+        [UInt8(isc_dpb_user_name), UInt8(length(username_bytes))], username_bytes,
+        [UInt8(isc_dpb_password), UInt8(length(password_bytes))], password_bytes,
+        [UInt8(isc_dpb_sql_dialect), UInt8(4)], int32_to_bytes(Int32(3)),
     )
+
 
     if length(wp.auth_data) != 0
         specific_auth_data = Vector{UInt8}(bytes2hex(wp.auth_data))
-        dpb = vcat(dpb, [isc_dpb_specific_auth_data, length(specific_auth_data)], specific_auth_data)
+        dpb = vcat(dpb, [UInt8(isc_dpb_specific_auth_data), UInt8(length(specific_auth_data))], specific_auth_data)
     end
 
     if wp.timezone != ""
