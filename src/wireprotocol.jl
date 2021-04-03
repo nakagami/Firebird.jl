@@ -122,11 +122,11 @@ mutable struct WireProtocol
 end
 
 function pack_uint32(wp::WireProtocol, i::Int)
-    pack_uint32(wp, UInt32(i))
+    wp.buf = vcat(wp.buf, UInt8[UInt8(i >> 24 & 0xFF), UInt8(i >> 16 & 0xFF), UInt8(i >> 8 & 0xFF), UInt8(i & 0xFF)])
 end
 
 function pack_uint32(wp::WireProtocol, i::Int32)
-    pack_uint32(wp, UInt32(i))
+    wp.buf = vcat(wp.buf, UInt8[UInt8(i >> 24 & 0xFF), UInt8(i >> 16 & 0xFF), UInt8(i >> 8 & 0xFF), UInt8(i & 0xFF)])
 end
 
 function pack_uint32(wp::WireProtocol, i::UInt32)

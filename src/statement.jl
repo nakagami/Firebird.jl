@@ -32,9 +32,8 @@ mutable struct Statement <: DBInterface.Statement
 
     function Statement(conn::Connection, sql::String)
         _op_allocate_statement(conn.wp)
-        if accept_type == ptype_lazy_send
-            stmt_handle = -1
-        else
+        stmt_handle::Int32 = -1
+        if conn.wp.accept_type != ptype_lazy_send
             op_code = bytes_to_bint32(recv_packets(conn.wp, 4))
             while op_code == op_response && conn.wp.lazy_response_count > 0
                 conn.wp.lazy_response_count -= 1
