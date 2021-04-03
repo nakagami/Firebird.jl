@@ -29,6 +29,10 @@ const BUFFER_LEN = 1024
 const MAX_CHAR_LENGTH = 32767
 const BLOB_SEGMENT_SIZE = 32000
 
+function DEBUG_OUTPUT(s)
+    println(s)
+end
+
 function INFO_SQL_SELECT_DESCRIBE_VARS()::Vector{UInt8}
     [
         isc_info_sql_select,
@@ -502,6 +506,7 @@ function get_blob_segments(wp::WireProtocol, blob_id::Vector{UInt8}, trans_handl
 end
 
 function _op_connect(wp::WireProtocol, db_name::String, username::String, password::String, wire_crypt::Bool, client_public::BigInt)
+    DEBUG_OUTPUT("_op_connect")
     # PROTOCOL_VERSION, Arch type (Generic=1), min, max, weight = 13, 1, 0, 5, 8
     protocols = hex2bytes("ffff800d00000001000000000000000500000008")
     protocols_len = div(length(protocols), 20)
@@ -518,6 +523,7 @@ function _op_connect(wp::WireProtocol, db_name::String, username::String, passwo
 end
 
 function _op_create(wp::WireProtocol, db_name::String, username::String, password::String, page_size::Int32)
+    DEBUG_OUTPUT("_op_create")
     encode = b"UTF8"
 
     username_bytes = Vector{UInt8}(username)
@@ -554,6 +560,7 @@ function _op_create(wp::WireProtocol, db_name::String, username::String, passwor
 end
 
 function _op_attach(wp::WireProtocol, db_name::String, username::String, password::String)
+    DEBUG_OUTPUT("_op_attach")
     encode = b"UTF8"
 
     username_bytes = Vector{UInt8}(username)
@@ -587,6 +594,7 @@ function _op_attach(wp::WireProtocol, db_name::String, username::String, passwor
 end
 
 function _op_cont_auth(wp::WireProtocol, auth_data::Vector{UInt8}, auth_plugin_name::String, keys::String)
+    DEBUG_OUTPUT("_op_cont_auth")
     pack_uint32(wp, op_cont_auth)
     pack_string(wp, bytes2hex(auth_data))
     pack_string(wp, auth_plugin_name)
@@ -596,6 +604,7 @@ function _op_cont_auth(wp::WireProtocol, auth_data::Vector{UInt8}, auth_plugin_n
 end
 
 function _op_crypt(wp::WireProtocol)
+    DEBUG_OUTPUT("_op_cont_crypt")
     pack_uint32(wp, op_crypt)
     pack_string(wp, "Arc4")
     pack_string(wp, "Symmetric")
@@ -603,12 +612,14 @@ function _op_crypt(wp::WireProtocol)
 end
 
 function _op_drop_database(wp::WireProtocol)
+    DEBUG_OUTPUT("_op_drop_database")
     pack_uint32(wp, op_drop_database)
     pack_uint32(wp, wp.db_handle)
     send_packets(wp)
 end
 
 function _op_transaction(wp::WireProtocol, tpb::Vector{UInt8})
+    DEBUG_OUTPUT("_op_transaction")
     pack_uint32(wp, op_transaction)
     pack_uint32(wp, wp.db_handle)
     pack_bytes(wp, tpb)
@@ -616,36 +627,42 @@ function _op_transaction(wp::WireProtocol, tpb::Vector{UInt8})
 end
 
 function _op_commit(wp::WireProtocol, trans_handle::Int32)
+    DEBUG_OUTPUT("_op_commit")
     pack_uint32(wp, op_commit)
     pack_uint32(wp, trans_handle)
     send_packets(wp)
 end
 
 function _op_commit_retainning(wp::WireProtocol, trans_handle::Int32)
+    DEBUG_OUTPUT("_op_commit_retainning")
     pack_uint32(wp, op_commit_retaining)
     pack_uint32(wp, trans_handle)
     send_packets(wp)
 end
 
 function _op_rollback(wp::WireProtocol, trans_handle::Int32)
+    DEBUG_OUTPUT("_op_rollback")
     pack_uint32(wp, op_rollback)
     pack_uint32(wp, trans_handle)
     send_packets(wp)
 end
 
 function _op_rollback_retaining(wp::WireProtocol)
+    DEBUG_OUTPUT("_op_rollback_retaining")
     pack_uint32(wp, op_rollback_retaining)
     pack_uint32(wp, trans_handle)
     send_packets(wp)
 end
 
 function _op_allocate_statement(wp::WireProtocol)
+    DEBUG_OUTPUT("_op_allocate_statement")
     pack_uint32(wp, op_allocate_statement)
     pack_uint32(wp, wp.db_handle)
     send_packets(wp)
 end
 
 function _op_info_transaction(wp::WireProtocol, trans_handle::Int32, b::Vector{UInt8})
+    DEBUG_OUTPUT("_op_info_transaction")
     pack_uint32(wp, op_info_transaction)
     pack_uint32(wp, trans_handle)
     pack_uint32(wp, 0)
@@ -655,6 +672,7 @@ function _op_info_transaction(wp::WireProtocol, trans_handle::Int32, b::Vector{U
 end
 
 function _op_info_database(wp::WireProtocol, b::Vector{UInt8})
+    DEBUG_OUTPUT("_op_info_database")
     pack_uint32(wp, op_info_database)
     pack_uint32(wp, wp.db_handle)
     pack_uint32(wp, 0)
@@ -664,6 +682,7 @@ function _op_info_database(wp::WireProtocol, b::Vector{UInt8})
 end
 
 function _op_free_statement(wp::WireProtocol, stmt_handle::Int32, mode::Int)
+    DEBUG_OUTPUT("_op_free_statement")
     pack_uint32(wp, op_free_statement)
     pack_uint32(wp, stmt_handle)
     pack_uint32(wp, mode)
@@ -671,6 +690,7 @@ function _op_free_statement(wp::WireProtocol, stmt_handle::Int32, mode::Int)
 end
 
 function _op_prepare_statement(wp::WireProtocol, trans_handle::Int32, stmt_handle::Int32, query::String)
+    DEBUG_OUTPUT("_op_prepare_statement")
     bs::Vector{UInt8} = vcat([isc_info_sql_stmt_type], INFO_SQL_SELECT_DESCRIBE_VARS())
     pack_uint32(wp, op_prepare_statement)
     pack_uint32(wp, trans_handle)
@@ -683,6 +703,7 @@ function _op_prepare_statement(wp::WireProtocol, trans_handle::Int32, stmt_handl
 end
 
 function _op_info_sql(wp::WireProtocol, stmt_handle::Int32, vars::Vector{UInt8})
+    DEBUG_OUTPUT("_op_info_sql")
     pack_uint32(wp, op_info_sql)
     pack_uint32(wp, stmt_handle)
     pack_uint32(wp, 0)
@@ -692,6 +713,7 @@ function _op_info_sql(wp::WireProtocol, stmt_handle::Int32, vars::Vector{UInt8})
 end
 
 function _op_execute(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32, params::Vector{Any})
+    DEBUG_OUTPUT("_op_execute")
     pack_uint32(wp, op_execute)
     pack_uint32(wp, stmt_handle)
     pack_uint32(wp, trans_handle)
@@ -711,6 +733,7 @@ function _op_execute(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32, 
 end
 
 function _op_execute2(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32, params::Vector{Any}, output_blr::Vector{UInt8})
+    DEBUG_OUTPUT("_op_execute2")
     pack_uint32(wp, op_execute2)
     pack_uint32(wp, stmt_handle)
     pack_uint32(wp, trans_handle)
@@ -733,6 +756,7 @@ function _op_execute2(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32,
 end
 
 function _op_exec_immediate(wp::WireProtocol, trans_handle::Int32, query::String)
+    DEBUG_OUTPUT("_op_exec_immediate")
     pack_uint32(wp, op_exec_immediate)
     pack_uint32(wp, trans_handle)
     pack_uint32(wp, wp.db_handle)
@@ -744,6 +768,7 @@ function _op_exec_immediate(wp::WireProtocol, trans_handle::Int32, query::String
 end
 
 function _op_fetch(wp::WireProtocol, stmt_handle::Int32, blr::Vector{UInt8})
+    DEBUG_OUTPUT("_op_fetch")
     pack_uint32(wp, op_fetch)
     pack_uint32(wp, stmt_handle)
     pack_bytes(wp, blr)
@@ -753,6 +778,7 @@ function _op_fetch(wp::WireProtocol, stmt_handle::Int32, blr::Vector{UInt8})
 end
 
 function _op_fetch_response(wp::WireProtocol, stmt_handle::Int32, xsqlda::Vector{XSQLVAR})::Tuple{Vector{Vector{Any}}, Bool}
+    DEBUG_OUTPUT("_op_fetch_response")
     op_code = bytes_to_bint32(recv_packets(wp, 4))
     while op_code == op_dummy
         op_code = bytes_to_bint32(recv_packets(wp, 4))
@@ -806,12 +832,14 @@ function _op_fetch_response(wp::WireProtocol, stmt_handle::Int32, xsqlda::Vector
 end
 
 function _op_detatch(wp::WireProtocol)
+    DEBUG_OUTPUT("_op_detatch")
     pack_uint32(wp, op_detatch)
     pack_uint32(wp, wp.db_handle)
     send_packets(wp)
 end
 
 function _op_open_blob(wp::WireProtocol, blob_id::Vector{UInt8}, trans_handle::Int32)
+    DEBUG_OUTPUT("_op_open_blob")
     pack_uint32(wp, op_open_blob)
     pack_uint32(wp, trans_handle)
     append_bytes(wp, blob_id)
@@ -819,6 +847,7 @@ function _op_open_blob(wp::WireProtocol, blob_id::Vector{UInt8}, trans_handle::I
 end
 
 function _op_create_blob2(wp::WireProtocol, trans_handle::Int32)
+    DEBUG_OUTPUT("_op_create_blob2")
     pack_uint32(wp, op_create_blob2)
     pack_uint32(0)
     pack_uint32(trans_handle)
@@ -828,6 +857,7 @@ function _op_create_blob2(wp::WireProtocol, trans_handle::Int32)
 end
 
 function _op_get_segment(wp::WireProtocol, blob_handle::Int32)
+    DEBUG_OUTPUT("_op_get_segment")
     pack_uint32(wp, op_get_segment)
     pack_uint32(wp, blob_handle)
     pack_uint32(wp, BUFFER_LEN)
@@ -835,6 +865,7 @@ function _op_get_segment(wp::WireProtocol, blob_handle::Int32)
 end
 
 function _op_put_segment(wp::WireProtocol, blob_handle::Int32, seg_data::Vector{UInt8})
+    DEBUG_OUTPUT("_op_put_segment")
     ln::UInt32 = length(seg_data)
 
     pack_uint32(wp, op_put_segment)
@@ -848,6 +879,7 @@ function _op_put_segment(wp::WireProtocol, blob_handle::Int32, seg_data::Vector{
 end
 
 function _op_batch_segments(wp::WireProtocol, blob_handle::Int32, seg_data::Vector{UInt8})
+    DEBUG_OUTPUT("_op_batch_segment")
     ln = length(sqg_data)
     pack_uint(wp, op_batch_segments)
     pack_uint32(wp, blob_handle)
@@ -862,12 +894,14 @@ function _op_batch_segments(wp::WireProtocol, blob_handle::Int32, seg_data::Vect
 end
 
 function _op_close_blob(wp::WireProtocol, blob_handle::Int32)
+    DEBUG_OUTPUT("_op_close_blob")
     pack_uint32(wp, op_close_blob)
     pack_uint32(wp, blob_handle)
     send_packets(wp)
 end
 
 function _op_response(wp::WireProtocol)::Tuple{Int32, Vector{UInt8}, Vector{UInt8}}
+    DEBUG_OUTPUT("_op_response")
     op_code = bytes_to_bint32(recv_packets(wp, 4))
     while op_code == op_dummy
         op_code = bytes_to_bint32(recv_packets(wp, 4))
@@ -885,6 +919,7 @@ function _op_response(wp::WireProtocol)::Tuple{Int32, Vector{UInt8}, Vector{UInt
 end
 
 function _op_sql_response(wp::WireProtocol, xsqlda::XSQLVAR)::Vector{Any}
+    DEBUG_OUTPUT("_op_sql_response")
     op_code = bytes_to_bint32(recv_packets(wp, 4))
     while op_code == op_dummy
         op_code = bytes_to_bint32(recv_packets(wp, 4))
