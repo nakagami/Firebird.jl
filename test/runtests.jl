@@ -37,8 +37,7 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
     else
         "masterkey"
     end
-#    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, "/tmp/test.fdb", create_new=true)
-    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, "/tmp/test.fdb", wire_crypt=false)
+    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, "/tmp/test.fdb", create_new=true)
 
     stmt = DBInterface.prepare(
         conn, raw"SELECT rdb$get_context('SYSTEM', 'ENGINE_VERSION') from rdb$database"
