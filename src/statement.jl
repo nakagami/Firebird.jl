@@ -32,12 +32,16 @@ mutable struct Statement <: DBInterface.Statement
 
     function Statement(conn::Connection, sql::String)
         _op_allocate_statement(conn.wp)
-        op_code = bytes_to_bint32(recv_packets(conn.wp, 4))
-        while op_code == op_response && conn.wp.lazy_response_count > 0
-            conn.wp.lazy_response_count -= 1
+        if accept_type == ptype_lazy_send
+            stmt_handle = -1
+        else
             op_code = bytes_to_bint32(recv_packets(conn.wp, 4))
+            while op_code == op_response && conn.wp.lazy_response_count > 0
+                conn.wp.lazy_response_count -= 1
+                op_code = bytes_to_bint32(recv_packets(conn.wp, 4))
+            end
+            stmt_handle, _, _ = parse_op_response(conn.wp)
         end
-        stmt_handle, _, _ = parse_op_response(conn.wp)
 
         _op_prepare_statement(conn.wp, conn.transaction.handle, stmt_handle, sql)
         op_code = bytes_to_bint32(recv_packets(conn.wp, 4))
