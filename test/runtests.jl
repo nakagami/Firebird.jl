@@ -47,7 +47,7 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
 
     # TODO:
 
-    DBInterface.close!(stmt)
+    # DBInterface.close!(stmt)
 
     # cur = DBInterface.execute(conn, raw"SELECT rdb$get_context('SYSTEM', 'ENGINE_VERSION') from rdb$database")
     # TODO:
