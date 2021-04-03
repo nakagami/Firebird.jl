@@ -357,6 +357,7 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
     if wire_crypt && session_key != nothing
         _op_crypt(wp)
         set_arc4_key(wp.chan, session_key)
+        _op_response(wp)
     else
         wp.auth_data = auth_data
     end
