@@ -282,6 +282,7 @@ function parse_op_response(wp::WireProtocol)::Tuple{Int32, Vector{UInt8}, Vector
 end
 
 function parse_connect_response(wp::WireProtocol, username::String, password::String, wire_crypt::Bool, client_public::BigInt, client_secret::BigInt)
+    DEBUG_OUTPUT("parse_connect_response")
     op_code = bytes_to_bint32(recv_packets(wp, 4))
     while op_code == op_dummy
         op_code = bytes_to_bint32(recv_packets(wp, 4))
@@ -604,7 +605,7 @@ function _op_cont_auth(wp::WireProtocol, auth_data::Vector{UInt8}, auth_plugin_n
 end
 
 function _op_crypt(wp::WireProtocol)
-    DEBUG_OUTPUT("_op_cont_crypt")
+    DEBUG_OUTPUT("_op_crypt")
     pack_uint32(wp, op_crypt)
     pack_string(wp, "Arc4")
     pack_string(wp, "Symmetric")

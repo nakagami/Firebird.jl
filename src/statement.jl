@@ -25,15 +25,12 @@
 
 mutable struct Statement <: DBInterface.Statement
     conn::Connection
-    transaction::Transaction
     sql::String
     handle::Int32
     stmt_type::Int32
     xsqlda::Vector{XSQLVAR}
 
     function Statement(conn::Connection, sql::String)
-        transaction = Transaction(conn.wp)
-
         _op_allocate_statement(conn.wp)
         op_code = bytes_to_bint32(recv_packets(conn.wp, 4))
         while op_code == op_response && conn.wp.lazy_response_count > 0
@@ -42,7 +39,7 @@ mutable struct Statement <: DBInterface.Statement
         end
         stmt_handle, _, _ = parse_op_response(conn.wp)
 
-        _op_prepare_statement(conn.wp, transaction.handle, stmt_handle, sql)
+        _op_prepare_statement(conn.wp, conn.transaction.handle, stmt_handle, sql)
         op_code = bytes_to_bint32(recv_packets(conn.wp, 4))
         while op_code == op_response && conn.wp.lazy_response_count > 0
             conn.wp.lazy_response_count -= 1
@@ -51,7 +48,7 @@ mutable struct Statement <: DBInterface.Statement
         _, _, buf = parse_op_response(conn.wp)
         stmt_type, xsqlda = parse_xsqlda(conn.wp, buf, stmt_handle)
 
-        new(conn, transaction, sql, stmt_handle, stmt_type, xsqlda)
+        new(conn, sql, stmt_handle, stmt_type, xsqlda)
     end
 
 end

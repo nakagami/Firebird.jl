@@ -23,7 +23,7 @@
 ################################################################################
 
 function DBInterface.execute(conn::Connection, stmt::Statement, params=[])::Cursor
-    _op_execute(conn.wp, stmt.handle, stmt.transaction.handle, params)
+    _op_execute(conn.wp, stmt.handle, conn.transaction.handle, params)
     _op_response(conn.wp)
 
     Cursor(conn, stmt)
