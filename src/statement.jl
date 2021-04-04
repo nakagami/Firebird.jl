@@ -60,7 +60,7 @@ function DBInterface.prepare(conn::Connection, sql::AbstractString)
     Statement(conn, sql)
 end
 
-function DBInterface.close!(stmt::Statement)
+function clear!(stmt::Statement)
     wp = stmt.conn.wp
     _op_free_statement(wp, stmt.handle, DSQL_drop)
     op_code = bytes_to_bint32(recv_packets(wp, 4))
