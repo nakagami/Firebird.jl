@@ -31,4 +31,5 @@ end
 
 function DBInterface.execute(conn::Connection, sql::AbstractString, params=[])
     _op_exec_immediate(conn.wp, conn.transaction.handle, sql)
+    _op_commit(conn.wp, conn.transaction.handle)
 end
