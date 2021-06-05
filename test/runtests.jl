@@ -37,23 +37,38 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
     else
         "masterkey"
     end
-    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, "/tmp/test.fdb", create_new=true)
+    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, "/tmp/julia_test.fdb"; create_new=true)
 
-    stmt = DBInterface.prepare(
-        conn, raw"SELECT rdb$get_context('SYSTEM', 'ENGINE_VERSION') from rdb$database"
+    DBInterface.execute(
+        conn, raw"""
+            CREATE TABLE foo (
+                a INTEGER NOT NULL,
+                b VARCHAR(30) NOT NULL UNIQUE,
+                c VARCHAR(1024),
+                d DECIMAL(16,3) DEFAULT -0.123,
+                e DATE DEFAULT '1967-08-11',
+                f TIMESTAMP DEFAULT '1967-08-11 23:45:01',
+                g TIME DEFAULT '23:45:01',
+                h BLOB SUB_TYPE 1,
+                i DOUBLE PRECISION DEFAULT 0.0,
+                j FLOAT DEFAULT 0.0,
+                PRIMARY KEY (a),
+                CONSTRAINT CHECK_A CHECK (a <> 0)
+            )"""
     )
-
-    cur = DBInterface.execute(conn, stmt)
-
-    # TODO:
-
-    # DBInterface.close!(stmt)
-
-    # cur = DBInterface.execute(conn, raw"SELECT rdb$get_context('SYSTEM', 'ENGINE_VERSION') from rdb$database")
-    # TODO:
-
     DBInterface.close!(conn)
     @test !isopen(conn)
+
+    # TODO:
+    # insert test data
+
+
+    #stmt = DBInterface.prepare(conn, raw"SELECT * from foo")
+    # TODO: fetch result 
+
+    #DBInterface.close!(stmt)
+    #DBInterface.close!(conn)
+    #@test !isopen(conn)
 end
 
 @testset "srp" begin

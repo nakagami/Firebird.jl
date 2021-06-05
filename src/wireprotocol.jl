@@ -753,7 +753,7 @@ function _op_execute2(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32,
     end
 
     pack_bytes(wp, output_blr)
-    pack_uint32(0)
+    pack_uint32(wp, 0)
     send_packets(wp)
 end
 
@@ -762,9 +762,9 @@ function _op_exec_immediate(wp::WireProtocol, trans_handle::Int32, query::String
     pack_uint32(wp, op_exec_immediate)
     pack_uint32(wp, trans_handle)
     pack_uint32(wp, wp.db_handle)
-    pack_uint32(3)      # dialect = 3
+    pack_uint32(wp, 3)      # dialect = 3
     pack_string(wp, query)
-    pack_bytes(wp, [])
+    pack_uint32(wp, 0)      # pack_bytes(wp, [])
     pack_uint32(wp, BUFFER_LEN)
     send_packets(wp)
 end

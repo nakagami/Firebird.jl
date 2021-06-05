@@ -29,7 +29,6 @@ function DBInterface.execute(conn::Connection, stmt::Statement, params=[])::Curs
     Cursor(conn, stmt)
 end
 
-function DBInterface.execute(conn::Connection, sql::AbstractString, params=[])::Cursor
-    stmt = DBInterface.prepare(conn, sql)
-    DBInterface.execute(conn, stmt, params)
+function DBInterface.execute(conn::Connection, sql::AbstractString, params=[])
+    _op_exec_immediate(conn.wp, conn.transaction.handle, sql)
 end
