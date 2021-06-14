@@ -21,6 +21,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ################################################################################
+mutable struct TextCursor{buffered} <: DBInterface.Cursor
+    conn::Connection
+    sql::String
+    nfields::Int
+    nrows::Int
+    rows_affected::Int64
+    types::Vector{Type}
+    lookup::Dict{Symbol, Int}
+    current_rownumber::Int
+    current_resultsetnumber::Int
+end
+
+
+struct TextRow{buffered} <: Tables.AbstractRow
+    cursor::TextCursor{buffered}
+    lengths::Vector{Culong}
+    rownumber::Int
+    resultsetnumber::Int
+end
+
 
 function DBInterface.execute(conn::Connection, stmt::Statement, params=[])::Cursor
     _op_execute(conn.wp, stmt.handle, conn.transaction.handle, params)
