@@ -67,8 +67,8 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
     # TODO: fetch result 
 
     #DBInterface.close!(stmt)
-    #DBInterface.close!(conn)
-    #@test !isopen(conn)
+    DBInterface.close!(conn)
+    @test !isopen(conn)
 end
 
 @testset "srp" begin
