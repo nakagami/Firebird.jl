@@ -56,7 +56,7 @@ mutable struct Statement <: DBInterface.Statement
 
 end
 
-function DBInterface.prepare(conn::Connection, sql::AbstractString)
+function DBInterface.prepare(conn::Connection, sql::AbstractString)::Statement
     Statement(conn, sql)
 end
 
