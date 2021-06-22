@@ -41,7 +41,6 @@ mutable struct Statement <: DBInterface.Statement
             end
             stmt_handle, _, _ = parse_op_response(conn.wp)
         end
-
         _op_prepare_statement(conn.wp, conn.transaction.handle, stmt_handle, sql)
         op_code = bytes_to_bint32(recv_packets(conn.wp, 4))
         while op_code == op_response && conn.wp.lazy_response_count > 0

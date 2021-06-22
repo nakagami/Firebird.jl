@@ -56,13 +56,16 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
                 CONSTRAINT CHECK_A CHECK (a <> 0)
             )"""
     )
+    DBInterface.execute(
+        conn, raw"insert into foo(a, b, c,h) values (1, 'a', 'b','This is a memo')")
+
+
+    stmt = DBInterface.prepare(conn, raw"SELECT * from foo")
+    cur = DBInterface.execute(conn, stmt)
+    # TODO: fetch result 
 
     # TODO:
     # insert test data
-
-
-    #stmt = DBInterface.prepare(conn, raw"SELECT * from foo")
-    # TODO: fetch result 
 
     #DBInterface.close!(stmt)
 

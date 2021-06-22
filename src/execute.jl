@@ -38,5 +38,6 @@ function DBInterface.execute(conn::Connection, sql::AbstractString, params=[])
         DBInterface.execute(conn, stmt, params)
         clear!(stmt)
     end
-    _op_commit(conn.wp, conn.transaction.handle)
+    _op_commit_retainning(conn.wp, conn.transaction.handle)
+    _op_response(conn.wp)
 end
