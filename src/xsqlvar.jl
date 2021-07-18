@@ -69,7 +69,7 @@ xsqlvar_type_length = Dict(
 )
 
 
-struct XSQLVAR
+mutable struct XSQLVAR
     sqltype::Int
     sqlscale::Int
     sqlsubtype::Int

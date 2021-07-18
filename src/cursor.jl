@@ -35,3 +35,4 @@ getcursor(r::Row) = getfield(r, :cursor)
 getrownumber(r::Row) = getfield(r, :rownumber)
 
 Tables.columnnames(r::Row) = getcursor(r).names
+

@@ -115,6 +115,10 @@ function bytes_to_bint16(b::Vector{UInt8})::Int16
     reinterpret(Int16, reverse(b))[1]
 end
 
+function bytes_to_str(b::Vector{UInt8})::String
+    String(b)
+end
+
 function xdr_bytes(bs::Vector{UInt8})::Vector{UInt8}
     # XDR encoding bytes
     n = length(bs)

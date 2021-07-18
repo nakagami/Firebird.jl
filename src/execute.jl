@@ -29,13 +29,7 @@ function DBInterface.execute(conn::Connection, stmt::Statement, params=[])::Curs
     Cursor(conn, stmt)
 end
 
-function DBInterface.execute(conn::Connection, sql::AbstractString, params=[])
-    if params == []
-        _op_exec_immediate(conn.wp, conn.transaction.handle, sql)
-        _op_response(conn.wp)
-    else
-        stmt = DBInterface.prepare(conn, sql)
-        DBInterface.execute(conn, stmt, params)
-        clear!(stmt)
-    end
+function DBInterface.execute(conn::Connection, sql::AbstractString, params=[])::Cursor
+    stmt = DBInterface.prepare(conn, sql)
+    DBInterface.execute(conn, stmt, params)
 end

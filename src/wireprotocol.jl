@@ -365,66 +365,67 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
 end
 
 function parse_select_items(wp::WireProtocol, buf::Vector{UInt8}, xsqlda::Vector{XSQLVAR})::Int
-    ln::Int = 0
-    index:Int = 0
+    ln = 0
+    index = 0
     i = 1
 
     item = buf[i]
-    while item != isc_info_end
+    while i <= length(buf) && buf[i] != isc_info_end
+        item = buf[i]
         i += 1
         if item ==  isc_info_sql_sqlda_seq
-            ln = bytes_to_int16(buf[i:i+2])
+            ln = bytes_to_int16(buf[i:i+1])
             i += 2
-            index = bytes_to_int32(buf[i:i+ln])
+            index = bytes_to_int32(buf[i:i+ln-1])
             i += ln
         elseif item == isc_info_sql_type
-            ln = bytes_to_int16(buf[i:i+2])
+            ln = bytes_to_int16(buf[i:i+1])
             i += 2
-            sqltype = bytes_to_int32(buf[i:i+ln])
+            sqltype = bytes_to_int32(buf[i:i+ln-1])
             if sqltype % 2 != 0
                     sqltype -= 1
             end
             xsqlda[index].sqltype = sqltype
             i += ln
         elseif item == isc_info_sql_sub_type
-            ln = bytes_to_int16(buf[i:i+2])
+            ln = bytes_to_int16(buf[i:i+1])
             i += 2
-            xsqlda[index].sqlsubtype = bytes_to_int32(buf[i:i+ln])
+            xsqlda[index].sqlsubtype = bytes_to_int32(buf[i:i+ln-1])
             i += ln
         elseif item == isc_info_sql_scale
-            ln = bytes_to_int16(buf[i:i+2])
+            ln = bytes_to_int16(buf[i:i+1])
             i += 2
-            xsqlda[index].sqlscale = bytes_to_int32(buf[i:i+ln])
+            xsqlda[index].sqlscale = bytes_to_int32(buf[i:i+ln-1])
             i += ln
         elseif item == isc_info_sql_length
-            ln = bytes_to_int16(buf[i:i+2])
+            ln = bytes_to_int16(buf[i:i+1])
             i += 2
-            xsqlda[index].sqllen = bytes_to_int32(buf[i:i+ln])
+            xsqlda[index].sqllen = bytes_to_int32(buf[i:i+ln-1])
             i += ln
         elseif item == isc_info_sql_null_ind
-            ln = bytes_to_int16(buf[i:i+2])
+            ln = bytes_to_int16(buf[i:i+1])
             i += 2
-            xsqlda[index].null_ok = bytes_to_int32(buf[i:i+ln]) != 0
+            xsqlda[index].null_ok = bytes_to_int32(buf[i:i+ln-1]) != 0
             i += ln
         elseif item == isc_info_sql_field
-            ln = bytes_to_int16(buf[i:i+2])
+            ln = bytes_to_int16(buf[i:i+1])
             i += 2
-            xsqlda[index].fieldname = bytes_to_str(buf[i:i+ln])
+            xsqlda[index].fieldname = bytes_to_str(buf[i:i+ln-1])
             i += ln
         elseif item == isc_info_sql_relation
-            ln = bytes_to_int16(buf[i:i+2])
+            ln = bytes_to_int16(buf[i:i+1])
             i += 2
-            xsqlda[index].relname = bytes_to_str(buf[i:i+ln])
+            xsqlda[index].relname = bytes_to_str(buf[i:i+ln-1])
             i += ln
         elseif item == isc_info_sql_owner
-            ln = bytes_to_int16(buf[i : i+2])
+            ln = bytes_to_int16(buf[i : i+1])
             i += 2
-            xsqlda[index].ownname = bytes_to_str(buf[i:i+ln])
+            xsqlda[index].ownname = bytes_to_str(buf[i:i+ln-1])
             i += ln
         elseif item == isc_info_sql_alias
-            ln = bytes_to_int16(buf[i : i+2])
+            ln = bytes_to_int16(buf[i : i+1])
             i += 2
-            xsqlda[index].aliasname = bytes_to_str(buf[i:i+ln])
+            xsqlda[index].aliasname = bytes_to_str(buf[i:i+ln-1])
             i += ln
         elseif item == isc_info_truncated
             return index        # return next index
@@ -446,30 +447,35 @@ function parse_xsqlda(wp::WireProtocol, buf::Vector{UInt8}, stmt_handle::Int32):
     while i <= length(buf)
         if buf[i] == UInt8(isc_info_sql_stmt_type) && buf[i+1] == UInt8(0x04) && buf[i+2] == UInt8(0x00)
             i += 1
-            ln = bytes_to_int16(buf[i : i+2])
+            ln = bytes_to_int16(buf[i : i+1])
             i += 2
-            stmt_type = bytes_to_int32(buf[i : i+ln])
+            stmt_type = bytes_to_int32(buf[i : i+ln-1])
             i += ln
         elseif buf[i] == UInt8(isc_info_sql_select) && buf[i+1] == UInt8(isc_info_sql_describe_vars)
             i += 2
-            ln = bytes_to_int16(buf[i : i+2])
+            ln = bytes_to_int16(buf[i : i+1])
             i += 2
-            col_len = bytes_to_int32(buf[i:i+ln])
-            xsqlda = Vector{XSQLVAR}(col_len)
-            next_index = parse_select_items(wp, buf[i+ln:length(buf)], xsqlda)
-            while next_index > 0    # more describe vars
-                _op_info_sql(stmt_handle,
-                    vcat(
-                        Vector{UInt8}[isc_info_sql_sqlda_start, 2],
-                        int16_to_bytes(int16(next_index)),
-                        INFO_SQL_SELECT_DESCRIBE_VARS(),
+            col_len = bytes_to_int32(buf[i:i+ln-1])
+            if col_len != 0
+                for _ in range(1, length=col_len)
+                    xsqlvar = XSQLVAR(0, 0, 0, 0, false, "", "", "", "")
+                    push!(xsqlda, xsqlvar)
+                end
+                next_index = parse_select_items(wp, buf[i+ln:length(buf)-1], xsqlda)
+                while next_index > 0    # more describe vars
+                    _op_info_sql(stmt_handle,
+                        vcat(
+                            Vector{UInt8}[isc_info_sql_sqlda_start, 2],
+                            int16_to_bytes(int16(next_index)),
+                            INFO_SQL_SELECT_DESCRIBE_VARS(),
+                        )
                     )
-                )
-                _, _, buf = op_response(wp)
-                # buf[1:2] == [0x04,0x07]
-                ln = bytes_to_int16(buf[3:4])
-                # bytes_to_int(buf[5:5+ln]) == col_len
-                next_index = p._parse_select_items(buf[5+ln:length(buf)], xsqlda)
+                    _, _, buf = op_response(wp)
+                    # buf[1:2] == [0x04,0x07]
+                    ln = bytes_to_int16(buf[3:4])
+                    # bytes_to_int(buf[5:5+ln]) == col_len
+                    next_index = p._parse_select_items(buf[5+ln:length(buf)-1], xsqlda)
+                end
             end
         else
             break
