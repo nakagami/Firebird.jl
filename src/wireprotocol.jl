@@ -820,20 +820,20 @@ function _op_fetch_response(wp::WireProtocol, stmt_handle::Int32, xsqlda::Vector
         r = []
         for i in 1:length(xsqlda)
             x = xsqlda[i]
-            if null_indicator & (1 << i)
+            if (null_indicator & (1 << i)) != 0
                 append!(r, nothing)
             end
             ln = io_length(x)
             if ln < 0
-                ln = bytes_to_bint(recv_packet(wp, 4))
+                ln = bytes_to_bint32(recv_packets(wp, 4))
             end
             raw_value = recv_packets_alignment(wp, ln)
             append!(r, value(x, raw_value))
         end
         append!(rows, r)
-        op_code = bytes_to_bint(recv_packets(wp, 4))
-        status = bytes_to_bint(recv_packets(wp, 4))
-        count = bytes_to_bint(recv_packets(wp, 4))
+        op_code = bytes_to_bint32(recv_packets(wp, 4))
+        status = bytes_to_bint32(recv_packets(wp, 4))
+        count = bytes_to_bint32(recv_packets(wp, 4))
     end
 
     rows, status != 100
@@ -961,7 +961,7 @@ function _op_sql_response(wp::WireProtocol, xsqlda::XSQLVAR)::Vector{Any}
         else
             ln = io_length(x)
             if ln < 0
-                ln = bytes_to_bint(recv_packet(wp, 4))
+                ln = bytes_to_bint32(recv_packets(wp, 4))
             end
             raw_value = recv_packets_alignment(wp, ln)
             append!(r, value(x, raw_value))
@@ -997,7 +997,7 @@ function params_to_blr(wp::WireProtocol, trans_handle::Int32, params::Vector{Any
     values::Vector{UInt8} = []
 
     # NULL indicator
-    null_indicator::BigInt = 0
+    null_indicator = 0
     for i in 1:length(params)
         if params[i] == nothing
             null_indicator |= (1 << i)

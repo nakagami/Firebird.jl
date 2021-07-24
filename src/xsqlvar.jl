@@ -156,13 +156,13 @@ function value(x::XSQLVAR, raw_value::Vector{UInt8})
         else
             String(raw_value)
         end
-    elseif xsql.type == SQL_TYPE_VARYING
+    elseif x.sqltype == SQL_TYPE_VARYING
         if x.sqlsubtype == 1
             raw_value
         else
             String(raw_value)
         end
-    elseif xsql.type == SQL_TYPE_SHORT
+    elseif x.sqltype == SQL_TYPE_SHORT
         i16::Int16 = Int16(bytes_to_int32(raw_value))
         if x.sqlscale > 0
             Int64(i16) * Int64(10^x.scale)
