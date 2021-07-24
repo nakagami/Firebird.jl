@@ -834,7 +834,7 @@ function _op_fetch_response(wp::WireProtocol, stmt_handle::Int32, xsqlda::Vector
             raw_value = recv_packets_alignment(wp, ln)
             r[i] = value(x, raw_value)
         end
-        vcat(rows, [r])
+        rows = vcat(rows, [r])
         op_code = bytes_to_bint32(recv_packets(wp, 4))
         status = bytes_to_bint32(recv_packets(wp, 4))
         count = bytes_to_bint32(recv_packets(wp, 4))

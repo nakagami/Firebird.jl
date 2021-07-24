@@ -58,6 +58,8 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
     )
     DBInterface.execute(
         conn, raw"insert into foo(a, b, c,h) values (1, 'a', 'b','This is a memo')")
+    DBInterface.execute(
+        conn, raw"insert into foo(a, b, c,h) values (2, 'A', 'B','This is a memo2')")
 
 
     stmt = DBInterface.prepare(conn, raw"SELECT * from foo")
