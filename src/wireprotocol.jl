@@ -212,17 +212,21 @@ function recv_packets(wp::WireProtocol, n::UInt32)::Vector{UInt8}
     recv_packets(wp, Int(n))
 end
 
-function recv_packets_alignment(wp::WireProtocol, n::Int)::Vector{UInt8}
-    padding::Int = n % 4
+function recv_packets_alignment(wp::WireProtocol, n::UInt32)::Vector{UInt8}
+    padding = n % 4
     if padding > 0
         padding = 4 - padding
     end
-    buf = recv_packets(wp, n + padding)
+    buf = recv_packets(wp, UInt32(n + padding))
     buf[1:n]
 end
 
-function recv_packets_alignment(wp::WireProtocol, n::UInt32)::Vector{UInt8}
-    recv_packets_alignment(wp, Int(n))
+function recv_packets_alignment(wp::WireProtocol, n::Int32)::Vector{UInt8}
+    recv_packets_alignment(wp, UInt32(n))
+end
+
+function recv_packets_alignment(wp::WireProtocol, n::Int64)::Vector{UInt8}
+    recv_packets_alignment(wp, UInt32(n))
 end
 
 function parse_status_vector(wp::WireProtocol)::Tuple{Vector{UInt32}, Int, String}
