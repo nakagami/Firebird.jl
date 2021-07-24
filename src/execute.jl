@@ -22,11 +22,20 @@
 # SOFTWARE.
 ################################################################################
 
+function fetch_records(conn::Connection, stmt::Statement)::Vector{Vector{Any}}
+    more_data = false
+    results::Vector{Vector{Any}} = [[]]
+    # TODO: 
+
+    results
+end
+
 function DBInterface.execute(conn::Connection, stmt::Statement, params=[])::Cursor
     _op_execute(conn.wp, stmt.handle, conn.transaction.handle, params)
     _op_response(conn.wp)
+    rows = _fetch_records(conn, stmt)
 
-    Cursor(conn, stmt)
+    Cursor(conn, stmt, rows)
 end
 
 function DBInterface.execute(conn::Connection, sql::AbstractString, params=[])::Cursor

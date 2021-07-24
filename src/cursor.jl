@@ -25,6 +25,7 @@
 mutable struct Cursor <: DBInterface.Cursor
     conn::Connection
     stmt::Statement
+    rows::Vector{Vector{Any}}
 end
 
 struct Row <: Tables.AbstractRow
