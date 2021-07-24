@@ -225,55 +225,55 @@ function calc_blr(xsqlda::Vector{XSQLVAR})::Vector{UInt8}
             append!(blr, UInt8(37))
             append!(blr, UInt8(x.sqllen & 255))
             append!(blr, UInt8(x.sqllen >> 8))
-        elseif x.sqltime == SQL_TYPE_TEXT
+        elseif x.sqltype == SQL_TYPE_TEXT
             append!(blr, UInt8(14))
             append!(blr, UInt8(x.sqllen & 255))
             append!(blr, UInt8(x.sqllen >> 8))
-        elseif x.sqltime == SQL_TYPE_LONG
+        elseif x.sqltype == SQL_TYPE_LONG
             append!(blr, UInt8(8))
             append!(blr, UInt8(sqlscale))
-        elseif x.sqltime == SQL_TYPE_SHORT
+        elseif x.sqltype == SQL_TYPE_SHORT
             append!(blr, UInt8(7))
             append!(blr, UInt8(sqlscale))
-        elseif x.sqltime == SQL_TYPE_INT64
+        elseif x.sqltype == SQL_TYPE_INT64
             append!(blr, UInt8(16))
             append!(blr, UInt8(sqlscale))
-        elseif x.sqltime == SQL_TYPE_INT128
+        elseif x.sqltype == SQL_TYPE_INT128
             append!(blr, UInt8(26))
             append!(blr, UInt8(sqlscale))
-        elseif x.sqltime == SQL_TYPE_QUAD
+        elseif x.sqltype == SQL_TYPE_QUAD
             append!(blr, UInt8(9))
             append!(blr, UInt8(sqlscale))
-        elseif x.sqltime == SQL_TYPE_DEC_FIXED  # OBSOLATED
+        elseif x.sqltype == SQL_TYPE_DEC_FIXED  # OBSOLATED
             append!(blr, UInt8(26))
             append!(blr, UInt8(sqlscale))
-        elseif x.sqltime == SQL_TYPE_DOUBLE
+        elseif x.sqltype == SQL_TYPE_DOUBLE
             append!(blr, UInt8(27))
-        elseif x.sqltime == SQL_TYPE_FLOAT
+        elseif x.sqltype == SQL_TYPE_FLOAT
             append!(blr, UInt8(10))
-        elseif x.sqltime == SQL_TYPE_D_FLOAT
+        elseif x.sqltype == SQL_TYPE_D_FLOAT
             append!(blr, UInt8(11))
-        elseif x.sqltime == SQL_TYPE_DATE
+        elseif x.sqltype == SQL_TYPE_DATE
             append!(blr, UInt8(12))
-        elseif x.sqltime == SQL_TYPE_TIME
+        elseif x.sqltype == SQL_TYPE_TIME
             append!(blr, UInt8(13))
-        elseif x.sqltime == SQL_TYPE_TIMESTAMP
+        elseif x.sqltype == SQL_TYPE_TIMESTAMP
             append!(blr, UInt8(35))
-        elseif x.sqltime == SQL_TYPE_BLOB
+        elseif x.sqltype == SQL_TYPE_BLOB
             append!(blr, UInt8(9))
             append!(blr, UInt8(0))
-        elseif x.sqltime == SQL_TYPE_ARRAY
+        elseif x.sqltype == SQL_TYPE_ARRAY
             append!(blr, UInt8(9))
             append!(blr, UInt8(0))
-        elseif x.sqltime == SQL_TYPE_BOOLEAN
+        elseif x.sqltype == SQL_TYPE_BOOLEAN
             append!(blr, UInt8(23))
-        elseif x.sqltime == SQL_TYPE_DEC64
+        elseif x.sqltype == SQL_TYPE_DEC64
             append!(blr, UInt8(24))
-        elseif x.sqltime == SQL_TYPE_DEC128
+        elseif x.sqltype == SQL_TYPE_DEC128
             append!(blr, UInt8(25))
-        elseif x.sqltime == SQL_TYPE_TIME_TZ
+        elseif x.sqltype == SQL_TYPE_TIME_TZ
             append!(blr, UInt8(28))
-        elseif x.sqltime == SQL_TYPE_TIMESTAMP_TZ
+        elseif x.sqltype == SQL_TYPE_TIMESTAMP_TZ
             append!(blr, UInt8(29))
         end
 

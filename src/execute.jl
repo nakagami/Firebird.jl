@@ -40,7 +40,11 @@ end
 function DBInterface.execute(conn::Connection, stmt::Statement, params=[])::Cursor
     _op_execute(conn.wp, stmt.handle, conn.transaction.handle, params)
     _op_response(conn.wp)
-    rows = fetch_records(conn, stmt)
+    if stmt.stmt_type == isc_info_sql_stmt_select
+        rows = fetch_records(conn, stmt)
+    else
+        rows = []
+    end
 
     Cursor(conn, stmt, rows)
 end
