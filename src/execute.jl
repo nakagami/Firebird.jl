@@ -24,7 +24,7 @@
 
 function fetch_records(conn::Connection, stmt::Statement)::Vector{Vector{Any}}
     more_data = true
-    results::Vector{Vector{Any}} = [[]]
+    results::Vector{Vector{Any}} = []
 
     while more_data
         _op_fetch(conn.wp, stmt.handle, calc_blr(stmt.xsqlda))
