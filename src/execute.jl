@@ -23,10 +23,17 @@
 ################################################################################
 
 function fetch_records(conn::Connection, stmt::Statement)::Vector{Vector{Any}}
-    more_data = false
+    more_data = true
     results::Vector{Vector{Any}} = [[]]
-    # TODO: 
 
+    while more_data
+        _op_fetch(conn.wp, stmt.handle, calc_blr(stmt.xsqlda))
+        rows_segments, more_data = _op_fetch_response(conn.wp, stmt.handle, stmt.xsqlda)
+        results = vcat(results, rows_segments)
+    end
+
+    # TODO: Convert BLOB handle to data
+    println(results)
     results
 end
 
