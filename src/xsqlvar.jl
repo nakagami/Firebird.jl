@@ -127,10 +127,10 @@ function _parse_time(raw_value::Vector{UInt8})::Tuple(Int, Int, Int, Int)
     s = div(n, 10000)
     m = div(s, 60)
     h = div(m, 60)
-    m = mod(m, 60)
-    s = mod(s, 60)
+    m = m % 60
+    s = s % 60
 
-    (h, m, s, mod(n, 10000) * 100000)
+    (h, m, s, (n % 10000) * 100000)
 end
 
 function parse_date(raw_value::Vector{UInt8})::Date

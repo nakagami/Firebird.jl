@@ -809,7 +809,7 @@ function _op_fetch_response(wp::WireProtocol, stmt_handle::Int32, xsqlda::Vector
 
     while count > 0
         n = div(length(xsqlda), 8)
-        if mod(xsqlda, 8) != 0
+        if length(xsqlda) % 8 != 0
             n += 1
         end
         null_indicator::BigInt = 0
@@ -946,7 +946,7 @@ function _op_sql_response(wp::WireProtocol, xsqlda::XSQLVAR)::Vector{Any}
     end
 
     n = div(length(xsqlvar), 8)
-    if mod(length(xsqlvar), 8) != 0
+    if length(xsqlvar) % 8 != 0
         n += 1
     end
     null_indicator = 0
@@ -1004,11 +1004,11 @@ function params_to_blr(wp::WireProtocol, trans_handle::Int32, params::Vector{Any
         end
     end
     n = div(length(params), 8)
-    if mod(length(params), 8) != 0
+    if length(params) % 8 != 0
         n += 1
     end
-    if mod(n, 4)    # padding
-        n += mod(4 - n,  4)
+    if n % 4    # padding
+        n += (4 - n) % 4
     end
     for i in 1:n
         append!(values, null_indicator & 255)

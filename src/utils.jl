@@ -165,7 +165,7 @@ end
 function _convert_date(year::Int, month::Int, day::Int)::Vector{UInt8}
     i = month + 9
     jy = year + div(i, 12) - 1
-    jm = mod(i, 12)
+    jm = i % 12
     c = div(jy, 100)
     jy -= 100 * c
     j = (146097*c)/4 + (1461*jy)/4 + (153*jm+2)/5 + day - 678882
