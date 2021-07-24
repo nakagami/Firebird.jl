@@ -122,7 +122,7 @@ function _parse_date(raw_value::Vector{UInt8})::Tuple{Int, Int, Int}
     (year, month, day)
 end
 
-function _parse_time(raw_value::Vector{UInt8})::Tuple(Int, Int, Int, Int)
+function _parse_time(raw_value::Vector{UInt8})
     n = bytes_to_buint32(raw_value)
     s = div(n, 10000)
     m = div(s, 60)
@@ -189,9 +189,9 @@ function value(x::XSQLVAR, raw_value::Vector{UInt8})
             i32
         end
     elseif x.sqltype == SQL_TYPE_FLOAT
-        reinterpret(Float32, b)
+        reinterpret(Float32, raw_value)
     elseif x.sqltype == SQL_TYPE_DOUBLE
-        reinterpret(Float64, b)
+        reinterpret(Float64, raw_value)
     elseif x.sqltype == SQL_TYPE_TIMESTAMP
         parse_timestamp(raw_value)
     elseif x.sqltype == SQL_TYPE_BLOB
