@@ -37,19 +37,23 @@ function fetch_records(conn::Connection, stmt::Statement)::Vector{Vector{Any}}
     results
 end
 
-function DBInterface.execute(conn::Connection, stmt::Statement, params=[])::Cursor
-    _op_execute(conn.wp, stmt.handle, conn.transaction.handle, params)
-    _op_response(conn.wp)
+function DBInterface.execute(stmt::Statement, params=[])::Cursor
+    _op_execute(stmt.conn.wp, stmt.handle, stmt.conn.transaction.handle, params)
+    _op_response(stmt.conn.wp)
     if stmt.stmt_type == isc_info_sql_stmt_select
-        rows = fetch_records(conn, stmt)
+        rows = fetch_records(stmt.conn, stmt)
     else
         rows = []
     end
 
-    Cursor(conn, stmt, rows)
+    Cursor(stmt, rows)
 end
 
 function DBInterface.execute(conn::Connection, sql::AbstractString, params=[])::Cursor
     stmt = DBInterface.prepare(conn, sql)
-    DBInterface.execute(conn, stmt, params)
+    try
+        return DBInterface.execute(stmt, params)
+    finally
+        close!(stmt)
+    end
 end

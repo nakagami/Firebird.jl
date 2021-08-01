@@ -63,7 +63,7 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
 
 
     stmt = DBInterface.prepare(conn, raw"SELECT * from foo")
-    cur = DBInterface.execute(conn, stmt)
+    cur = DBInterface.execute(stmt)
     # TODO: fetch result 
 
     # TODO:
