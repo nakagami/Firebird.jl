@@ -29,6 +29,7 @@ mutable struct Statement <: DBInterface.Statement
     handle::Int32
     stmt_type::Int32
     xsqlda::Vector{XSQLVAR}
+    is_open::Bool
 
     function Statement(conn::Connection, sql::String)
         _op_allocate_statement(conn.wp)
@@ -51,7 +52,7 @@ mutable struct Statement <: DBInterface.Statement
         _, _, buf = _op_response(conn.wp)
         stmt_type, xsqlda = parse_xsqlda(conn.wp, buf, stmt_handle)
 
-        new(conn, sql, stmt_handle, stmt_type, xsqlda)
+        new(conn, sql, stmt_handle, stmt_type, xsqlda, stmt_type==isc_info_sql_stmt_select)
     end
 
 end
@@ -60,12 +61,15 @@ function DBInterface.prepare(conn::Connection, sql::AbstractString)::Statement
     Statement(conn, sql)
 end
 
-function clear!(stmt::Statement)
-    wp = stmt.conn.wp
-    _op_free_statement(wp, stmt.handle, DSQL_drop)
-    op_code = bytes_to_bint32(recv_packets(wp, 4))
-    while op_code == op_response && wp.lazy_response_count > 0
-        wp.lazy_response_count -= 1
-        op_code = bytes_to_bint32(recv_packets(wp, 4))
+function close!(stmt::Statement)
+    if stmt.handle != -1 && stmt.is_open
+        wp = stmt.conn.wp
+        _op_free_statement(wp, stmt.handle, DSQL_drop)
+        if wp.accept_type == ptype_lazy_send
+            wp.lazy_response_count += 1
+        else
+            _op_response(wp)
+        end
     end
+    stmt.handle = -1
 end
