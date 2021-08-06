@@ -22,13 +22,13 @@
 # SOFTWARE.
 ################################################################################
 
-function fetch_records(conn::Connection, stmt::Statement)::Vector{Vector{Any}}
+function fetch_records(stmt::Statement)::Vector{Vector{Any}}
     more_data = true
     results::Vector{Vector{Any}} = []
 
     while more_data
-        _op_fetch(conn.wp, stmt.handle, calc_blr(stmt.xsqlda))
-        rows_segments, more_data = _op_fetch_response(conn.wp, stmt.handle, stmt.xsqlda)
+        _op_fetch(stmt.conn.wp, stmt.handle, calc_blr(stmt.xsqlda))
+        rows_segments, more_data = _op_fetch_response(stmt.conn.wp, stmt.handle, stmt.xsqlda)
         results = vcat(results, rows_segments)
     end
 
@@ -41,7 +41,7 @@ function DBInterface.execute(stmt::Statement, params=[])::Cursor
     _op_execute(stmt.conn.wp, stmt.handle, stmt.conn.transaction.handle, params)
     _op_response(stmt.conn.wp)
     if stmt.stmt_type == isc_info_sql_stmt_select
-        rows = fetch_records(stmt.conn, stmt)
+        rows = fetch_records(stmt)
     else
         rows = []
     end
