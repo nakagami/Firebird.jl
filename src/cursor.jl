@@ -27,6 +27,10 @@ mutable struct Cursor <: DBInterface.Cursor
     rows::Vector{Vector{Any}}
 end
 
+function DBInterface.close!(cur::Cursor)
+    close!(cur.stmt)
+end
+
 struct Row <: Tables.AbstractRow
     cursor::Cursor
 end
