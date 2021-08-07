@@ -921,6 +921,7 @@ function _op_response(wp::WireProtocol)::Tuple{Int32, Vector{UInt8}, Vector{UInt
     end
     while op_code == op_response && wp.lazy_response_count > 0
         wp.lazy_response_count -= 1
+        parse_op_response(wp)
         op_code = bytes_to_bint32(recv_packets(wp, 4))
     end
     if op_code == op_cont_auth

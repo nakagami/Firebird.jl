@@ -45,5 +45,5 @@ function close!(trans::Transaction)
     if trans.handle != -1
         # TODO:
     end
-    stmt.handle = -1
+    trans.handle = -1
 end
