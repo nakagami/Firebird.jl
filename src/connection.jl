@@ -62,5 +62,6 @@ DBInterface.connect(::Type{Connection}, host::String, user::String, password::St
     Connection(host, user, password, db_name, Dict(kwargs))
 
 function DBInterface.close!(conn::Connection)
+    close!(conn.transaction)
     close!(conn.wp.chan)
 end

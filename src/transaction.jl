@@ -40,3 +40,10 @@ mutable struct Transaction
     end
 
 end
+
+function close!(trans::Transaction)
+    if trans.handle != -1
+        # TODO:
+    end
+    stmt.handle = -1
+end

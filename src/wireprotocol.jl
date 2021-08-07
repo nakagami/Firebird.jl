@@ -491,13 +491,13 @@ end
 
 function get_blob_segments(wp::WireProtocol, blob_id::Vector{UInt8}, trans_handle::Int32)::Vector{UInt8}
     suspend_buf = suspend_buffer(wp)
-    blob = Vector{UInt8}
+    blob::Vector{UInt8} = []
     _op_open_blob(wp, blob_id, trans_handle)
     blob_handle, _, _ = _op_response(wp)
 
     more_data = 1
     while more_data != 2
-        _op_get_segments(wp, blob_handle)
+        _op_get_segment(wp, blob_handle)
         more_data, _, buf = _op_response(wp)
         while length(buf) > 0
             ln = bytes_to_int16(buf[1:2])
@@ -507,13 +507,13 @@ function get_blob_segments(wp::WireProtocol, blob_id::Vector{UInt8}, trans_handl
     end
 
     _op_close_blob(wp, blob_handle)
-    if accept_type == ptype_lazy_send
+    if wp.accept_type == ptype_lazy_send
         wp.lazy_response_count += 1
     else
         _op_response(wp)
     end
 
-    resume_buffer(suspend_buf)
+    resume_buffer(wp, suspend_buf)
     blob
 end
 
@@ -861,10 +861,10 @@ end
 function _op_create_blob2(wp::WireProtocol, trans_handle::Int32)
     DEBUG_OUTPUT("_op_create_blob2")
     pack_uint32(wp, op_create_blob2)
-    pack_uint32(0)
-    pack_uint32(trans_handle)
-    pack_uint32(0)
-    pack_uint32(0)
+    pack_uint32(wp, 0)
+    pack_uint32(wp, trans_handle)
+    pack_uint32(wp, 0)
+    pack_uint32(wp, 0)
     send_packets(wp)
 end
 
@@ -873,6 +873,7 @@ function _op_get_segment(wp::WireProtocol, blob_handle::Int32)
     pack_uint32(wp, op_get_segment)
     pack_uint32(wp, blob_handle)
     pack_uint32(wp, BUFFER_LEN)
+    pack_uint32(wp, 0)
     send_packets(wp)
 end
 

@@ -32,7 +32,19 @@ function fetch_records(stmt::Statement)::Vector{Vector{Any}}
         results = vcat(results, rows_segments)
     end
 
-    # TODO: Convert BLOB handle to data
+    # Convert BLOB handle to data
+    if any(x->x.sqltype == SQL_TYPE_BLOB, stmt.xsqlda)
+        transaction = Transaction(stmt.conn.wp)
+        for x in 1:length(stmt.xsqlda)
+            if stmt.xsqlda[x].sqltype == SQL_TYPE_BLOB
+                for i in 1:length(results)
+                    results[i][x] = get_blob_segments(stmt.conn.wp, results[i][x], transaction.handle)
+                end
+            end
+        end
+        close!(transaction)
+    end
+
     println(results)
     results
 end
