@@ -39,6 +39,9 @@ function fetch_records(stmt::Statement)::Vector{Vector{Any}}
             if stmt.xsqlda[x].sqltype == SQL_TYPE_BLOB
                 for i in 1:length(results)
                     results[i][x] = get_blob_segments(stmt.conn.wp, results[i][x], transaction.handle)
+                    if stmt.xsqlda[x].sqlsubtype == 1   # TEXT
+                        results[i][x] = String(results[i][x])
+                    end
                 end
             end
         end
