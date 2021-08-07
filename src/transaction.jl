@@ -43,7 +43,8 @@ end
 
 function close!(trans::Transaction)
     if trans.handle != -1
-        # TODO:
+        _op_rollback(trans.wp, trans.handle)
+        _op_response(trans.wp)
     end
     trans.handle = -1
 end
