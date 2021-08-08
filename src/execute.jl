@@ -66,9 +66,10 @@ function DBInterface.execute(stmt::Statement, params=[])::Cursor
         rows = []
     end
     names = [Symbol(x.aliasname) for x in stmt.xsqlda]
+    types = [juliatype(x) for x in stmt.xsqlda]
     lookup = Dict(x => i for (i, x) in enumerate(names))
 
-    Cursor(stmt, names, lookup, rows)
+    Cursor(stmt, names, types, lookup, rows)
 end
 
 """

@@ -222,3 +222,57 @@ function value(x::XSQLVAR, raw_value::Vector{UInt8})
         nothing
     end
 end
+
+function juliatype(x::XSQLVAR)
+    if x.sqltype == SQL_TYPE_TEXT
+        if x.sqlsubtype == 1
+            T = Vector{UInt8}
+        else
+            T = String
+        end
+    elseif x.sqltype == SQL_TYPE_VARYING
+        if x.sqlsubtype == 1
+            T = Vector{UInt8}
+        else
+            T = String
+        end
+    elseif x.sqltype == SQL_TYPE_SHORT
+        T = Int16
+    elseif x.sqltype == SQL_TYPE_LONG
+        T = Int64
+    elseif x.sqltype == SQL_TYPE_FLOAT
+        T = Float32
+    elseif x.sqltype == SQL_TYPE_DOUBLE
+        T = Float64
+    elseif x.sqltype == SQL_TYPE_TIMESTAMP
+        T = DateTime
+    elseif x.sqltype == SQL_TYPE_BLOB
+        T = Vector{UInt8}
+    elseif x.sqltype == SQL_TYPE_TIME
+        T = Time
+    elseif x.sqltype == SQL_TYPE_DATE
+        T = Date
+    elseif x.sqltype == SQL_TYPE_INT64
+        T = Int64
+    elseif x.sqltype == SQL_TYPE_INT128
+        T = Int64
+    elseif x.sqltype == SQL_TYPE_TIMESTAMP_TZ
+        # TODO:
+        T = nothing
+    elseif x.sqltype == SQL_TYPE_TIME_TZ
+        # TODO:
+        T = nothing
+    elseif x.sqltype == SQL_TYPE_DEC_FIXED
+        T = Decimal
+    elseif x.sqltype == SQL_TYPE_DEC64
+        T = Decimal
+    elseif x.sqltype == SQL_TYPE_DEC128
+        T = Decimal
+    elseif x.sqltype == SQL_TYPE_BOOLEAN
+        T = Bool
+    elseif x.sqltype == SQL_TYPE_NULL
+        T = nothing
+    end
+
+    x.null_ok ? T : Union{Missing, T}
+end
