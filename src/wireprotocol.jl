@@ -344,7 +344,7 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
     server_salt = data[3:ln+2]
     server_public_string = data[5+ln:length(data)]
     if length(server_public_string) % 2 != 0
-        server_public_string = string("0", server_public_string)
+        server_public_string = vcat(Vector{UInt8}[0x30], server_public_string)
     end
     server_public = bytes_to_bigint(hex2bytes(server_public_string))
 
