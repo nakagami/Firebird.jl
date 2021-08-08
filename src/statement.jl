@@ -57,10 +57,21 @@ mutable struct Statement <: DBInterface.Statement
 
 end
 
+"""
+    DBInterface.prepare(conn::Firebird.Connection, sql) => Firebird.Statement
+
+Send a `sql` SQL string to the database to be prepared, returning a `Firebird.Statement` object
+
+"""
 function DBInterface.prepare(conn::Connection, sql::AbstractString)::Statement
     Statement(conn, sql)
 end
 
+"""
+    DBInterface.close!(stmt)
+
+Close a prepared statement.
+"""
 function close!(stmt::Statement)
     if stmt.handle != -1 && stmt.is_open
         wp = stmt.conn.wp
