@@ -52,6 +52,11 @@ function fetch_records(stmt::Statement)::Vector{Vector{Any}}
     results
 end
 
+"""
+    DBInterface.execute(stmt::Firebird.Statement; params) => Firebird.Cursor
+
+Execute the prepared statement `stmt`.
+"""
 function DBInterface.execute(stmt::Statement, params=[])::Cursor
     _op_execute(stmt.conn.wp, stmt.handle, stmt.conn.transaction.handle, params)
     _op_response(stmt.conn.wp)
@@ -64,6 +69,11 @@ function DBInterface.execute(stmt::Statement, params=[])::Cursor
     Cursor(stmt, rows)
 end
 
+"""
+    DBInterface.execute(conn::Firebird.Connection, sql::String; params) => Firebird.Cursor
+
+Execute the SQL `sql` statement with the database connection `conn`.
+"""
 function DBInterface.execute(conn::Connection, sql::AbstractString, params=[])::Cursor
     stmt = DBInterface.prepare(conn, sql)
     try

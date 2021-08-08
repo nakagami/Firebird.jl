@@ -38,6 +38,7 @@ end
 
 struct Row <: Tables.AbstractRow
     cursor::Cursor
+    rownumber::Int
 end
 
 getcursor(r::Row) = getfield(r, :cursor)
