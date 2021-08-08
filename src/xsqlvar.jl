@@ -237,7 +237,13 @@ function juliatype(x::XSQLVAR)
             T = String
         end
     elseif x.sqltype == SQL_TYPE_SHORT
-        T = Int16
+        if x.sqlscale > 0
+            T = Int64
+        elseif x.sqlscale < 0
+            T = Decimal
+        else
+            T = Int16
+        end
     elseif x.sqltype == SQL_TYPE_LONG
         T = Int64
     elseif x.sqltype == SQL_TYPE_FLOAT
