@@ -24,16 +24,12 @@
 
 mutable struct Cursor <: DBInterface.Cursor
     stmt::Statement
+
+    names::Vector{Symbol}
+    types::Vector{Type}
+    lookup::Dict{Symbol, Int}
+
     rows::Vector{Vector{Any}}
-end
-
-"""
-    DBInterface.close!(cursor)
-
-Close a cursor.
-"""
-function DBInterface.close!(cur::Cursor)
-    close!(cur.stmt)
 end
 
 struct Row <: Tables.AbstractRow
@@ -44,5 +40,15 @@ end
 getcursor(r::Row) = getfield(r, :cursor)
 getrownumber(r::Row) = getfield(r, :rownumber)
 
+# TODO:
 Tables.columnnames(r::Row) = getcursor(r).names
+
+"""
+    DBInterface.close!(cursor)
+
+Close a cursor.
+"""
+function DBInterface.close!(cur::Cursor)
+    close!(cur.stmt)
+end
 
