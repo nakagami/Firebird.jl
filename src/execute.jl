@@ -65,8 +65,10 @@ function DBInterface.execute(stmt::Statement, params=[])::Cursor
     else
         rows = []
     end
+    names = [Symbol(x.aliasname) for x in stmt.xsqlda]
+    lookup = Dict(x => i for (i, x) in enumerate(names))
 
-    Cursor(stmt, rows)
+    Cursor(stmt, names, lookup, rows)
 end
 
 """

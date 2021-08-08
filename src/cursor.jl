@@ -26,7 +26,7 @@ mutable struct Cursor <: DBInterface.Cursor
     stmt::Statement
 
     names::Vector{Symbol}
-    types::Vector{Type}
+#    types::Vector{Type}
     lookup::Dict{Symbol, Int}
 
     rows::Vector{Vector{Any}}
