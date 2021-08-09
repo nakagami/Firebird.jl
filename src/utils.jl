@@ -156,7 +156,7 @@ end
 function to_blr(bytes::Vector{UInt8})::Tuple{Vector{UInt8}, Vector{UInt8}}
     nbytes = length(bytes)
     pad_length = ((4 - nbytes) & 3)
-    padding = Vector{UInt8}[0, 0, 0]
+    padding = Vector{UInt8}([0, 0, 0])
     v = vcat(bytes, padding[1:pad_length])
 
     v, UInt8[14, UInt8(nbytes & 255), UInt8(nbytes >> 8)]

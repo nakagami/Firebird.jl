@@ -344,7 +344,7 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
     server_salt = data[3:ln+2]
     server_public_string = data[5+ln:length(data)]
     if length(server_public_string) % 2 != 0
-        server_public_string = vcat(Vector{UInt8}[0x30], server_public_string)
+        server_public_string = vcat(Vector{UInt8}([0x30]), server_public_string)
     end
     server_public = bytes_to_bigint(hex2bytes(server_public_string))
 
@@ -473,7 +473,7 @@ function parse_xsqlda(wp::WireProtocol, buf::Vector{UInt8}, stmt_handle::Int32):
                 while next_index > 0    # more describe vars
                     _op_info_sql(stmt_handle,
                         vcat(
-                            Vector{UInt8}[isc_info_sql_sqlda_start, 2],
+                            Vector{UInt8}([isc_info_sql_sqlda_start, 2]),
                             int16_to_bytes(int16(next_index)),
                             INFO_SQL_SELECT_DESCRIBE_VARS(),
                         )
@@ -890,7 +890,7 @@ function _op_put_segment(wp::WireProtocol, blob_handle::Int32, seg_data::Vector{
     pack_uint32(wp, ln)
     pack_uint32(wp, ln)
     append_bytes(seg_data)
-    padding = Vector{UInt8}[0, 0, 0]
+    padding = Vector{UInt8}([0, 0, 0])
     append_bytes(padding[1:((4 - ln) & 3)])
     send_packets(wp)
 end
@@ -903,8 +903,8 @@ function _op_batch_segments(wp::WireProtocol, blob_handle::Int32, seg_data::Vect
     pack_uint32(wp, ln+2)
     pack_uint32(wp, ln+2)
     pad_length = ((4-(ln+2)) & 3)
-    padding = Vector{UInt8}[0, 0, 0]
-    pack_bytes(wp, Vector{UInt8}[UInt8(ln & 255), UInt8(ln >> 8)])  # little endian int 16
+    padding = Vector{UInt8}([0, 0, 0])
+    pack_bytes(wp, Vector{UInt8}([UInt8(ln & 255), UInt8(ln >> 8)]))  # little endian int 16
     pack_bytes(wp, seg_data)
     append_bytes(wp, padding[1:((4 - ln) & 3)])
     send_packets(wp)
@@ -1003,7 +1003,7 @@ end
 
 function params_to_blr(wp::WireProtocol, trans_handle::Int32, params::Vector{Any})::Tuple{Vector{UInt8}, Vector{UInt8}}
     ln = length(params) * 2
-    blr_list::Vector{UInt8} = Vector{UInt8}[5, 2, 4, 0, UInt8(ln & 255), UInt8(ln >> 8)]
+    blr_list::Vector{UInt8} = Vector{UInt8}([5, 2, 4, 0, UInt8(ln & 255), UInt8(ln >> 8)])
     values::Vector{UInt8} = []
 
     # NULL indicator
@@ -1046,6 +1046,6 @@ function params_to_blr(wp::WireProtocol, trans_handle::Int32, params::Vector{Any
         append!(blr_list, 0)
     end
 
-    blr_list = vcat(blr_list, Vector{UInt8}[255, 76])     # [blr_end, blr_eoc]
+    blr_list = vcat(blr_list, Vector{UInt8}([255, 76]))     # [blr_end, blr_eoc]
     blr_list, values
 end
