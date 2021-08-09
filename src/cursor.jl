@@ -40,8 +40,23 @@ end
 getcursor(r::Row) = getfield(r, :cursor)
 getrownumber(r::Row) = getfield(r, :rownumber)
 
-# TODO:
 Tables.columnnames(r::Row) = getcursor(r).names
+
+function Tables.getcolumn(r::Row, i::Int)
+    r.cursor.rows[rownumber][i]
+end
+Tables.getcolumn(r::Row, nm::Symbol) = Tables.getcolumn(r, getcursor(r).lookup[nm])
+
+Tables.isrowtable(::Type{<:Cursor}) = true
+Tables.schema(c::Cursor) = Tables.Schema(c.names, c.types)
+
+Base.eltype(c::Cursor) = Row
+Base.length(c::Cursor) = length(c.rows)
+
+function Base.iterate(cursor::Cursor, i=1)
+    cursor.current_rownumber = i
+    return Row(cursor, i), i + 1
+end
 
 """
     DBInterface.close!(cursor)
