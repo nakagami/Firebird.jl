@@ -277,7 +277,7 @@ function juliatype(x::XSQLVAR)
     elseif x.sqltype == SQL_TYPE_BOOLEAN
         T = Bool
     elseif x.sqltype == SQL_TYPE_NULL
-        T = nothing
+        T = Missing
     end
 
     x.null_ok ? T : Union{Missing, T}
