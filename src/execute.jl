@@ -48,7 +48,6 @@ function fetch_records(stmt::Statement)::Vector{Vector{Any}}
         close!(transaction)
     end
 
-    println(results)
     results
 end
 

@@ -30,7 +30,7 @@ const MAX_CHAR_LENGTH = 32767
 const BLOB_SEGMENT_SIZE = 32000
 
 function DEBUG_OUTPUT(s)
-    println(s)
+    # println(s)
 end
 
 function INFO_SQL_SELECT_DESCRIBE_VARS()::Vector{UInt8}
