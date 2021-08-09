@@ -21,7 +21,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ################################################################################
-using Test, Firebird
+using Test, Firebird, DBInterface, Tables, Dates, DecFP
 
 const DEBUG_PRIVATE_KEY = big"0x60975527035CF2AD1989806F0407210BC81EDC04E2762A56AFD529DDDA2D4393"
 const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1601C000000054F")
@@ -63,7 +63,15 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
 
 
     stmt = DBInterface.prepare(conn, raw"SELECT * from foo")
-    cur = DBInterface.execute(stmt)
+    cursor = DBInterface.execute(stmt)
+    @test eltype(cursor) == Firebird.Row
+    @test Tables.istable(cursor)
+    @test Tables.rowaccess(cursor)
+    @test Tables.rows(cursor) === cursor
+
+    @test Base.IteratorSize(typeof(cursor)) == Base.HasLength()
+    @test length(cursor) == 2
+
     # TODO: fetch result 
 
     # TODO:
