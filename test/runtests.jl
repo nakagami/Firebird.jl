@@ -30,7 +30,7 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
     user = if haskey(ENV, "ISC_USER")
         ENV["ISC_USER"]
     else
-        "sysdba"
+        "SYSDBA"
     end
     password = if haskey(ENV, "ISC_PASSWORD")
         ENV["ISC_PASSWORD"]

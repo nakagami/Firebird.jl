@@ -349,7 +349,7 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
     server_public = bytes_to_bigint(hex2bytes(server_public_string))
 
     auth_data, session_key = get_client_proof(
-        uppercase(username),
+        username,
         password,
         server_salt,
         client_public,
