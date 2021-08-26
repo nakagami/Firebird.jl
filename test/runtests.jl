@@ -21,7 +21,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ################################################################################
-using Test, Firebird, DBInterface, Tables, Dates, DecFP
+using Test, Firebird, DBInterface, Tables, Dates, Decimals
 
 const DEBUG_PRIVATE_KEY = big"0x60975527035CF2AD1989806F0407210BC81EDC04E2762A56AFD529DDDA2D4393"
 const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1601C000000054F")
@@ -61,6 +61,18 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
     DBInterface.execute(
         conn, raw"insert into foo(a, b, c, h) values (2, 'A', 'B','This is a memo2')")
 
+    expected = (
+        A = Int64[1, 2],
+        B = String["a", "A"],
+        C = Union{Missing, String}["b", "B"],
+        D = Union{Missing, Decimal}[Decimal(-0.123), Decimal(-0.123)],
+        E = Union{Missing, Dates.Date}[Dates.Date("1967-08-11"), Dates.Date("1967-08-11")],
+        F = Union{Missing, Dates.DateTime}[Dates.DateTime("1967-08-11T23:45:01"), Dates.DateTime("1967-08-11T23:45:01")],
+        G = Union{Missing, Dates.Time}[Dates.Time("23:45:01"), Dates.Time("23:45:01")],
+        H = Union{Missing, Vector{UInt8}}[Vector{UInt8}("This is a memo"), Vector{UInt8}("This is a memo2")],
+        I = Union{Missing, Float64}[Float64(0.0), Float64(0.0)],
+        J = Union{Missing, Float32}[Float32(0.0), Float32(0.0)],
+    )
 
     stmt = DBInterface.prepare(conn, raw"SELECT * from foo")
     cursor = DBInterface.execute(stmt)
@@ -68,7 +80,7 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
     @test Tables.istable(cursor)
     @test Tables.rowaccess(cursor)
     @test Tables.rows(cursor) === cursor
-
+    @test Tables.schema(cursor) == Tables.Schema(propertynames(expected), eltype.(collect(expected)))
     @test Base.IteratorSize(typeof(cursor)) == Base.HasLength()
     @test length(cursor) == 2
 

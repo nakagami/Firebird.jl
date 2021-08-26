@@ -237,9 +237,7 @@ function juliatype(x::XSQLVAR)
             T = String
         end
     elseif x.sqltype == SQL_TYPE_SHORT
-        if x.sqlscale > 0
-            T = Int64
-        elseif x.sqlscale < 0
+        if x.sqlscale != 0
             T = Decimal
         else
             T = Int16
@@ -259,9 +257,17 @@ function juliatype(x::XSQLVAR)
     elseif x.sqltype == SQL_TYPE_DATE
         T = Date
     elseif x.sqltype == SQL_TYPE_INT64
-        T = Int64
+        if x.sqlscale != 0
+            T = Decimal
+        else
+            T = Int64
+        end
     elseif x.sqltype == SQL_TYPE_INT128
-        T = Int64
+        if x.sqlscale != 0
+            T = Decimal
+        else
+            T = Int128
+        end
     elseif x.sqltype == SQL_TYPE_TIMESTAMP_TZ
         # TODO:
         T = nothing
@@ -280,5 +286,5 @@ function juliatype(x::XSQLVAR)
         T = Missing
     end
 
-    x.null_ok ? T : Union{Missing, T}
+    x.null_ok ? Union{Missing, T} : T
 end
