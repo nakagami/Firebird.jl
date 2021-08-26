@@ -43,9 +43,7 @@ getrownumber(r::Row) = getfield(r, :rownumber)
 
 Tables.columnnames(r::Row) = getcursor(r).names
 
-function Tables.getcolumn(r::Row, i::Int)
-    return getcursor(r).rows[getrownumber(r)][i]
-end
+Tables.getcolumn(r::Row, i::Int) = getcursor(r).rows[getrownumber(r)][i]
 Tables.getcolumn(r::Row, nm::Symbol) = Tables.getcolumn(r, getcursor(r).lookup[nm])
 
 Tables.isrowtable(::Type{<:Cursor}) = true
@@ -55,6 +53,9 @@ Base.eltype(c::Cursor) = Row
 Base.length(c::Cursor) = length(c.rows)
 
 function Base.iterate(cursor::Cursor, i=1)
+    if length(cursor.rows) < i
+        return nothing
+    end
     cursor.current_rownumber = i
     return Row(cursor, i), i + 1
 end
