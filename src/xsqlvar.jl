@@ -163,30 +163,26 @@ function value(x::XSQLVAR, raw_value::Vector{UInt8})
             String(raw_value)
         end
     elseif x.sqltype == SQL_TYPE_SHORT
-        i16::Int16 = Int16(bytes_to_int32(raw_value))
-        if x.sqlscale > 0
-            Int64(i16) * Int64(10^x.scale)
-        elseif x.sqlscale < 0
+        i16::Int16 = bytes_to_bint16(raw_value)
+        if x.sqlscale == 0
+            i16
+        else
             if i16 < 0
                 Decimal(1, i16*-1, x.sqlscale)
             else
                 Decimal(0, i16, x.sqlscale)
             end
-        else
-            i16
         end
     elseif x.sqltype == SQL_TYPE_LONG
-        i32::Int32 = Int32(bytes_to_int32(raw_value))
-        if x.sqlscale > 0
-            Int64(i32) * Int64(10^x.scale)
-        elseif x.sqlscale < 0
+        i32::Int32 = bytes_to_bint32(raw_value)
+        if x.sqlscale == 0
+            i32
+        else
             if i32 < 0
                 Decimal(1, i32*-1, x.sqlscale)
             else
                 Decimal(0, i32, x.sqlscale)
             end
-        else
-            i32
         end
     elseif x.sqltype == SQL_TYPE_FLOAT
         reinterpret(Float32, raw_value)[1]
@@ -201,9 +197,27 @@ function value(x::XSQLVAR, raw_value::Vector{UInt8})
     elseif x.sqltype == SQL_TYPE_DATE
         parse_date(raw_value)
     elseif x.sqltype == SQL_TYPE_INT64
-        bytes_to_bint64(raw_value)
+        i64::Int64 = bytes_to_bint64(raw_value)
+        if x.sqlscale == 0
+            i64
+        else
+            if i64 < 0
+                Decimal(1, i64*-1, x.sqlscale)
+            else
+                Decimal(0, i64, x.sqlscale)
+            end
+        end
     elseif x.sqltype == SQL_TYPE_INT128
-        bytes_to_bint64(raw_value)
+        i128::Int128 = bytes_to_bint128(raw_value)
+        if x.sqlscale == 0
+            i128
+        else
+            if i128 < 0
+                Decimal(1, i128*-1, x.sqlscale)
+            else
+                Decimal(0, i128, x.sqlscale)
+            end
+        end
     elseif x.sqltype == SQL_TYPE_TIMESTAMP_TZ
         # TODO:
         nothing
