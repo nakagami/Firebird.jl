@@ -30,6 +30,7 @@ mutable struct Cursor <: DBInterface.Cursor
     lookup::Dict{Symbol, Int}
 
     rows::Vector{Vector{Any}}
+    current_rownumber::Int
 end
 
 struct Row <: Tables.AbstractRow
@@ -43,7 +44,7 @@ getrownumber(r::Row) = getfield(r, :rownumber)
 Tables.columnnames(r::Row) = getcursor(r).names
 
 function Tables.getcolumn(r::Row, i::Int)
-    r.cursor.rows[rownumber][i]
+    return getcursor(r).rows[getrownumber(r)][i]
 end
 Tables.getcolumn(r::Row, nm::Symbol) = Tables.getcolumn(r, getcursor(r).lookup[nm])
 

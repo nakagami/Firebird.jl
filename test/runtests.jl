@@ -84,6 +84,15 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
     @test Base.IteratorSize(typeof(cursor)) == Base.HasLength()
     @test length(cursor) == 2
 
+    row = first(cursor)
+    @test Base.IndexStyle(typeof(row)) == Base.IndexLinear()
+    @test length(row) == length(expected)
+    @test propertynames(row) == collect(propertynames(expected))
+    for (i, prop) in enumerate(propertynames(row))
+        @test getproperty(row, prop) == row[prop] == row[i] == expected[prop][1]
+    end
+
+
     # TODO: fetch result 
 
     # TODO:
