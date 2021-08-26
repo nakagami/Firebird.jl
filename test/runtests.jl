@@ -74,7 +74,7 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
         J = Union{Missing, Float32}[Float32(0.0), Float32(0.0)],
     )
 
-    cursor = DBInterface.execute("SELECT * from foo")
+    cursor = DBInterface.execute(conn, "SELECT * from foo")
     @test eltype(cursor) == Firebird.Row
     @test Tables.istable(cursor)
     @test Tables.rowaccess(cursor)
