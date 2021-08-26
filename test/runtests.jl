@@ -49,7 +49,7 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
                 e DATE DEFAULT '1967-08-11',
                 f TIMESTAMP DEFAULT '1967-08-11 23:45:01',
                 g TIME DEFAULT '23:45:01',
-                h BLOB SUB_TYPE 1,
+                h BLOB SUB_TYPE 0,
                 i DOUBLE PRECISION DEFAULT 0.0,
                 j FLOAT DEFAULT 0.0,
                 PRIMARY KEY (a),

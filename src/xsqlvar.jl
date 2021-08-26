@@ -265,7 +265,11 @@ function juliatype(x::XSQLVAR)
     elseif x.sqltype == SQL_TYPE_TIMESTAMP
         T = DateTime
     elseif x.sqltype == SQL_TYPE_BLOB
-        T = Vector{UInt8}
+        if x.sqlsubtype == 1    # TEXT
+            T = String
+        else
+            T = Vector{UInt8}
+        end
     elseif x.sqltype == SQL_TYPE_TIME
         T = Time
     elseif x.sqltype == SQL_TYPE_DATE
