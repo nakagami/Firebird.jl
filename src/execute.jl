@@ -86,7 +86,7 @@ Execute the SQL `sql` statement with the database connection `conn`.
 function DBInterface.execute(conn::Connection, sql::AbstractString, params=[])::Cursor
     stmt = DBInterface.prepare(conn, sql)
     try
-        return DBInterface.execute(stmt, params)
+        DBInterface.execute(stmt, params)
     finally
         DBInterface.close!(stmt)
     end

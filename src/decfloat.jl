@@ -80,7 +80,7 @@ function dpd_to_int64(dpd::UInt)::UInt64
         throw(DomainError(plugin_name, "Invalid DPD encoding"))
     end
 
-    return int64(d[3])*100 + int64(d[2])*10 + int64(d[1])
+    int64(d[3])*100 + int64(d[2])*10 + int64(d[1])
 end
 
 function calc_significand(prefix::Int64, dpd_bits::BigInt, numBits::Int)::BigInt

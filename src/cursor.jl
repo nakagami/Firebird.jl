@@ -54,10 +54,11 @@ Base.length(c::Cursor) = length(c.rows)
 
 function Base.iterate(cursor::Cursor, i=1)
     if length(cursor.rows) < i
-        return nothing
+        nothing
+    else
+        cursor.current_rownumber = i
+        Row(cursor, i), i + 1
     end
-    cursor.current_rownumber = i
-    return Row(cursor, i), i + 1
 end
 
 """
