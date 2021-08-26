@@ -61,6 +61,13 @@ function DBInterface.execute(stmt::Statement, params=[])::Cursor
     _op_response(stmt.conn.wp)
     if stmt.stmt_type == isc_info_sql_stmt_select
         rows = fetch_records(stmt)
+        wp = stmt.conn.wp
+        _op_free_statement(wp, stmt.handle, DSQL_close)
+        if wp.accept_type == ptype_lazy_send
+            wp.lazy_response_count += 1
+        else
+            _op_response(wp)
+        end
     else
         rows = []
     end

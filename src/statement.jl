@@ -29,7 +29,6 @@ mutable struct Statement <: DBInterface.Statement
     handle::Int32
     stmt_type::Int32
     xsqlda::Vector{XSQLVAR}
-    is_open::Bool
 
     function Statement(conn::Connection, sql::String)
         _op_allocate_statement(conn.wp)
@@ -52,7 +51,7 @@ mutable struct Statement <: DBInterface.Statement
         _, _, buf = _op_response(conn.wp)
         stmt_type, xsqlda = parse_xsqlda(conn.wp, buf, stmt_handle)
 
-        new(conn, sql, stmt_handle, stmt_type, xsqlda, stmt_type==isc_info_sql_stmt_select)
+        new(conn, sql, stmt_handle, stmt_type, xsqlda)
     end
 
 end
@@ -73,7 +72,7 @@ end
 Close a prepared statement.
 """
 function close!(stmt::Statement)
-    if stmt.handle != -1 && stmt.is_open
+    if stmt.handle != -1
         wp = stmt.conn.wp
         _op_free_statement(wp, stmt.handle, DSQL_drop)
         if wp.accept_type == ptype_lazy_send

@@ -91,10 +91,29 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
         @test getproperty(row, prop) == row[prop] == row[i] == expected[prop][1]
     end
 
-    # TODO:
     # as a prepared statement
-    # stmt = DBInterface.prepare(conn, raw"SELECT * from foo")
-    # cursor = DBInterface.execute(stmt)
+    stmt = DBInterface.prepare(conn, raw"SELECT * from foo")
+    cursor = DBInterface.execute(stmt)
+    @test eltype(cursor) == Firebird.Row
+    @test Tables.istable(cursor)
+    @test Tables.rowaccess(cursor)
+    @test Tables.rows(cursor) === cursor
+    @test Tables.schema(cursor) == Tables.Schema(propertynames(expected), eltype.(collect(expected)))
+    @test Base.IteratorSize(typeof(cursor)) == Base.HasLength()
+    @test length(cursor) == 2
+
+    row = first(cursor)
+    @test Base.IndexStyle(typeof(row)) == Base.IndexLinear()
+    @test length(row) == length(expected)
+    @test propertynames(row) == collect(propertynames(expected))
+    for (i, prop) in enumerate(propertynames(row))
+        @test getproperty(row, prop) == row[prop] == row[i] == expected[prop][1]
+    end
+
+    res = DBInterface.execute(stmt) |> columntable
+    @test length(res) == 10
+    @test length(res[1]) == 2
+    @test res == expected
 
     DBInterface.close!(conn)
     @test !isopen(conn)
