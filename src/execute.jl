@@ -88,6 +88,6 @@ function DBInterface.execute(conn::Connection, sql::AbstractString, params=[])::
     try
         return DBInterface.execute(stmt, params)
     finally
-        close!(stmt)
+        DBInterface.close!(stmt)
     end
 end

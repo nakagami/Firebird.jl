@@ -71,7 +71,7 @@ end
 
 Close a prepared statement.
 """
-function close!(stmt::Statement)
+function DBInterface.close!(stmt::Statement)
     if stmt.handle != -1
         wp = stmt.conn.wp
         _op_free_statement(wp, stmt.handle, DSQL_drop)
