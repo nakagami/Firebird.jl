@@ -189,9 +189,9 @@ function value(x::XSQLVAR, raw_value::Vector{UInt8})
             i32
         end
     elseif x.sqltype == SQL_TYPE_FLOAT
-        reinterpret(Float32, raw_value)
+        reinterpret(Float32, raw_value)[1]
     elseif x.sqltype == SQL_TYPE_DOUBLE
-        reinterpret(Float64, raw_value)
+        reinterpret(Float64, raw_value)[1]
     elseif x.sqltype == SQL_TYPE_TIMESTAMP
         parse_timestamp(raw_value)
     elseif x.sqltype == SQL_TYPE_BLOB
