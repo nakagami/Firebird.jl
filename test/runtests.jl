@@ -57,9 +57,9 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
             )"""
     )
     DBInterface.execute(
-        conn, raw"insert into foo(a, b, c, h) values (1, 'a', 'b', 'This is a memo')")
+        conn, raw"insert into foo(a, b, c, h) values (1, 'a', 'b', 'This is a pen')")
     DBInterface.execute(
-        conn, raw"insert into foo(a, b, c, h) values (2, 'A', 'B', 'This is a memo2')")
+        conn, raw"insert into foo(a, b, c, h) values (2, 'A', 'B', NULL)")
 
     expected = (
         A = Int64[1, 2],
@@ -69,7 +69,7 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
         E = Union{Missing, Dates.Date}[Dates.Date("1967-08-11"), Dates.Date("1967-08-11")],
         F = Union{Missing, Dates.DateTime}[Dates.DateTime("1967-08-11T23:45:01"), Dates.DateTime("1967-08-11T23:45:01")],
         G = Union{Missing, Dates.Time}[Dates.Time("23:45:01"), Dates.Time("23:45:01")],
-        H = Union{Missing, Vector{UInt8}}[Vector{UInt8}("This is a memo"), Vector{UInt8}("This is a memo2")],
+        H = Union{Missing, Vector{UInt8}}[Vector{UInt8}("This is a pen"), missing],
         I = Union{Missing, Float64}[Float64(0.0), Float64(0.0)],
         J = Union{Missing, Float32}[Float32(0.0), Float32(0.0)],
     )
@@ -113,7 +113,7 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
     res = DBInterface.execute(stmt) |> columntable
     @test length(res) == 10
     @test length(res[1]) == 2
-    @test res == expected
+    @test isequal(res, expected)
 
     DBInterface.close!(stmt)
     DBInterface.close!(conn)
