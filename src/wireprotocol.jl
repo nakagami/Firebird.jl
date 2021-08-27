@@ -825,18 +825,17 @@ function _op_fetch_response(wp::WireProtocol, stmt_handle::Int32, xsqlda::Vector
             null_indicator <<= 8
             null_indicator += b
         end
-        r = Vector{Any}(nothing, length(xsqlda))
+        r = Vector{Any}(missing, length(xsqlda))
         for i in 1:length(xsqlda)
             x = xsqlda[i]
-            if (null_indicator & (1 << i)) != 0
-                append!(r, nothing)
+            if (null_indicator & (1 << (i-1))) == 0 # not null
+                ln = io_length(x)
+                if ln < 0
+                    ln = bytes_to_bint32(recv_packets(wp, 4))
+                end
+                raw_value = recv_packets_alignment(wp, ln)
+                r[i] = value(x, raw_value)
             end
-            ln = io_length(x)
-            if ln < 0
-                ln = bytes_to_bint32(recv_packets(wp, 4))
-            end
-            raw_value = recv_packets_alignment(wp, ln)
-            r[i] = value(x, raw_value)
         end
         rows = vcat(rows, [r])
         op_code = bytes_to_bint32(recv_packets(wp, 4))

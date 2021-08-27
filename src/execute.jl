@@ -38,9 +38,11 @@ function fetch_records(stmt::Statement)::Vector{Vector{Any}}
         for x in 1:length(stmt.xsqlda)
             if stmt.xsqlda[x].sqltype == SQL_TYPE_BLOB
                 for i in 1:length(results)
-                    results[i][x] = get_blob_segments(stmt.conn.wp, results[i][x], transaction.handle)
-                    if stmt.xsqlda[x].sqlsubtype == 1   # TEXT
-                        results[i][x] = String(results[i][x])
+                    if !(results[i][x] isa Missing)
+                        results[i][x] = get_blob_segments(stmt.conn.wp, results[i][x], transaction.handle)
+                        if stmt.xsqlda[x].sqlsubtype == 1   # TEXT
+                            results[i][x] = String(results[i][x])
+                        end
                     end
                 end
             end

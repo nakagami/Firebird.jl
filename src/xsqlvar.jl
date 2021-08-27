@@ -233,7 +233,7 @@ function value(x::XSQLVAR, raw_value::Vector{UInt8})
     elseif x.sqltype == SQL_TYPE_BOOLEAN
         raw_value[0] != 0
     elseif x.sqltype == SQL_TYPE_NULL
-        nothing
+        missing
     end
 end
 
