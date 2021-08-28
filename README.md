@@ -10,10 +10,9 @@ It follows the interface of DBInterface https://github.com/JuliaDatabases/DBInte
 using Firebird, DBInterface
 conn = DBInterface.connect(Firebird.Connection, host, user, password, db_path)
 
-
+# execute
 DBInterface.execute(conn, "INSERT INTO some_tbale(...) VALUES (...)")
 
-# execute
 res = columntable(DBInterface.execute("SELECT * FROM some_table))
 
 # prepared statement and execute
