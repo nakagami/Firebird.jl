@@ -649,8 +649,8 @@ function _op_commit(wp::WireProtocol, trans_handle::Int32)
     send_packets(wp)
 end
 
-function _op_commit_retainning(wp::WireProtocol, trans_handle::Int32)
-    DEBUG_OUTPUT("_op_commit_retainning")
+function _op_commit_retaining(wp::WireProtocol, trans_handle::Int32)
+    DEBUG_OUTPUT("_op_commit_retaining")
     pack_uint32(wp, op_commit_retaining)
     pack_uint32(wp, trans_handle)
     send_packets(wp)
@@ -728,7 +728,7 @@ function _op_info_sql(wp::WireProtocol, stmt_handle::Int32, vars::Vector{UInt8})
     send_packets(wp)
 end
 
-function _op_execute(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32, params::Vector{Any})
+function _op_execute(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32, params)
     DEBUG_OUTPUT("_op_execute")
     pack_uint32(wp, op_execute)
     pack_uint32(wp, stmt_handle)
@@ -739,16 +739,16 @@ function _op_execute(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32, 
         pack_uint32(wp, 0)
         pack_uint32(wp, 0)
     else
-        blr, values = params_to_blr(wp, trans_handle, params, wp.protocol_version)
+        blr, values = params_to_blr(wp, trans_handle, params)
         pack_bytes(wp, blr)
         pack_uint32(wp, 0)
         pack_uint32(wp, 1)
-        append_bytes(values)
+        append_bytes(wp, values)
     end
     send_packets(wp)
 end
 
-function _op_execute2(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32, params::Vector{Any}, output_blr::Vector{UInt8})
+function _op_execute2(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32, params, output_blr::Vector{UInt8})
     DEBUG_OUTPUT("_op_execute2")
     pack_uint32(wp, op_execute2)
     pack_uint32(wp, stmt_handle)
@@ -759,11 +759,11 @@ function _op_execute2(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32,
         pack_uint32(wp, 0)
         pack_uint32(wp, 0)
     else
-        blr, values = params_to_blr(wp, trans_handle, params, wp.protocol_version)
+        blr, values = params_to_blr(wp, trans_handle, params)
         pack_bytes(wp, blr)
         pack_uint32(wp, 0)
         pack_uint32(wp, 1)
-        append_bytes(values)
+        append_bytes(wp, values)
     end
 
     pack_bytes(wp, output_blr)
@@ -888,9 +888,9 @@ function _op_put_segment(wp::WireProtocol, blob_handle::Int32, seg_data::Vector{
     pack_uint32(wp, blob_handle)
     pack_uint32(wp, ln)
     pack_uint32(wp, ln)
-    append_bytes(seg_data)
+    append_bytes(wp, seg_data)
     padding = Vector{UInt8}([0, 0, 0])
-    append_bytes(padding[1:((4 - ln) & 3)])
+    append_bytes(wp, padding[1:((4 - ln) & 3)])
     send_packets(wp)
 end
 
@@ -1000,7 +1000,7 @@ function create_blob(wp::WireProtocol, b::Vector{UInt8}, trans_handle::Int32)::V
     blob_id
 end
 
-function params_to_blr(wp::WireProtocol, trans_handle::Int32, params::Vector{Any})::Tuple{Vector{UInt8}, Vector{UInt8}}
+function params_to_blr(wp::WireProtocol, trans_handle::Int32, params)::Tuple{Vector{UInt8}, Vector{UInt8}}
     ln = length(params) * 2
     blr_list::Vector{UInt8} = Vector{UInt8}([5, 2, 4, 0, UInt8(ln & 255), UInt8(ln >> 8)])
     values::Vector{UInt8} = []
@@ -1016,7 +1016,7 @@ function params_to_blr(wp::WireProtocol, trans_handle::Int32, params::Vector{Any
     if length(params) % 8 != 0
         n += 1
     end
-    if n % 4    # padding
+    if n % 4 != 0   # padding
         n += (4 - n) % 4
     end
     for i in 1:n
@@ -1025,10 +1025,9 @@ function params_to_blr(wp::WireProtocol, trans_handle::Int32, params::Vector{Any
     end
 
     for i in 1:length(params)
-        p = if typeof(p) == String
+        p = params[i]
+        if typeof(p) == String
             p = Vector{UInt8}(params[i])
-        else
-            p = params[i]
         end
         v, blr = if typeof(p) == Vector{UInt8}
             if length(p) < MAX_CHAR_LENGTH

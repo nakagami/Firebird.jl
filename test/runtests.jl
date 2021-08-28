@@ -94,6 +94,9 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
         @test getproperty(row, prop) == row[prop] == row[i] == expected[prop][1]
     end
 
+    res = DBInterface.execute(conn, raw"SELECT * from foo where a=?", (1, )) |> columntable
+    @test length(res[1]) == 1
+
     # as a prepared statement
     stmt = DBInterface.prepare(conn, raw"SELECT * from foo")
     cursor = DBInterface.execute(stmt)
@@ -117,6 +120,13 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
     @test length(res) == 10
     @test length(res[1]) == 2
     @test isequal(res, expected)
+
+    stmt = DBInterface.prepare(conn, raw"SELECT * from foo where a=?")
+    cursor = DBInterface.execute(stmt, (1,))
+    row = first(cursor)
+    @test length(row) == length(expected)
+    res = DBInterface.execute(stmt, (1, )) |> columntable
+    @test length(res[1]) == 1
 
     DBInterface.close!(stmt)
     DBInterface.close!(conn)

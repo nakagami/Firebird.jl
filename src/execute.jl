@@ -58,7 +58,7 @@ end
 
 Execute the prepared statement `stmt`.
 """
-function DBInterface.execute(stmt::Statement, params=[])::Cursor
+function DBInterface.execute(stmt::Statement, params=())::Cursor
     _op_execute(stmt.conn.wp, stmt.handle, stmt.conn.transaction.handle, params)
     _op_response(stmt.conn.wp)
     if stmt.stmt_type == isc_info_sql_stmt_select
@@ -85,7 +85,7 @@ end
 
 Execute the SQL `sql` statement with the database connection `conn`.
 """
-function DBInterface.execute(conn::Connection, sql::AbstractString, params=[])::Cursor
+function DBInterface.execute(conn::Connection, sql::AbstractString, params=())::Cursor
     stmt = DBInterface.prepare(conn, sql)
     try
         DBInterface.execute(stmt, params)
