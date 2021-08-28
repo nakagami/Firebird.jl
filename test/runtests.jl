@@ -77,7 +77,7 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
         J = Union{Missing, Float32}[Float32(0.0), Float32(0.0)],
     )
 
-    cursor = DBInterface.execute(conn, "SELECT * from foo")
+    cursor = DBInterface.execute(conn, "SELECT * FROM foo")
     @test eltype(cursor) == Firebird.Row
     @test Tables.istable(cursor)
     @test Tables.rowaccess(cursor)
@@ -94,11 +94,11 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
         @test getproperty(row, prop) == row[prop] == row[i] == expected[prop][1]
     end
 
-    res = DBInterface.execute(conn, raw"SELECT * from foo where a=?", (1, )) |> columntable
+    res = DBInterface.execute(conn, raw"SELECT * FROM foo where a=?", (1, )) |> columntable
     @test length(res[1]) == 1
 
     # as a prepared statement
-    stmt = DBInterface.prepare(conn, raw"SELECT * from foo")
+    stmt = DBInterface.prepare(conn, raw"SELECT * FROM foo")
     cursor = DBInterface.execute(stmt)
     @test eltype(cursor) == Firebird.Row
     @test Tables.istable(cursor)
@@ -121,7 +121,7 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
     @test length(res[1]) == 2
     @test isequal(res, expected)
 
-    stmt = DBInterface.prepare(conn, raw"SELECT * from foo where a=?")
+    stmt = DBInterface.prepare(conn, raw"SELECT * FROM foo where a=?")
     cursor = DBInterface.execute(stmt, (1,))
     row = first(cursor)
     @test length(row) == length(expected)

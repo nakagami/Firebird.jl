@@ -13,10 +13,16 @@ conn = DBInterface.connect(Firebird.Connection, host, user, password, db_path)
 # execute
 DBInterface.execute(conn, "INSERT INTO some_tbale(...) VALUES (...)")
 
-res = columntable(DBInterface.execute("SELECT * FROM some_table))
+res = columntable(DBInterface.execute("SELECT * FROM some_table"))
+
+# execute with parameter
+res = columntable(DBInterface.execute("SELECT * FROM some_table where some_column=?", (1, )))
 
 # prepared statement and execute
-stmt = DBInterface.prepare(conn, raw"SELECT * from foo")
+stmt = DBInterface.prepare(conn, raw"SELECT * FROM some_table")
 res = columntable(DBInterface.execute(stmt))
 
+# prepared statement and execute with parameter
+stmt = DBInterface.prepare(conn, raw"SELECT * FROM some_table where some_column=?")
+res = columntable(DBInterface.execute(stmt, (1, )))
 ```
