@@ -16,6 +16,8 @@ TimeZones = "f269a46b-ccf7-5d73-abea-4c690281aa53"
 
 [compat]
 julia = "1"
+DBInterface = "2.4"
+DecFP = "1.1"
 Decimals = "0.4"
 Parsers = "1"
 Tables = "1"
