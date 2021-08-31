@@ -58,9 +58,19 @@ function isopen(conn::Connection)::Bool
     isopen(conn.wp.chan)
 end
 
+"""
+    DBInterface.connect(Firebird.Connection, host::String, user::String, passwd::String; db::String, db_name::String)
+
+Connect to a Firebird database
+"""
 DBInterface.connect(::Type{Connection}, host::String, user::String, password::String, db_name::String; kwargs...) =
     Connection(host, user, password, db_name, Dict(kwargs))
 
+"""
+    DBInterface.close!(Firebird.Connection)
+
+Close a `Firebird.Connection` opened by `DBInterface.connect`.
+"""
 function DBInterface.close!(conn::Connection)
     close!(conn.transaction)
     close!(conn.wp.chan)
