@@ -4,6 +4,10 @@ A Julia interface to the Firebird RDBMS https://firebirdsql.org/ .
 
 It follows the interface of DBInterface https://github.com/JuliaDatabases/DBInterface.jl .
 
+## Supported Firebird
+
+Firebird 3.0 is supported
+
 ## Example
 
 ```
