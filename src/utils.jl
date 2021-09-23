@@ -99,6 +99,10 @@ function bytes_to_buint32(b::Vector{UInt8})::UInt32
     reinterpret(UInt32, reverse(b))[1]
 end
 
+function bytes_to_buint16(b::Vector{UInt8})::UInt16
+    reinterpret(UInt16, reverse(b))[1]
+end
+
 function bytes_to_bint128(b::Vector{UInt8})::Int128
     reinterpret(Int128, reverse(b))[1]
 end

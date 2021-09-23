@@ -60,8 +60,8 @@ xsqlvar_type_length = Dict(
     SQL_TYPE_QUAD=>8,
     SQL_TYPE_INT64=>8,
     SQL_TYPE_INT128=>16,
-    SQL_TYPE_TIMESTAMP_TZ=>10,
-    SQL_TYPE_TIME_TZ=>6,
+    SQL_TYPE_TIMESTAMP_TZ=>12,
+    SQL_TYPE_TIME_TZ=>8,
     SQL_TYPE_DEC64=>8,
     SQL_TYPE_DEC128=>16,
     SQL_TYPE_DEC_FIXED=>16,
@@ -149,6 +149,23 @@ function parse_timestamp(raw_value::Vector{UInt8})::DateTime
     DateTime(year, month, day, h, m, s, n)
 end
 
+function parse_time_tz(raw_value::Vector{UInt8})::ZoneDateTime
+    h, m, s, n = _parse_time(raw_value[1:4])
+    timezone = TimeZones.TimeZone(get_timezone_name_by_id_dict[bytes_to_buint16(raw_value[5:6])])
+    offset = TimeZones.TimeZone(get_timezone_name_by_id_dict[bytes_to_buint16(raw_value[7:8])])
+    zdt = DateTime(0, 1, 1, h, m, s, n, timezone)
+    astimezone(zdt, offset)
+end
+
+function parse_timestamp_tz(raw_value::Vector{UInt8})::ZonedDateTime
+    year, month, day = _parse_date(raw_value[1:4])
+    h, m, s, n = _parse_time(raw_value[5:8])
+    timezone = TimeZones.TimeZone(Dates.TimeZone(get_timezone_name_by_id_dict[bytes_to_buint16(raw_value[9:10])]))
+    offset = TimeZones.TimeZone(Dates.TimeZone(get_timezone_name_by_id_dict[bytes_to_buint16(raw_value[11:12])]))
+    zdt = DateTime(year, month, day, h, m, s, n, timezone)
+    astimezone(zdt, offset)
+end
+
 function value(x::XSQLVAR, raw_value::Vector{UInt8})
     if x.sqltype == SQL_TYPE_TEXT
         if x.sqlsubtype == 1
@@ -219,11 +236,9 @@ function value(x::XSQLVAR, raw_value::Vector{UInt8})
             end
         end
     elseif x.sqltype == SQL_TYPE_TIMESTAMP_TZ
-        # TODO:
-        nothing
+        parse_timestamp_tz(raw_value)
     elseif x.sqltype == SQL_TYPE_TIME_TZ
-        # TODO:
-        nothing
+        parse_time_tz(raw_value)
     elseif x.sqltype == SQL_TYPE_DEC_FIXED
         decimal_fiexed_to_decimal(value_value)
     elseif x.sqltype == SQL_TYPE_DEC64

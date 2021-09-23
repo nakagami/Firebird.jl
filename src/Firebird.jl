@@ -22,12 +22,13 @@
 # SOFTWARE.
 ################################################################################
 module Firebird
-using Dates, DBInterface, Tables, Parsers, DecFP
+using Dates, TimeZones, DBInterface, Tables, Parsers, DecFP
 
 export DBInterface
 
 include("consts.jl")
 include("errmsgs.jl")
+include("tz_map.jl")
 include("xsqlvar.jl")
 include("utils.jl")
 include("srp.jl")

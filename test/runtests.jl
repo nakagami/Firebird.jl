@@ -38,7 +38,7 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
         "masterkey"
     end
 
-    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, "/tmp/julia_test.fdb"; create_new=true)
+    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, "/tmp/julia_test.fdb"; create_new=true, timezone="Asia/Tokyo")
     DBInterface.execute(
         conn, raw"""
             CREATE TABLE foo (

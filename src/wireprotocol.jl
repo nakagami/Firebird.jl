@@ -538,7 +538,7 @@ function _op_connect(wp::WireProtocol, db_name::String, username::String, passwo
     send_packets(wp)
 end
 
-function _op_create(wp::WireProtocol, db_name::String, username::String, password::String, page_size::Int32)
+function _op_create(wp::WireProtocol, db_name::String, username::String, password::String, timezone::String, page_size::Int32)
     DEBUG_OUTPUT("_op_create")
     encode = b"UTF8"
 
@@ -557,6 +557,10 @@ function _op_create(wp::WireProtocol, db_name::String, username::String, passwor
         [isc_dpb_overwrite, 4], int32_to_bytes(Int32(1)),
         [isc_dpb_page_size, 4], int32_to_bytes(page_size),
     )
+    if timezone != ""
+        timezone_bytes = Vector{UInt8}(timezone)
+        dpb = vcat(dpb, [isc_dpb_session_time_zone, UInt8(length(timezone_bytes))], timezone_bytes)
+    end
 
     if length(wp.auth_data) != 0
         specific_auth_data = Vector{UInt8}(bytes2hex(wp.auth_data))
@@ -565,7 +569,7 @@ function _op_create(wp::WireProtocol, db_name::String, username::String, passwor
 
     if wp.timezone != ""
         tzname_bytes = Vector{UInt8}(wp.timezone)
-        dpb = vcat(dpb, [isc_dpb_session_time_zone, length(tzname_bytes)], tzname_bytes)
+        dpb = vcat(dpb, [isc_dpb_session_time_zone, UInt8(length(timezone_bytes))], timezone_bytes)
     end
 
     pack_uint32(wp, op_create)
@@ -575,7 +579,7 @@ function _op_create(wp::WireProtocol, db_name::String, username::String, passwor
     send_packets(wp)
 end
 
-function _op_attach(wp::WireProtocol, db_name::String, username::String, password::String)
+function _op_attach(wp::WireProtocol, db_name::String, username::String, password::String, timezone::String)
     DEBUG_OUTPUT("_op_attach")
     encode = b"UTF8"
 
@@ -591,6 +595,10 @@ function _op_attach(wp::WireProtocol, db_name::String, username::String, passwor
         [UInt8(isc_dpb_sql_dialect), UInt8(4)], int32_to_bytes(Int32(3)),
     )
 
+    if timezone != ""
+        timezone_bytes = Vector{UInt8}(timezone)
+        dpb = vcat(dpb, [isc_dpb_session_time_zone, UInt8(length(timezone))], timezone)
+    end
 
     if length(wp.auth_data) != 0
         specific_auth_data = Vector{UInt8}(bytes2hex(wp.auth_data))
