@@ -133,6 +133,51 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
     @test !isopen(conn)
 end
 
+@testset "timezone" begin
+    user = if haskey(ENV, "ISC_USER")
+        ENV["ISC_USER"]
+    else
+        "sysdba"
+    end
+    password = if haskey(ENV, "ISC_PASSWORD")
+        ENV["ISC_PASSWORD"]
+    else
+        "masterkey"
+    end
+
+    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, "/tmp/julia_test.fdb"; create_new=true, timezone="Asia/Tokyo")
+
+    cursor = DBInterface.execute(conn, raw"SELECT rdb$get_context('SYSTEM', 'ENGINE_VERSION') version from rdb$database")
+    row = first(cursor)
+    major_version = parse(Int, split(row.VERSION, ".")[1])
+    if major_version < 4
+        DBInterface.close!(conn)
+        return
+    end
+
+    DBInterface.execute(
+        conn, raw"""
+            CREATE TABLE tz_test (
+                id INTEGER NOT NULL,
+                t TIME WITH TIME ZONE DEFAULT '12:34:56',
+                ts TIMESTAMP WITH TIME ZONE DEFAULT '1967-08-11 23:45:01',
+                PRIMARY KEY (id)
+            )"""
+    )
+
+    DBInterface.execute(
+        conn, raw"insert into tz_test (id) values (1)")
+    DBInterface.execute(
+        conn, raw"insert into tz_test (id, t, ts) values (2, '12:34:56 Asia/Seoul', '1967-08-11 23:45:01.0000 Asia/Seoul')")
+    DBInterface.execute(
+        conn, raw"insert into tz_test (id, t, ts) values (3, '03:34:56 UTC', '1967-08-11 14:45:01.0000 UTC')")
+    cursor = DBInterface.execute(conn, "select * from tz_test")
+
+    # TODO: assertion
+
+    DBInterface.close!(conn)
+end
+
 @testset "srp" begin
     user = "SYSDBA"
     password = "masterkey"

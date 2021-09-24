@@ -151,18 +151,18 @@ end
 
 function parse_time_tz(raw_value::Vector{UInt8})::ZonedDateTime
     h, m, s, n = _parse_time(raw_value[1:4])
-    timezone = TimeZones.TimeZone(get_timezone_name_by_id_dict[bytes_to_buint16(raw_value[5:6])])
-    offset = TimeZones.TimeZone(get_timezone_name_by_id_dict[bytes_to_buint16(raw_value[7:8])])
-    zdt = DateTime(0, 1, 1, h, m, s, div(n, 1000000), timezone)
+    timezone = TimeZones.TimeZone(get_timezone_name_by_id_dict()[bytes_to_buint16(raw_value[5:6])])
+    offset = TimeZones.TimeZone(get_timezone_name_by_id_dict()[bytes_to_buint16(raw_value[7:8])])
+    zdt = ZonedDateTime(0, 1, 1, h, m, s, div(n, 1000000), timezone)
     astimezone(zdt, offset)
 end
 
 function parse_timestamp_tz(raw_value::Vector{UInt8})::ZonedDateTime
     year, month, day = _parse_date(raw_value[1:4])
     h, m, s, n = _parse_time(raw_value[5:8])
-    timezone = TimeZones.TimeZone(Dates.TimeZone(get_timezone_name_by_id_dict[bytes_to_buint16(raw_value[9:10])]))
-    offset = TimeZones.TimeZone(Dates.TimeZone(get_timezone_name_by_id_dict[bytes_to_buint16(raw_value[11:12])]))
-    zdt = DateTime(year, month, day, h, m, s, div(n, 1000000), timezone)
+    timezone = TimeZones.TimeZone(get_timezone_name_by_id_dict()[bytes_to_buint16(raw_value[9:10])])
+    offset = TimeZones.TimeZone(get_timezone_name_by_id_dict()[bytes_to_buint16(raw_value[11:12])])
+    zdt = ZonedDateTime(year, month, day, h, m, s, div(n, 1000000), timezone)
     astimezone(zdt, offset)
 end
 
