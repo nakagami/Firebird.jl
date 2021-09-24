@@ -30,3 +30,8 @@ res = columntable(DBInterface.execute(stmt))
 stmt = DBInterface.prepare(conn, raw"SELECT * FROM some_table where some_column=?")
 res = columntable(DBInterface.execute(stmt, (1, )))
 ```
+
+## Restriction
+
+Timestamp and Time data type values more detailed than millisecond are truncated.
+(It will only hold up to milliseconds.)
