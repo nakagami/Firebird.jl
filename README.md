@@ -34,4 +34,4 @@ res = columntable(DBInterface.execute(stmt, (1, )))
 ## Restriction
 
 Timestamp and Time data type values more detailed than millisecond are truncated.
-(It will only hold up to milliseconds.)
+(It only hold up to milliseconds.)
