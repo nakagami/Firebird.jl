@@ -21,7 +21,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ################################################################################
-using Test, Firebird, DBInterface, Tables, Dates, Decimals
+using Test, Firebird, TimeZones, DBInterface, Tables, Dates, Decimals
 
 const DEBUG_PRIVATE_KEY = big"0x60975527035CF2AD1989806F0407210BC81EDC04E2762A56AFD529DDDA2D4393"
 const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1601C000000054F")
@@ -159,8 +159,8 @@ end
         conn, raw"""
             CREATE TABLE tz_test (
                 id INTEGER NOT NULL,
-                t TIME WITH TIME ZONE DEFAULT '12:34:56',
-                ts TIMESTAMP WITH TIME ZONE DEFAULT '1967-08-11 23:45:01',
+                t TIME WITH TIME ZONE DEFAULT '12:34:56' NOT NULL,
+                ts TIMESTAMP WITH TIME ZONE DEFAULT '1967-08-11 23:45:01' NOT NULL,
                 PRIMARY KEY (id)
             )"""
     )
@@ -171,9 +171,21 @@ end
         conn, raw"insert into tz_test (id, t, ts) values (2, '12:34:56 Asia/Seoul', '1967-08-11 23:45:01.0000 Asia/Seoul')")
     DBInterface.execute(
         conn, raw"insert into tz_test (id, t, ts) values (3, '03:34:56 UTC', '1967-08-11 14:45:01.0000 UTC')")
-    cursor = DBInterface.execute(conn, "select * from tz_test")
 
-    # TODO: assertion
+    expected = (
+        ID = Int64[1, 2, 3],
+        T = TimeZones.ZonedDateTime[TimeZones.ZonedDateTime(0, 1, 1, 12, 53, 55, tz"Asia/Tokyo"), TimeZones.ZonedDateTime(0, 1, 1, 12, 2, 48, tz"Asia/Seoul"), TimeZones.ZonedDateTime(0, 1, 1, 3, 34, 56, tz"UTC")],
+        TS = TimeZones.ZonedDateTime[TimeZones.ZonedDateTime(1967, 8, 11, 23, 45, 1, tz"Asia/Tokyo"), TimeZones.ZonedDateTime(1967, 8, 11, 23, 45, 1, tz"Asia/Seoul"), TimeZones.ZonedDateTime(1967, 8, 11, 14, 45, 1, tz"UTC")]
+    )
+
+    cursor = DBInterface.execute(conn, "select * from tz_test")
+    @test eltype(cursor) == Firebird.Row
+    @test Tables.istable(cursor)
+    @test Tables.rowaccess(cursor)
+    @test Tables.rows(cursor) === cursor
+    @test Tables.schema(cursor) == Tables.Schema(propertynames(expected), eltype.(collect(expected)))
+    @test Base.IteratorSize(typeof(cursor)) == Base.HasLength()
+    @test length(cursor) == 3
 
     DBInterface.close!(conn)
 end
