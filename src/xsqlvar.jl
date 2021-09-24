@@ -149,7 +149,7 @@ function parse_timestamp(raw_value::Vector{UInt8})::DateTime
     DateTime(year, month, day, h, m, s, div(n, 1000000))
 end
 
-function parse_time_tz(raw_value::Vector{UInt8})::ZoneDateTime
+function parse_time_tz(raw_value::Vector{UInt8})::ZonedDateTime
     h, m, s, n = _parse_time(raw_value[1:4])
     timezone = TimeZones.TimeZone(get_timezone_name_by_id_dict[bytes_to_buint16(raw_value[5:6])])
     offset = TimeZones.TimeZone(get_timezone_name_by_id_dict[bytes_to_buint16(raw_value[7:8])])
