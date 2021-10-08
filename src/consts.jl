@@ -31,6 +31,7 @@ const ptype_lazy_send   = 5 # Deferred packets delivery
 
 # Protocol Version
 const PROTOCOL_VERSION13 = 13
+const PROTOCOL_VERSION16 = 16
 
 const CNCT_user              = 1
 const CNCT_passwd            = 2

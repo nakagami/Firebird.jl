@@ -300,7 +300,7 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
         throw(DomainError("op_response"))
     end
 
-    wp.protocol_version = bytes_to_int32(recv_packets(wp, 4))
+    wp.protocol_version = recv_packets(wp, 4)[4]
     wp.accept_architecture = bytes_to_bint32(recv_packets(wp, 4))
     wp.accept_type = bytes_to_bint32(recv_packets(wp, 4))
 
@@ -523,8 +523,14 @@ end
 
 function _op_connect(wp::WireProtocol, db_name::String, username::String, password::String, wire_crypt::Bool, client_public::BigInt)
     DEBUG_OUTPUT("_op_connect")
-    # PROTOCOL_VERSION, Arch type (Generic=1), min, max, weight = 13, 1, 0, 5, 8
-    protocols = hex2bytes("ffff800d00000001000000000000000500000008")
+    # PROTOCOL_VERSION, Arch type (Generic=1), min, max, weight
+    protocols = hex2bytes(string(
+        "ffff800d00000001000000000000000500000008", # 13, 1, 0, 5, 8
+        "ffff800e0000000100000000000000050000000a", # 14, 1, 0, 5, 10
+        "ffff800f0000000100000000000000050000000c", # 15, 1, 0, 5, 12
+        "ffff80100000000100000000000000050000000e", # 16, 1, 0, 5, 14
+        "ffff801100000001000000000000000500000010", # 17, 1, 0, 5, 16
+    ))
     protocols_len = div(length(protocols), 20)
 
     pack_uint32(wp, op_connect)
@@ -753,7 +759,14 @@ function _op_execute(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32, 
         pack_uint32(wp, 1)
         append_bytes(wp, values)
     end
+
+    if wp.protocol_version >= PROTOCOL_VERSION16
+        # statetment timeout
+        append_bytes(wp, int32_to_bytes(Int32(0)))
+    end
+
     send_packets(wp)
+
 end
 
 function _op_execute2(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32, params, output_blr::Vector{UInt8})
@@ -776,6 +789,12 @@ function _op_execute2(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32,
 
     pack_bytes(wp, output_blr)
     pack_uint32(wp, 0)
+
+    if wp.protocol_version >= PROTOCOL_VERSION16
+        # statetment timeout
+        append_bytes(wp, int32_to_bytes(Int32(0)))
+    end
+
     send_packets(wp)
 end
 
