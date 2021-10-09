@@ -22,6 +22,28 @@
 # SOFTWARE.
 ################################################################################
 
+function int64_to_bytes(i64::Int64)::Vector{UInt8}
+    vcat(
+        UInt8(i64 & 0xFF),
+        UInt8(i64 >> 8 & 0xFF),
+        UInt8(i64 >> 16 & 0xFF),
+        UInt8(i64 >> 24 & 0xFF),
+        UInt8(i64 >> 32 & 0xFF),
+        UInt8(i64 >> 40 & 0xFF),
+        UInt8(i64 >> 48 & 0xFF),
+        UInt8(i64 >> 56 & 0xFF),
+    )
+end
+
+function uint32_to_bytes(ui32::UInt32)::Vector{UInt8}
+    vcat(
+        UInt8(ui32 & 0xFF),
+        UInt8(ui32 >> 8 & 0xFF),
+        UInt8(ui32 >> 16 & 0xFF),
+        UInt8(ui32 >> 24 & 0xFF),
+    )
+end
+
 function int32_to_bytes(i32::Int32)::Vector{UInt8}
     vcat(
         UInt8(i32 & 0xFF),
