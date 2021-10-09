@@ -44,32 +44,26 @@ mutable struct ChaCha20
     end
 end
 
-function add(x::UInt32, y::UInt32)::UInt32
-    (x + y) & 0xffffffff
-end
-
 
 function rotate(x::UInt32, n::Int)::UInt32
-    y = x << n
-    z = x >> (32 - n)
-    (y | z) & 0xffffffff
+    (x << n) | (x >> (32 - n))
 end
 
 
 function quaterround(a::UInt32, b::UInt32, c::UInt32, d::UInt32)
-    a = add(a, b)
+    a += b
     d = xor(d, a)
     d = rotate(d, 16)
 
-    c = add(c, d)
+    c += d
     b = xor(b, c)
     b = rotate(b, 12)
 
-    a = add(a, b)
+    a += b
     d = xor(d, a)
     d = rotate(d, 8)
 
-    c = add(c, d)
+    c += d
     b = xor(b, c)
     b = rotate(b, 7)
 
@@ -112,7 +106,7 @@ function translate(chacha20::ChaCha20, plain::Vector{UInt8})
         append!(enc, xor(plain[i], chacha20.xor_table[chacha20.xor_table_pos]))
         chacha20.xor_table_pos += 1
         if chacha20.xor_table_pos > length(chacha20.xor_table)
-            chacha20.block[13] = add(chacha20.block[13], 1)
+            chacha20.block[13] += 1
             chacha20.xor_table = chacha20_round_bytes(chacha20.block)
             chacha20.xor_table_pos = 1
         end
