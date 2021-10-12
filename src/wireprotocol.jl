@@ -53,31 +53,37 @@ end
 
 mutable struct WireChannel
     socket::Union{TCPSocket, Nothing}
-    arc4in::Union{Arc4, Nothing}
-    arc4out::Union{Arc4, Nothing}
+    in::Union{Arc4, ChaCha20, Nothing}
+    out::Union{Arc4, ChaCha20, Nothing}
     function WireChannel(host::String, port::UInt16)
         socket = Sockets.connect(host, port)
         new(socket, nothing, nothing)
     end
 end
 
-function set_arc4_key(chan::WireChannel, key::Vector{UInt8})
-    chan.arc4in = Arc4(key)
-    chan.arc4out = Arc4(key)
+function set_crypt_key(chan::WireChannel, key::Vector{UInt8}, plugin::String, nonce::Vector{UInt8})
+    if plugin == "Arc4"
+        chan.in = Arc4(key)
+        chan.out = Arc4(key)
+    elseif plugin == "ChaCha"
+        key = sha256(key)
+        chan.in = ChaCha20(key, nonce, Int32(0))
+        chan.out = ChaCha20(key, nonce, Int32(0))
+    end
 end
 
 function recv(chan::WireChannel, nbytes::Int)::Vector{UInt8}
     data::Vector{UInt8} = zeros(UInt8, nbytes)
     read!(chan.socket, data)
-    if chan.arc4in != nothing
-        data = translate(chan.arc4in, data)
+    if chan.in != nothing
+        data = translate(chan.in, data)
     end
     data
 end
 
 function send(chan::WireChannel, data::Vector{UInt8})
-    if chan.arc4out != nothing
-        data = translate(chan.arc4out, data)
+    if chan.out != nothing
+        data = translate(chan.out, data)
     end
     write(chan.socket, data)
 end
@@ -285,6 +291,25 @@ function parse_op_response(wp::WireProtocol)::Tuple{Int32, Vector{UInt8}, Vector
     (h, oid, buf)
 end
 
+function guess_wire_crypt(buf::Vector{UInt8})::Tuple{String, Vector{UInt8}}
+    params = Dict()
+    i = 1
+    while i <= length(buf)
+        k = buf[i]
+        i += 1
+        ln = buf[i]
+        i += 1
+        v = buf[i:i+ln-1]
+        i += ln
+        params[k] = v
+    end
+    if haskey(params, 3) && params[3][1:7] == b"ChaCha\x00"
+        return "ChaCha", params[3][8:length(params[3])-4]
+    end
+
+    "Arc4", []
+end
+
 function parse_connect_response(wp::WireProtocol, username::String, password::String, wire_crypt::Bool, client_public::BigInt, client_secret::BigInt)
     DEBUG_OUTPUT("parse_connect_response")
     op_code = bytes_to_bint32(recv_packets(wp, 4))
@@ -359,12 +384,13 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
     )
     if op_code == op_cond_accept
         _op_cont_auth(wp, auth_data, wp.accept_plugin_name, "")
-        _op_response(wp)
+        _, _, buf = _op_response(wp)
+        encrypt_plugin, nonce = guess_wire_crypt(buf)
     end
 
     if wire_crypt && session_key != nothing
-        _op_crypt(wp)
-        set_arc4_key(wp.chan, session_key)
+        _op_crypt(wp, encrypt_plugin)
+        set_crypt_key(wp.chan, session_key, encrypt_plugin, nonce)
         _op_response(wp)
     else
         wp.auth_data = auth_data
@@ -633,10 +659,10 @@ function _op_cont_auth(wp::WireProtocol, auth_data::Vector{UInt8}, auth_plugin_n
     send_packets(wp)
 end
 
-function _op_crypt(wp::WireProtocol)
+function _op_crypt(wp::WireProtocol, plugin)
     DEBUG_OUTPUT("_op_crypt")
     pack_uint32(wp, op_crypt)
-    pack_string(wp, "Arc4")
+    pack_string(wp, plugin)
     pack_string(wp, "Symmetric")
     send_packets(wp)
 end

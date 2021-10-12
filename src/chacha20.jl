@@ -30,8 +30,8 @@ mutable struct ChaCha20
     xor_table::Vector{UInt8}
     xor_table_pos::Int
 
-    function ChaCha20(key::Vector{UInt8}, nonce::Vector{UInt8}, pos::Int)
-        block_bytes::Vector{UInt8} = vcat(sigma, key, int64_to_bytes(pos), nonce)
+    function ChaCha20(key::Vector{UInt8}, nonce::Vector{UInt8}, pos::Int32)
+        block_bytes::Vector{UInt8} = vcat(sigma, key, int32_to_bytes(pos), nonce)
         @assert length(block_bytes) == 64
 
         block::Vector{UInt32} = []

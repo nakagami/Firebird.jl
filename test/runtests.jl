@@ -233,16 +233,16 @@ end
 
 @testset "chacha20" begin
     session_key = hex2bytes("23AD52B15FA7EBDC4672D72289253D95DC9A4324FC369F593FDCC7733AD77617")
-    nonce = hex2bytes("5A5F6C13C1F12653")
+    nonce = hex2bytes("000000005A5F6C13C1F12653")
     enc = hex2bytes("6bd00ba222523f58de196fb471eea08d9fff95b5bbe6123dd3a8b9026ac0fa84")
-    chacha = Firebird.ChaCha20(session_key, nonce, 0)
+    chacha = Firebird.ChaCha20(session_key, nonce, Int32(0))
     @test Firebird.translate(chacha, enc) == b"TMCTF{Whose_garden_is_internet?}"
 
     src = Vector{UInt8}("plain text")
-    chacha1 = Firebird.ChaCha20(session_key, nonce, 123)
+    chacha1 = Firebird.ChaCha20(session_key, nonce, Int32(123))
     enc = Firebird.translate(chacha1, src)
     @test enc == UInt8[0x39, 0xdf, 0x7f, 0xdf, 0xcd, 0xd6, 0x6c, 0x56, 0xe7, 0x62]
-    chacha2 = Firebird.ChaCha20(session_key, nonce, 123)
+    chacha2 = Firebird.ChaCha20(session_key, nonce, Int32(123))
     plain = Firebird.translate(chacha2, enc)
     @test plain == src
 end
