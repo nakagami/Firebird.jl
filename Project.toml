@@ -1,7 +1,7 @@
 name = "Firebird"
 uuid = "f21876d5-f57e-42d4-b770-51729cc49110"
 authors = ["Hajime Nakagami <nakagami@gmail.com>"]
-version = "0.2.1"
+version = "0.2.2"
 
 [deps]
 DBInterface = "a10d1c49-ce27-4219-8d33-6db1a4562965"
