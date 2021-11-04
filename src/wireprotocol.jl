@@ -497,18 +497,20 @@ function parse_xsqlda(wp::WireProtocol, buf::Vector{UInt8}, stmt_handle::Int32):
                 end
                 next_index = parse_select_items(wp, buf[i+ln:length(buf)-1], xsqlda)
                 while next_index > 0    # more describe vars
-                    _op_info_sql(stmt_handle,
+                    _op_info_sql(
+                        wp,
+                        stmt_handle,
                         vcat(
                             Vector{UInt8}([isc_info_sql_sqlda_start, 2]),
-                            int16_to_bytes(int16(next_index)),
+                            int16_to_bytes(Int16(next_index)),
                             INFO_SQL_SELECT_DESCRIBE_VARS(),
                         )
                     )
-                    _, _, buf = op_response(wp)
+                    _, _, buf = _op_response(wp)
                     # buf[1:2] == [0x04,0x07]
                     ln = bytes_to_int16(buf[3:4])
                     # bytes_to_int(buf[5:5+ln]) == col_len
-                    next_index = p._parse_select_items(buf[5+ln:length(buf)-1], xsqlda)
+                    next_index = parse_select_items(wp, buf[5+ln:length(buf)-1], xsqlda)
                 end
             end
         else

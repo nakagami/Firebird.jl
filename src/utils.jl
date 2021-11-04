@@ -53,6 +53,13 @@ function int32_to_bytes(i32::Int32)::Vector{UInt8}
     )
 end
 
+function int16_to_bytes(i16::Int16)::Vector{UInt8}
+    vcat(
+        UInt8(i16 & 0xFF),
+        UInt8(i16 >> 8 & 0xFF),
+    )
+end
+
 function bint64_to_bytes(i64::Int64)::Vector{UInt8}
     vcat(
         UInt8(i64 >> 56 & 0xFF),
@@ -75,10 +82,9 @@ function bint32_to_bytes(i32::Int32)::Vector{UInt8}
     )
 end
 
+
 function bint16_to_bytes(i16::Int16)::Vector{UInt8}
     vcat(
-        UInt8(i16 >> 24 & 0xFF),
-        UInt8(i16 >> 16 & 0xFF),
         UInt8(i16 >> 8 & 0xFF),
         UInt8(i16 & 0xFF),
     )

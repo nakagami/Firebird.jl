@@ -56,6 +56,37 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
                 CONSTRAINT CHECK_A CHECK (a <> 0)
             )"""
     )
+    DBInterface.execute(
+        conn, raw"""
+            CREATE TABLE bar (
+                a BIGINT,
+                b BIGINT,
+                c BIGINT,
+                d BIGINT,
+                e BIGINT,
+                f BIGINT,
+                g BIGINT,
+                h BIGINT,
+                i BIGINT,
+                j BIGINT,
+                k BIGINT,
+                l BIGINT,
+                m BIGINT,
+                n BIGINT,
+                o BIGINT,
+                p BIGINT,
+                q BIGINT,
+                r BIGINT,
+                s BIGINT,
+                t BIGINT,
+                u BIGINT,
+                v BIGINT,
+                w BIGINT,
+                x BIGINT,
+                y BIGINT,
+                z BIGINT
+            )"""
+    )
     DBInterface.close!(conn)
 
     conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, "/tmp/julia_test.fdb")
@@ -129,6 +160,10 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
     @test length(res[1]) == 1
 
     DBInterface.close!(stmt)
+
+    res = DBInterface.execute(conn, raw"SELECT * FROM bar") |> columntable
+    @test length(res) == 26
+
     DBInterface.close!(conn)
     @test !isopen(conn)
 end
