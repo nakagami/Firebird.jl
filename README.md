@@ -6,7 +6,7 @@ It follows the interface of DBInterface https://github.com/JuliaDatabases/DBInte
 
 ## Supported Firebird
 
-Firebird 3.0 is supported
+Firebird 3.0+ is supported
 
 ## Example
 
