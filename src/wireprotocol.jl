@@ -386,8 +386,9 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
         _op_cont_auth(wp, auth_data, wp.accept_plugin_name, "")
         _, _, buf = _op_response(wp)
         encrypt_plugin, nonce = guess_wire_crypt(buf)
-    end
+    else
         encrypt_plugin = nothing
+    end
 
     if encrypt_plugin != nothing && wire_crypt && session_key != nothing
         _op_crypt(wp, encrypt_plugin)
