@@ -8,15 +8,6 @@ It follows the interface of DBInterface https://github.com/JuliaDatabases/DBInte
 
 Firebird 3.0+ is supported
 
-## Preparation
-
-Perhaps you need to build TimeZones first.
-
-```
-using Pkg
-Pkg.build("TimeZones")
-```
-
 ## Example
 
 ```
