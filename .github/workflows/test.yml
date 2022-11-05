@@ -21,6 +21,7 @@ jobs:
     - name: Setup FirebirdSQL container
       uses: juarezr/firebirdsql-github-action@v1.0.0
       with:
+        firebird_database: 'julia_test.fdb'
         version: ${{ matrix.firebird-version }}
         isc_password: "masterkey"
 
