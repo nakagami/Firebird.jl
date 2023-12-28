@@ -102,7 +102,7 @@ function _parse_date(raw_value::Vector{UInt8})::Tuple{Int, Int, Int}
 
     century = div(4 * nday - 1,  146097)
     nday = 4 * nday - 1 - 146097 * century
-    day = nday / 4
+    day = div(nday, 4)
 
     nday = div(4 * day + 3, 1461)
     day = 4 * day + 3 - 1461 * nday
