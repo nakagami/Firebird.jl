@@ -281,3 +281,28 @@ end
     plain = Firebird.translate(chacha2, enc)
     @test plain == src
 end
+
+@testset "issue3" begin
+    user = if haskey(ENV, "ISC_USER")
+        ENV["ISC_USER"]
+    else
+        "sysdba"
+    end
+    password = if haskey(ENV, "ISC_PASSWORD")
+        ENV["ISC_PASSWORD"]
+    else
+        "masterkey"
+    end
+
+    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, "/tmp/julia_test.fdb"; create_new=true)
+    DBInterface.execute(
+        conn, raw"CREATE TABLE issue3 (dt TIMESTAMP)"
+    )
+    DBInterface.execute(
+        conn, raw"insert into issue3 (dt) values ('2014-04-13 11:21:22')")
+
+    cursor = DBInterface.execute(conn, raw"SELECT dt from issue3")
+    @test first(cursor)[1] == Dates.DateTime("2014-04-13T11:21:22")
+
+    DBInterface.close!(conn)
+end
