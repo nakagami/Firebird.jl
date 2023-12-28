@@ -302,8 +302,7 @@ end
         conn, raw"insert into issue3 (dt) values ('2014-04-13 11:21:22')")
 
     cursor = DBInterface.execute(conn, raw"SELECT dt from issue3")
-    row = first(cursor)
-    @test row == (DT = Dates.DateTime("2014-04-13T11:21:22"), )
+    @test first(cursor)[1] == Dates.DateTime("2014-04-13T11:21:22")
 
     DBInterface.close!(conn)
 end
