@@ -44,7 +44,7 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
             CREATE TABLE foo (
                 a INTEGER NOT NULL,
                 b VARCHAR(30) NOT NULL UNIQUE,
-                c VARCHAR(1024),
+                c CHAR(1024),
                 d DECIMAL(16,3) DEFAULT -0.123,
                 e DATE DEFAULT '1967-08-11',
                 f TIMESTAMP DEFAULT '1967-08-11 23:45:01.1234',

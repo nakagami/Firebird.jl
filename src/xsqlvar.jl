@@ -171,7 +171,7 @@ function value(x::XSQLVAR, raw_value::Vector{UInt8})
         if x.sqlsubtype == 1
             raw_value
         else
-            String(raw_value)
+            rstrip(String(raw_value))
         end
     elseif x.sqltype == SQL_TYPE_VARYING
         if x.sqlsubtype == 1
