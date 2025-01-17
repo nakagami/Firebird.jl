@@ -398,10 +398,10 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
         _, _, buf = _op_response(wp)
         encrypt_plugin, nonce = guess_wire_crypt(buf)
     else
-        encrypt_plugin = nothing
+        encrypt_plugin = ""
     end
 
-    if encrypt_plugin != nothing && wire_crypt && session_key != nothing
+    if encrypt_plugin != "" && wire_crypt && session_key != nothing
         _op_crypt(wp, encrypt_plugin)
         set_crypt_key(wp.chan, session_key, encrypt_plugin, nonce)
         _op_response(wp)
