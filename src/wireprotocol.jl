@@ -292,7 +292,8 @@ function parse_op_response(wp::WireProtocol)::Tuple{Int32, Vector{UInt8}, Vector
 end
 
 function guess_wire_crypt(buf::Vector{UInt8})::Tuple{String, Vector{UInt8}}
-    params = Dict()
+    available_plugins = []
+    plugin_nonce = []
     i = 1
     while i <= length(buf)
         k = buf[i]
@@ -301,13 +302,23 @@ function guess_wire_crypt(buf::Vector{UInt8})::Tuple{String, Vector{UInt8}}
         i += 1
         v = buf[i:i+ln-1]
         i += ln
-        params[k] = v
+        if k == 1
+            available_plugins = split(String(v), " ")
+        elseif k == 3
+            plugin_nonce = push!(plugin_nonce, v)
+        end
     end
-    if haskey(params, 3) && params[3][1:7] == b"ChaCha\x00"
-        return "ChaCha", params[3][8:length(params[3])-4]
+    if "ChaCha" in available_plugins
+        for nonce in plugin_nonce
+            if nonce[1:7] == b"ChaCha\x00"
+                return "ChaCha", nonce[8:19]
+            end
+        end
+    elseif "Arc4" in available_plugins
+        return "Arc4", []
     end
 
-    "Arc4", []
+    "", []
 end
 
 function parse_connect_response(wp::WireProtocol, username::String, password::String, wire_crypt::Bool, client_public::BigInt, client_secret::BigInt)
