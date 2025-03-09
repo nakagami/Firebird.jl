@@ -265,7 +265,7 @@ function parse_status_vector(wp::WireProtocol)::Tuple{Vector{UInt32}, Int, Strin
             s = String(recv_packets_alignment(wp, nbytes))
             num_arg += 1
             message = replace.(message, [string("@", num_arg)=>s])[1]
-        elseif n == isc_arg_iterpreted
+        elseif n == isc_arg_interpreted
             nbytes = bytes_to_buint32(recv_packets(wp, 4))
             message *= String(recv_packets_alignment(wp, nbytes))
         elseif n == isc_arg_sql_state
