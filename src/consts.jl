@@ -25,9 +25,12 @@
 ISC_TIME_SECONDS_PRECISION = 10000
 
 # Protocol Types (accept_type)
-const ptype_batch_send  = 3 # Batch sends, no asynchrony
-const ptype_out_of_band = 4 # Batch sends w/ out of band notification
-const ptype_lazy_send   = 5 # Deferred packets delivery
+const ptype_batch_send    = 3 # Batch sends, no asynchrony
+const ptype_out_of_band   = 4 # Batch sends w/ out of band notification
+const ptype_lazy_send     = 5 # Deferred packets delivery
+const ptype_MASK          = 0xFF
+const pflag_compress      = 0x100
+const pflag_win_sppi_nego = 0x200
 
 # Protocol Version
 const PROTOCOL_VERSION13 = 13

@@ -552,7 +552,7 @@ function get_blob_segments(wp::WireProtocol, blob_id::Vector{UInt8}, trans_handl
     end
 
     _op_close_blob(wp, blob_handle)
-    if wp.accept_type == ptype_lazy_send
+    if (wp.accept_type & ptype_MasK) == ptype_lazy_send
         wp.lazy_response_count += 1
     else
         _op_response(wp)

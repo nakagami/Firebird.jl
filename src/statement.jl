@@ -34,7 +34,7 @@ mutable struct Statement <: DBInterface.Statement
         _op_allocate_statement(conn.wp)
 
         stmt_handle::Int32 = -1
-        if conn.wp.accept_type == ptype_lazy_send
+        if (conn.wp.accept_type & ptype_MASK) == ptype_lazy_send
             conn.wp.lazy_response_count += 1
             stmt_handle = -1
         else
@@ -43,7 +43,7 @@ mutable struct Statement <: DBInterface.Statement
 
         _op_prepare_statement(conn.wp, conn.transaction.handle, stmt_handle, sql)
 
-        if conn.wp.accept_type == ptype_lazy_send && conn.wp.lazy_response_count > 0
+        if (conn.wp.accept_type & ptype_MASK) == ptype_lazy_send && conn.wp.lazy_response_count > 0
             conn.wp.lazy_response_count -= 1
             stmt_handle, _, _ = _op_response(conn.wp)
         end
@@ -75,7 +75,7 @@ function DBInterface.close!(stmt::Statement)
     if stmt.handle != -1
         wp = stmt.conn.wp
         _op_free_statement(wp, stmt.handle, DSQL_drop)
-        if wp.accept_type == ptype_lazy_send
+        if (wp.accept_type & ptype_MASK) == ptype_lazy_send
             wp.lazy_response_count += 1
         else
             _op_response(wp)

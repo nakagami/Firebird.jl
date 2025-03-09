@@ -65,7 +65,7 @@ function DBInterface.execute(stmt::Statement, params=())::Cursor
         rows = fetch_records(stmt)
         wp = stmt.conn.wp
         _op_free_statement(wp, stmt.handle, DSQL_close)
-        if wp.accept_type == ptype_lazy_send
+        if (wp.accept_type & ptype_MASK) == ptype_lazy_send
             wp.lazy_response_count += 1
         else
             _op_response(wp)
