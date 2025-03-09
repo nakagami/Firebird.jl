@@ -25,6 +25,7 @@ using Test, Firebird, TimeZones, DBInterface, Tables, Dates, Decimals
 
 const DEBUG_PRIVATE_KEY = big"0x60975527035CF2AD1989806F0407210BC81EDC04E2762A56AFD529DDDA2D4393"
 const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1601C000000054F")
+const TEST_DB_NAME = string(tempname(), ".fdb")
 
 @testset "connection" begin
     user = if haskey(ENV, "ISC_USER")
@@ -38,7 +39,7 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
         "masterkey"
     end
 
-    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, "/tmp/julia_test.fdb"; create_new=true, timezone="Asia/Tokyo")
+    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, TEST_DB_NAME; create_new=true, timezone="Asia/Tokyo")
     DBInterface.execute(
         conn, raw"""
             CREATE TABLE foo (
@@ -89,7 +90,7 @@ const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1
     )
     DBInterface.close!(conn)
 
-    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, "/tmp/julia_test.fdb")
+    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, TEST_DB_NAME)
     DBInterface.execute(
         conn, raw"insert into foo(a, b, c, h) values (1, 'a', 'b', 'This is a pen')")
     DBInterface.execute(
@@ -180,7 +181,7 @@ end
         "masterkey"
     end
 
-    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, "/tmp/julia_test.fdb"; create_new=true, timezone="Asia/Tokyo")
+    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, TEST_DB_NAME; create_new=true, timezone="Asia/Tokyo")
 
     cursor = DBInterface.execute(conn, raw"SELECT rdb$get_context('SYSTEM', 'ENGINE_VERSION') version from rdb$database")
     row = first(cursor)
@@ -294,7 +295,7 @@ end
         "masterkey"
     end
 
-    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, "/tmp/julia_test.fdb"; create_new=true)
+    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, TEST_DB_NAME; create_new=true)
     DBInterface.execute(
         conn, raw"CREATE TABLE issue3 (dt TIMESTAMP)"
     )
