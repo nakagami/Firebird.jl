@@ -537,7 +537,7 @@ end
 function get_blob_segments(wp::WireProtocol, blob_id::Vector{UInt8}, trans_handle::Int32)::Vector{UInt8}
     suspend_buf = suspend_buffer(wp)
     blob::Vector{UInt8} = []
-    _op_open_blob(wp, blob_id, trans_handle)
+    _op_open_blob2(wp, blob_id, trans_handle)
     blob_handle, _, _ = _op_response(wp)
 
     more_data = 1
@@ -924,6 +924,15 @@ end
 function _op_open_blob(wp::WireProtocol, blob_id::Vector{UInt8}, trans_handle::Int32)
     DEBUG_OUTPUT("_op_open_blob")
     pack_uint32(wp, op_open_blob)
+    pack_uint32(wp, trans_handle)
+    append_bytes(wp, blob_id)
+    send_packets(wp)
+end
+
+function _op_open_blob2(wp::WireProtocol, blob_id::Vector{UInt8}, trans_handle::Int32)
+    DEBUG_OUTPUT("_op_open_blob2")
+    pack_uint32(wp, op_open_blob2)
+    pack_uint32(wp, 0)
     pack_uint32(wp, trans_handle)
     append_bytes(wp, blob_id)
     send_packets(wp)
