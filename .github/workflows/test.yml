@@ -29,6 +29,8 @@ jobs:
       with:
         version: ${{ matrix.julia-version }}
     - uses: julia-actions/julia-buildpkg@v1
+      with:
+        ignore-no-cache: true
 
     - name: Test
       run: |
