@@ -1,6 +1,6 @@
 name = "Firebird"
 uuid = "f21876d5-f57e-42d4-b770-51729cc49110"
-version = "0.2.6"
+version = "0.2.7"
 authors = ["Hajime Nakagami <nakagami@gmail.com>"]
 
 [deps]
