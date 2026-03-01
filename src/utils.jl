@@ -194,41 +194,63 @@ function to_blr(bytes::Vector{UInt8})::Tuple{Vector{UInt8}, Vector{UInt8}}
     v, UInt8[14, UInt8(nbytes & 255), UInt8(nbytes >> 8)]
 end
 
-function _convert_date(year::Int, month::Int, day::Int)::Vector{UInt8}
+function _convert_date(d::Date)::Vector{UInt8}
+    year = Dates.year(d)
+    month = Dates.month(d)
+    day = Dates.day(d)
     i = month + 9
     jy = year + div(i, 12) - 1
     jm = i % 12
     c = div(jy, 100)
     jy -= 100 * c
-    j = (146097*c)/4 + (1461*jy)/4 + (153*jm+2)/5 + day - 678882
+    j = div(146097*c, 4) + div(1461*jy, 4) + div(153*jm+2, 5) + day - 678882
 
     bint32_to_bytes(Int32(j))
 end
 
-function _convert_time(hour::Int, minute::Int, second::Int, microsecond::Int, nanosecond::Int)::Vector{UInt8}
-    v = (hour*3600+mintes*60+second)*10000 + div(microsecond, 100) + div(nanosecond, 100000)
+function _convert_time(t::Time)::Vector{UInt8}
+    v = (Dates.hour(t)*3600 + Dates.minute(t)*60 + Dates.second(t))*10000 + div(Dates.microsecond(t), 100) + div(Dates.nanosecond(t), 100000)
 
     bint32_to_bytes(Int32(v))
 end
 
-function to_blr(d::Date)::Tuple{Vector{UInt8}, Vector{Uint8}}
-    v = _convert_date(Dates.year(d), Dates.month(d), Dates.day(d))
+function _convert_timestamp(dt::DateTime)::Vector{UInt8}
+    d = _convert_date(Date(dt))
+    t = _convert_time(Time(dt))
+    vcat(
+        d,
+        t,
+    )
+end
 
+function _convert_timestamp_tz(dt_tz::ZonedDateTime)::Vector{UInt8}
+    tz_name = string(dt_tz.timezone)
+    dt_utc = dt_tz |> z -> astimezone(z, tz"UTC") |> DateTime
+
+    d = _convert_date(Date(dt_utc))
+    t = _convert_time(Time(dt_utc))
+    tz = bint32_to_bytes(get_timezone_id_by_name_dict()[tz_name])
+    vcat(d, t, tz)
+end
+
+function to_blr(d::Date)::Tuple{Vector{UInt8}, Vector{Uint8}}
+    v = _convert_date(d)
     v, UInt8[12]
 end
 
 function to_blr(t::Time)::Tuple{Vector{UInt8}, Vector{UInt8}}
-    v = _convert_time(Time.hour(t), Time.minute(t), Time.second(t), Time.microsecond(t), Time.nanosecond(t))
-
+    v = _convert_time(t)
     v, UInt8[13]
 end
 
 function to_blr(dt::DateTime)::Tuple{Vector{UInt8}, Vector{UInt8}}
-    v = vcat(
-        _convet_date(DateTime.year(dt), DateTime.month(dt), DateTime.day(dt)),
-        _convet_time(DateTime.hour(dt), DateTime.minute(dt), DateTime.second(dt), DateTime.microsecond(dt), DateTime.nanosecond(dt))
-    )
+    v = _convert_timestamp(dt)
     v, UInt8[35]
+end
+
+function to_blr(dt_tz::ZonedDateTime)::Tuple{Vector{UInt8}, Vector{UInt8}}
+    v = _convert_timestamp_tz(dt_tz)
+    v, UInt8[29]
 end
 
 function to_blr(b::Bool)::Tuple{Vector{UInt8}, Vector{UInt8}}
