@@ -203,8 +203,10 @@ end
 
     DBInterface.execute(
         conn, raw"insert into tz_test (id) values (1)")
-    DBInterface.execute(
-        conn, raw"insert into tz_test (id, t, ts) values (2, '12:34:56 Asia/Seoul', '1967-08-11 23:45:01.0000 Asia/Seoul')")
+    zdt_input = ZonedDateTime(1967, 8, 11, 23, 45, 1, tz"Asia/Seoul")
+    stmt = DBInterface.prepare(conn, raw"insert into tz_test (id, t, ts) values (2, '12:34:56 Asia/Seoul', ?)")
+    DBInterface.execute(stmt, (zdt_input,))
+
     DBInterface.execute(
         conn, raw"insert into tz_test (id, t, ts) values (3, '03:34:56 UTC', '1967-08-11 14:45:01.0000 UTC')")
 
