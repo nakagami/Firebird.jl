@@ -91,7 +91,7 @@ function calc_significand(prefix::Int64, dpd_bits::BigInt, numBits::Int)::BigInt
     num_segments = div(numBits, 10)
     segments::Vector{BigInt} = []
 
-    for _ in 1:num_segments
+    for _ = 1:num_segments
         segments.append(dpd_bits & 0b1111111111)
         dpd_bits >>= 10
     end
@@ -103,7 +103,9 @@ function calc_significand(prefix::Int64, dpd_bits::BigInt, numBits::Int)::BigInt
     v
 end
 
-function decimal128_to_sign_digits_exponent(b::Vector{UInt8})::Union{Decimal, Tuple{Int, BigInt, Int32}}
+function decimal128_to_sign_digits_exponent(
+    b::Vector{UInt8},
+)::Union{Decimal,Tuple{Int,BigInt,Int32}}
     # https://en.wikipedia.org/wiki/Decimal128_floating-point_format
     sign::Int = 0
     digits::BigInt = 0

@@ -27,7 +27,7 @@ mutable struct Cursor <: DBInterface.Cursor
 
     names::Vector{Symbol}
     types::Vector{Type}
-    lookup::Dict{Symbol, Int}
+    lookup::Dict{Symbol,Int}
 
     rows::Vector{Vector{Any}}
     current_rownumber::Int
@@ -52,7 +52,7 @@ Tables.schema(c::Cursor) = Tables.Schema(c.names, c.types)
 Base.eltype(c::Cursor) = Row
 Base.length(c::Cursor) = length(c.rows)
 
-function Base.iterate(cursor::Cursor, i=1)
+function Base.iterate(cursor::Cursor, i = 1)
     if length(cursor.rows) < i
         nothing
     else
@@ -69,4 +69,3 @@ Close a cursor.
 function DBInterface.close!(cur::Cursor)
     close!(cur.stmt)
 end
-

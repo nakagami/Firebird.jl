@@ -87,20 +87,22 @@ function io_length(x::XSQLVAR)::Int
 end
 
 function has_precision_scale(x::XSQLVAR)::Bool
-    (x.sqltype == SQL_TYPE_SHORT ||
+    (
+        x.sqltype == SQL_TYPE_SHORT ||
         x.sqltype == SQL_TYPE_LONG ||
         x.sqltype == SQL_TYPE_QUAD ||
         x.sqltype == SQL_TYPE_INT64 ||
         x.sqltype == SQL_TYPE_INT128 ||
         x.sqltype == SQL_TYPE_DEC64 ||
         x.sqltype == SQL_TYPE_DEC128 ||
-        x.sqltype == SQL_TYPE_DEC_FIXED) && x.sqlscale != 0
+        x.sqltype == SQL_TYPE_DEC_FIXED
+    ) && x.sqlscale != 0
 end
 
-function _parse_date(raw_value::Vector{UInt8})::Tuple{Int, Int, Int}
+function _parse_date(raw_value::Vector{UInt8})::Tuple{Int,Int,Int}
     nday = bytes_to_buint32(raw_value) + 678882
 
-    century = div(4 * nday - 1,  146097)
+    century = div(4 * nday - 1, 146097)
     nday = 4 * nday - 1 - 146097 * century
     day = div(nday, 4)
 
@@ -110,7 +112,7 @@ function _parse_date(raw_value::Vector{UInt8})::Tuple{Int, Int, Int}
 
     month = div(5 * day - 3, 153)
     day = 5 * day - 3 - 153 * month
-    day = div(day + 5,  5)
+    day = div(day + 5, 5)
     year = 100 * century + nday
     if month < 10
         month += 3
@@ -151,8 +153,10 @@ end
 
 function parse_time_tz(raw_value::Vector{UInt8})::ZonedDateTime
     h, m, s, n = _parse_time(raw_value[1:4])
-    timezone = TimeZones.TimeZone(get_timezone_name_by_id_dict()[bytes_to_buint16(raw_value[5:6])])
-    offset = TimeZones.TimeZone(get_timezone_name_by_id_dict()[bytes_to_buint16(raw_value[7:8])])
+    timezone =
+        TimeZones.TimeZone(get_timezone_name_by_id_dict()[bytes_to_buint16(raw_value[5:6])])
+    offset =
+        TimeZones.TimeZone(get_timezone_name_by_id_dict()[bytes_to_buint16(raw_value[7:8])])
     zdt = ZonedDateTime(0, 1, 1, h, m, s, div(n, 1000000), timezone)
     astimezone(zdt, offset)
 end
@@ -160,8 +164,12 @@ end
 function parse_timestamp_tz(raw_value::Vector{UInt8})::ZonedDateTime
     year, month, day = _parse_date(raw_value[1:4])
     h, m, s, n = _parse_time(raw_value[5:8])
-    timezone = TimeZones.TimeZone(get_timezone_name_by_id_dict()[bytes_to_buint16(raw_value[9:10])])
-    offset = TimeZones.TimeZone(get_timezone_name_by_id_dict()[bytes_to_buint16(raw_value[11:12])])
+    timezone = TimeZones.TimeZone(
+        get_timezone_name_by_id_dict()[bytes_to_buint16(raw_value[9:10])],
+    )
+    offset = TimeZones.TimeZone(
+        get_timezone_name_by_id_dict()[bytes_to_buint16(raw_value[11:12])],
+    )
     zdt = ZonedDateTime(year, month, day, h, m, s, div(n, 1000000), timezone)
     astimezone(zdt, offset)
 end
@@ -317,5 +325,5 @@ function juliatype(x::XSQLVAR)
         T = Missing
     end
 
-    x.null_ok ? Union{Missing, T} : T
+    x.null_ok ? Union{Missing,T} : T
 end

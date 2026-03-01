@@ -27,7 +27,13 @@ mutable struct Connection <: DBInterface.Connection
     wp::Firebird.WireProtocol
     transaction::Transaction
 
-    function Connection(host::String, username::String, password::String, db_name::String, opts::Dict)
+    function Connection(
+        host::String,
+        username::String,
+        password::String,
+        db_name::String,
+        opts::Dict,
+    )
         username = uppercase(username)
         port = UInt16(haskey(opts, :port) ? opts[:port] : 3050)
         wire_crypt = Bool(haskey(opts, :wire_crypt) ? opts[:wire_crypt] : true)
@@ -38,7 +44,14 @@ mutable struct Connection <: DBInterface.Connection
         wp = WireProtocol(host, username, password, port)
         client_public, client_secret = get_client_seed()
         _op_connect(wp, db_name, username, password, wire_crypt, client_public)
-        parse_connect_response(wp, username, password, wire_crypt, client_public, client_secret)
+        parse_connect_response(
+            wp,
+            username,
+            password,
+            wire_crypt,
+            client_public,
+            client_secret,
+        )
         if create_new
             _op_create(wp, db_name, username, password, timezone, page_size)
         else
@@ -64,8 +77,14 @@ end
 
 Connect to a Firebird database
 """
-DBInterface.connect(::Type{Connection}, host::String, user::String, password::String, db_name::String; kwargs...) =
-    Connection(host, user, password, db_name, Dict(kwargs))
+DBInterface.connect(
+    ::Type{Connection},
+    host::String,
+    user::String,
+    password::String,
+    db_name::String;
+    kwargs...,
+) = Connection(host, user, password, db_name, Dict(kwargs))
 
 """
     DBInterface.close!(Firebird.Connection)

@@ -29,7 +29,7 @@ mutable struct Arc4
 
     function Arc4(key::Vector{UInt8})
         state::Vector{UInt8} = []
-        for i in 0:255
+        for i = 0:255
             push!(state, i)
         end
         @assert length(state) == 256
@@ -37,7 +37,7 @@ mutable struct Arc4
         index1::UInt64 = 0
         index2::UInt64 = 0
 
-        for i in 0:255
+        for i = 0:255
             index2 = (key[index1+1] + state[i+1] + index2) % 256
             (state[i+1], state[index2+1]) = (state[index2+1], state[i+1])
             index1 = (index1 + 1) % length(key)
@@ -50,11 +50,11 @@ end
 function translate(arc4::Arc4, plain::Vector{UInt8})
     state = arc4.state
     enc::Vector{UInt8} = []
-    for i in 1:length(plain)
-        arc4.x = (arc4.x + 1) %256
+    for i = 1:length(plain)
+        arc4.x = (arc4.x + 1) % 256
         arc4.y = (arc4.y + state[arc4.x+1]) % 256
         state[arc4.x+1], state[arc4.y+1] = state[arc4.y+1], state[arc4.x+1]
-        push!(enc, xor(plain[i], state[((state[arc4.x+1]+state[arc4.y+1]) % 256) + 1]))
+        push!(enc, xor(plain[i], state[((state[arc4.x+1]+state[arc4.y+1])%256)+1]))
     end
     enc
 end

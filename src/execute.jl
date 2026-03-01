@@ -28,18 +28,23 @@ function fetch_records(stmt::Statement)::Vector{Vector{Any}}
 
     while more_data
         _op_fetch(stmt.conn.wp, stmt.handle, calc_blr(stmt.xsqlda))
-        rows_segments, more_data = _op_fetch_response(stmt.conn.wp, stmt.handle, stmt.xsqlda)
+        rows_segments, more_data =
+            _op_fetch_response(stmt.conn.wp, stmt.handle, stmt.xsqlda)
         results = vcat(results, rows_segments)
     end
 
     # Convert BLOB handle to data
     if any(x->x.sqltype == SQL_TYPE_BLOB, stmt.xsqlda)
         transaction = Transaction(stmt.conn.wp)
-        for x in 1:length(stmt.xsqlda)
+        for x = 1:length(stmt.xsqlda)
             if stmt.xsqlda[x].sqltype == SQL_TYPE_BLOB
-                for i in 1:length(results)
+                for i = 1:length(results)
                     if !(results[i][x] isa Missing)
-                        results[i][x] = get_blob_segments(stmt.conn.wp, results[i][x], transaction.handle)
+                        results[i][x] = get_blob_segments(
+                            stmt.conn.wp,
+                            results[i][x],
+                            transaction.handle,
+                        )
                         if stmt.xsqlda[x].sqlsubtype == 1   # TEXT
                             results[i][x] = String(results[i][x])
                         end
@@ -58,7 +63,7 @@ end
 
 Execute the prepared statement `stmt`.
 """
-function DBInterface.execute(stmt::Statement, params=())::Cursor
+function DBInterface.execute(stmt::Statement, params = ())::Cursor
     _op_execute(stmt.conn.wp, stmt.handle, stmt.conn.transaction.handle, params)
     _op_response(stmt.conn.wp)
     if stmt.stmt_type == isc_info_sql_stmt_select
@@ -85,7 +90,7 @@ end
 
 Execute the SQL `sql` statement with the database connection `conn`.
 """
-function DBInterface.execute(conn::Connection, sql::AbstractString, params=())::Cursor
+function DBInterface.execute(conn::Connection, sql::AbstractString, params = ())::Cursor
     stmt = DBInterface.prepare(conn, sql)
     try
         DBInterface.execute(stmt, params)

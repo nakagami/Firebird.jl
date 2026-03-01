@@ -43,7 +43,8 @@ mutable struct Statement <: DBInterface.Statement
 
         _op_prepare_statement(conn.wp, conn.transaction.handle, stmt_handle, sql)
 
-        if (conn.wp.accept_type & ptype_MASK) == ptype_lazy_send && conn.wp.lazy_response_count > 0
+        if (conn.wp.accept_type & ptype_MASK) == ptype_lazy_send &&
+           conn.wp.lazy_response_count > 0
             conn.wp.lazy_response_count -= 1
             stmt_handle, _, _ = _op_response(conn.wp)
         end

@@ -47,21 +47,26 @@ function INFO_SQL_SELECT_DESCRIBE_VARS()::Vector{UInt8}
         isc_info_sql_relation,
         isc_info_sql_owner,
         isc_info_sql_alias,
-        isc_info_sql_describe_end
+        isc_info_sql_describe_end,
     ]
 end
 
 mutable struct WireChannel
-    socket::Union{TCPSocket, Nothing}
-    in::Union{Arc4, ChaCha20, Nothing}
-    out::Union{Arc4, ChaCha20, Nothing}
+    socket::Union{TCPSocket,Nothing}
+    in::Union{Arc4,ChaCha20,Nothing}
+    out::Union{Arc4,ChaCha20,Nothing}
     function WireChannel(host::String, port::UInt16)
         socket = Sockets.connect(host, port)
         new(socket, nothing, nothing)
     end
 end
 
-function set_crypt_key(chan::WireChannel, key::Vector{UInt8}, plugin::String, nonce::Vector{UInt8})
+function set_crypt_key(
+    chan::WireChannel,
+    key::Vector{UInt8},
+    plugin::String,
+    nonce::Vector{UInt8},
+)
     if plugin == "Arc4"
         chan.in = Arc4(key)
         chan.out = Arc4(key)
@@ -121,23 +126,52 @@ mutable struct WireProtocol
 
     timezone::String
 
-    function WireProtocol(host::AbstractString, user::AbstractString, password::AbstractString, port::UInt16)
+    function WireProtocol(
+        host::AbstractString,
+        user::AbstractString,
+        password::AbstractString,
+        port::UInt16,
+    )
         chan = WireChannel(host, port)
         new([], chan, host, port, user, password, -1, -1, -1, -1, -1, 0, "", [], "")
     end
 end
 
 function pack_uint32(wp::WireProtocol, i::Int)
-    wp.buf = vcat(wp.buf, UInt8[UInt8(i >> 24 & 0xFF), UInt8(i >> 16 & 0xFF), UInt8(i >> 8 & 0xFF), UInt8(i & 0xFF)])
+    wp.buf = vcat(
+        wp.buf,
+        UInt8[
+            UInt8(i >> 24 & 0xFF),
+            UInt8(i >> 16 & 0xFF),
+            UInt8(i >> 8 & 0xFF),
+            UInt8(i & 0xFF),
+        ],
+    )
 end
 
 function pack_uint32(wp::WireProtocol, i::Int32)
-    wp.buf = vcat(wp.buf, UInt8[UInt8(i >> 24 & 0xFF), UInt8(i >> 16 & 0xFF), UInt8(i >> 8 & 0xFF), UInt8(i & 0xFF)])
+    wp.buf = vcat(
+        wp.buf,
+        UInt8[
+            UInt8(i >> 24 & 0xFF),
+            UInt8(i >> 16 & 0xFF),
+            UInt8(i >> 8 & 0xFF),
+            UInt8(i & 0xFF),
+        ],
+    )
 end
 
 function pack_uint32(wp::WireProtocol, i::UInt32)
     # pack big endian uint32
-    wp.buf = vcat(wp.buf, UInt8[UInt8(i >> 24 & 0xFF), UInt8(i >> 16 & 0xFF), UInt8(i >> 8 & 0xFF), UInt8(i & 0xFF)])
+    wp.buf = vcat(
+        wp.buf,
+        UInt8[
+            UInt8(i >> 24 & 0xFF),
+            UInt8(i >> 16 & 0xFF),
+            UInt8(i >> 8 & 0xFF),
+            UInt8(i & 0xFF),
+        ],
+    )
 end
 
 function pack_bytes(wp::WireProtocol, b::Vector{UInt8})::Vector{UInt8}
@@ -158,27 +192,33 @@ function get_srp_client_public_bytes(client_public::BigInt)::Vector{UInt8}
         vcat(
             UInt8[CNCT_specific_data, 255, 0],
             b[1:254],
-            UInt8[CNCT_specific_data, length(b) - 254 + 1, 1],
-            b[255:length(b)]
+            UInt8[CNCT_specific_data, length(b)-254+1, 1],
+            b[255:length(b)],
         )
     else
         vcat(
-            UInt8[CNCT_specific_data, length(b) + 1, 0],
-            b[1:length(b) + 1],
-            UInt8[CNCT_specific_data, length(b) - 254 + 1, 1],
-            b
+            UInt8[CNCT_specific_data, length(b)+1, 0],
+            b[1:(length(b)+1)],
+            UInt8[CNCT_specific_data, length(b)-254+1, 1],
+            b,
         )
     end
 end
 
-function uid(username::String, password::String, auth_plugin_name::String, wire_crypt::Bool, client_public::BigInt)::Vector{UInt8}
+function uid(
+    username::String,
+    password::String,
+    auth_plugin_name::String,
+    wire_crypt::Bool,
+    client_public::BigInt,
+)::Vector{UInt8}
     sys_user = if haskey(ENV, "USER")
-            ENV["USER"]
-        elseif haskey(ENV, "USERNAME")
-            ENV["USERNAME"]
-        else
-            ""
-        end
+        ENV["USER"]
+    elseif haskey(ENV, "USERNAME")
+        ENV["USERNAME"]
+    else
+        ""
+    end
     sys_user_bytes = Vector{UInt8}(sys_user)
     hostname_bytes = Vector{UInt8}(gethostname())
     plugin_list_name_bytes = Vector{UInt8}(PLUGIN_LIST)
@@ -186,14 +226,19 @@ function uid(username::String, password::String, auth_plugin_name::String, wire_
     username_bytes = Vector{UInt8}(username)
     specific_data = get_srp_client_public_bytes(client_public)
     vcat(
-        UInt8[CNCT_login, length(username_bytes)], username_bytes,
-        UInt8[CNCT_plugin_name, length(plugin_name_bytes)], plugin_name_bytes,
-        UInt8[CNCT_plugin_list, length(plugin_list_name_bytes)], plugin_list_name_bytes,
+        UInt8[CNCT_login, length(username_bytes)],
+        username_bytes,
+        UInt8[CNCT_plugin_name, length(plugin_name_bytes)],
+        plugin_name_bytes,
+        UInt8[CNCT_plugin_list, length(plugin_list_name_bytes)],
+        plugin_list_name_bytes,
         specific_data,
         UInt8[CNCT_client_crypt, 4, wire_crypt ? 1 : 0, 0, 0, 0],
-        UInt8[CNCT_user, length(sys_user_bytes)], sys_user_bytes,
-        UInt8[CNCT_host, length(hostname_bytes)], hostname_bytes,
-        UInt8[CNCT_user_verification, 0]
+        UInt8[CNCT_user, length(sys_user_bytes)],
+        sys_user_bytes,
+        UInt8[CNCT_host, length(hostname_bytes)],
+        hostname_bytes,
+        UInt8[CNCT_user_verification, 0],
     )
 end
 
@@ -235,7 +280,7 @@ function recv_packets_alignment(wp::WireProtocol, n::Int64)::Vector{UInt8}
     recv_packets_alignment(wp, UInt32(n))
 end
 
-function parse_status_vector(wp::WireProtocol)::Tuple{Vector{UInt32}, Int, String}
+function parse_status_vector(wp::WireProtocol)::Tuple{Vector{UInt32},Int,String}
     sql_code::Int = 0
     gds_code = 0
     gds_codes::Vector{UInt32} = []
@@ -278,7 +323,7 @@ function parse_status_vector(wp::WireProtocol)::Tuple{Vector{UInt32}, Int, Strin
     (gds_codes, sql_code, message)
 end
 
-function parse_op_response(wp::WireProtocol)::Tuple{Int32, Vector{UInt8}, Vector{UInt8}}
+function parse_op_response(wp::WireProtocol)::Tuple{Int32,Vector{UInt8},Vector{UInt8}}
     h = bytes_to_bint32(recv_packets(wp, 4))            # Object handle
     oid = recv_packets(wp, 8)                           # Object ID
     buf_len = Int(bytes_to_bint32(recv_packets(wp, 4))) # buffer length
@@ -291,7 +336,7 @@ function parse_op_response(wp::WireProtocol)::Tuple{Int32, Vector{UInt8}, Vector
     (h, oid, buf)
 end
 
-function guess_wire_crypt(buf::Vector{UInt8})::Tuple{String, Vector{UInt8}}
+function guess_wire_crypt(buf::Vector{UInt8})::Tuple{String,Vector{UInt8}}
     available_plugins = []
     plugin_nonce = []
     i = 1
@@ -300,7 +345,7 @@ function guess_wire_crypt(buf::Vector{UInt8})::Tuple{String, Vector{UInt8}}
         i += 1
         ln = buf[i]
         i += 1
-        v = buf[i:i+ln-1]
+        v = buf[i:(i+ln-1)]
         i += ln
         if k == 1
             available_plugins = split(String(v), " ")
@@ -321,7 +366,14 @@ function guess_wire_crypt(buf::Vector{UInt8})::Tuple{String, Vector{UInt8}}
     "", []
 end
 
-function parse_connect_response(wp::WireProtocol, username::String, password::String, wire_crypt::Bool, client_public::BigInt, client_secret::BigInt)
+function parse_connect_response(
+    wp::WireProtocol,
+    username::String,
+    password::String,
+    wire_crypt::Bool,
+    client_public::BigInt,
+    client_secret::BigInt,
+)
     DEBUG_OUTPUT("parse_connect_response")
     op_code = bytes_to_bint32(recv_packets(wp, 4))
     while op_code == op_dummy
@@ -377,8 +429,8 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
         recv_packets_alignment(wp, ln)
     end
     ln = bytes_to_uint16(data[1:2])
-    server_salt = data[3:ln+2]
-    server_public_string = data[5+ln:length(data)]
+    server_salt = data[3:(ln+2)]
+    server_public_string = data[(5+ln):length(data)]
     if length(server_public_string) % 2 != 0
         server_public_string = vcat(Vector{UInt8}([0x30]), server_public_string)
     end
@@ -411,7 +463,11 @@ function parse_connect_response(wp::WireProtocol, username::String, password::St
 
 end
 
-function parse_select_items(wp::WireProtocol, buf::Vector{UInt8}, xsqlda::Vector{XSQLVAR})::Int
+function parse_select_items(
+    wp::WireProtocol,
+    buf::Vector{UInt8},
+    xsqlda::Vector{XSQLVAR},
+)::Int
     ln = 0
     index = 0
     i = 1
@@ -420,59 +476,59 @@ function parse_select_items(wp::WireProtocol, buf::Vector{UInt8}, xsqlda::Vector
     while i <= length(buf) && buf[i] != isc_info_end
         item = buf[i]
         i += 1
-        if item ==  isc_info_sql_sqlda_seq
-            ln = bytes_to_int16(buf[i:i+1])
+        if item == isc_info_sql_sqlda_seq
+            ln = bytes_to_int16(buf[i:(i+1)])
             i += 2
-            index = bytes_to_int32(buf[i:i+ln-1])
+            index = bytes_to_int32(buf[i:(i+ln-1)])
             i += ln
         elseif item == isc_info_sql_type
-            ln = bytes_to_int16(buf[i:i+1])
+            ln = bytes_to_int16(buf[i:(i+1)])
             i += 2
-            sqltype = bytes_to_int32(buf[i:i+ln-1])
+            sqltype = bytes_to_int32(buf[i:(i+ln-1)])
             if sqltype % 2 != 0
-                    sqltype -= 1
+                sqltype -= 1
             end
             xsqlda[index].sqltype = sqltype
             i += ln
         elseif item == isc_info_sql_sub_type
-            ln = bytes_to_int16(buf[i:i+1])
+            ln = bytes_to_int16(buf[i:(i+1)])
             i += 2
-            xsqlda[index].sqlsubtype = bytes_to_int32(buf[i:i+ln-1])
+            xsqlda[index].sqlsubtype = bytes_to_int32(buf[i:(i+ln-1)])
             i += ln
         elseif item == isc_info_sql_scale
-            ln = bytes_to_int16(buf[i:i+1])
+            ln = bytes_to_int16(buf[i:(i+1)])
             i += 2
-            xsqlda[index].sqlscale = bytes_to_int32(buf[i:i+ln-1])
+            xsqlda[index].sqlscale = bytes_to_int32(buf[i:(i+ln-1)])
             i += ln
         elseif item == isc_info_sql_length
-            ln = bytes_to_int16(buf[i:i+1])
+            ln = bytes_to_int16(buf[i:(i+1)])
             i += 2
-            xsqlda[index].sqllen = bytes_to_int32(buf[i:i+ln-1])
+            xsqlda[index].sqllen = bytes_to_int32(buf[i:(i+ln-1)])
             i += ln
         elseif item == isc_info_sql_null_ind
-            ln = bytes_to_int16(buf[i:i+1])
+            ln = bytes_to_int16(buf[i:(i+1)])
             i += 2
-            xsqlda[index].null_ok = bytes_to_int32(buf[i:i+ln-1]) != 0
+            xsqlda[index].null_ok = bytes_to_int32(buf[i:(i+ln-1)]) != 0
             i += ln
         elseif item == isc_info_sql_field
-            ln = bytes_to_int16(buf[i:i+1])
+            ln = bytes_to_int16(buf[i:(i+1)])
             i += 2
-            xsqlda[index].fieldname = bytes_to_str(buf[i:i+ln-1])
+            xsqlda[index].fieldname = bytes_to_str(buf[i:(i+ln-1)])
             i += ln
         elseif item == isc_info_sql_relation
-            ln = bytes_to_int16(buf[i:i+1])
+            ln = bytes_to_int16(buf[i:(i+1)])
             i += 2
-            xsqlda[index].relname = bytes_to_str(buf[i:i+ln-1])
+            xsqlda[index].relname = bytes_to_str(buf[i:(i+ln-1)])
             i += ln
         elseif item == isc_info_sql_owner
-            ln = bytes_to_int16(buf[i : i+1])
+            ln = bytes_to_int16(buf[i:(i+1)])
             i += 2
-            xsqlda[index].ownname = bytes_to_str(buf[i:i+ln-1])
+            xsqlda[index].ownname = bytes_to_str(buf[i:(i+ln-1)])
             i += ln
         elseif item == isc_info_sql_alias
-            ln = bytes_to_int16(buf[i : i+1])
+            ln = bytes_to_int16(buf[i:(i+1)])
             i += 2
-            xsqlda[index].aliasname = bytes_to_str(buf[i:i+ln-1])
+            xsqlda[index].aliasname = bytes_to_str(buf[i:(i+ln-1)])
             i += ln
         elseif item == isc_info_truncated
             return index        # return next index
@@ -486,29 +542,36 @@ function parse_select_items(wp::WireProtocol, buf::Vector{UInt8}, xsqlda::Vector
     -1  # no more info
 end
 
-function parse_xsqlda(wp::WireProtocol, buf::Vector{UInt8}, stmt_handle::Int32)::Tuple{Int, Vector{XSQLVAR}}
+function parse_xsqlda(
+    wp::WireProtocol,
+    buf::Vector{UInt8},
+    stmt_handle::Int32,
+)::Tuple{Int,Vector{XSQLVAR}}
     stmt_type::Int = 0
     xsqlda::Vector{XSQLVAR} = []
     i = 1
 
     while i <= length(buf)
-        if buf[i] == UInt8(isc_info_sql_stmt_type) && buf[i+1] == UInt8(0x04) && buf[i+2] == UInt8(0x00)
+        if buf[i] == UInt8(isc_info_sql_stmt_type) &&
+           buf[i+1] == UInt8(0x04) &&
+           buf[i+2] == UInt8(0x00)
             i += 1
-            ln = bytes_to_int16(buf[i : i+1])
+            ln = bytes_to_int16(buf[i:(i+1)])
             i += 2
-            stmt_type = bytes_to_int32(buf[i : i+ln-1])
+            stmt_type = bytes_to_int32(buf[i:(i+ln-1)])
             i += ln
-        elseif buf[i] == UInt8(isc_info_sql_select) && buf[i+1] == UInt8(isc_info_sql_describe_vars)
+        elseif buf[i] == UInt8(isc_info_sql_select) &&
+               buf[i+1] == UInt8(isc_info_sql_describe_vars)
             i += 2
-            ln = bytes_to_int16(buf[i : i+1])
+            ln = bytes_to_int16(buf[i:(i+1)])
             i += 2
-            col_len = bytes_to_int32(buf[i:i+ln-1])
+            col_len = bytes_to_int32(buf[i:(i+ln-1)])
             if col_len != 0
-                for _ in range(1, length=col_len)
+                for _ in range(1, length = col_len)
                     xsqlvar = XSQLVAR(0, 0, 0, 0, false, "", "", "", "")
                     push!(xsqlda, xsqlvar)
                 end
-                next_index = parse_select_items(wp, buf[i+ln:length(buf)-1], xsqlda)
+                next_index = parse_select_items(wp, buf[(i+ln):(length(buf)-1)], xsqlda)
                 while next_index > 0    # more describe vars
                     _op_info_sql(
                         wp,
@@ -517,13 +580,13 @@ function parse_xsqlda(wp::WireProtocol, buf::Vector{UInt8}, stmt_handle::Int32):
                             Vector{UInt8}([isc_info_sql_sqlda_start, 2]),
                             int16_to_bytes(Int16(next_index)),
                             INFO_SQL_SELECT_DESCRIBE_VARS(),
-                        )
+                        ),
                     )
                     _, _, buf = _op_response(wp)
                     # buf[1:2] == [0x04,0x07]
                     ln = bytes_to_int16(buf[3:4])
                     # bytes_to_int(buf[5:5+ln]) == col_len
-                    next_index = parse_select_items(wp, buf[5+ln:length(buf)-1], xsqlda)
+                    next_index = parse_select_items(wp, buf[(5+ln):(length(buf)-1)], xsqlda)
                 end
             end
         else
@@ -534,7 +597,11 @@ function parse_xsqlda(wp::WireProtocol, buf::Vector{UInt8}, stmt_handle::Int32):
     stmt_type, xsqlda
 end
 
-function get_blob_segments(wp::WireProtocol, blob_id::Vector{UInt8}, trans_handle::Int32)::Vector{UInt8}
+function get_blob_segments(
+    wp::WireProtocol,
+    blob_id::Vector{UInt8},
+    trans_handle::Int32,
+)::Vector{UInt8}
     suspend_buf = suspend_buffer(wp)
     blob::Vector{UInt8} = []
     _op_open_blob2(wp, blob_id, trans_handle)
@@ -546,8 +613,8 @@ function get_blob_segments(wp::WireProtocol, blob_id::Vector{UInt8}, trans_handl
         more_data, _, buf = _op_response(wp)
         while length(buf) > 0
             ln = bytes_to_int16(buf[1:2])
-            blob = vcat(blob, buf[3:ln+2])
-            buf = buf[ln+3:length(buf)]
+            blob = vcat(blob, buf[3:(ln+2)])
+            buf = buf[(ln+3):length(buf)]
         end
     end
 
@@ -562,16 +629,25 @@ function get_blob_segments(wp::WireProtocol, blob_id::Vector{UInt8}, trans_handl
     blob
 end
 
-function _op_connect(wp::WireProtocol, db_name::String, username::String, password::String, wire_crypt::Bool, client_public::BigInt)
+function _op_connect(
+    wp::WireProtocol,
+    db_name::String,
+    username::String,
+    password::String,
+    wire_crypt::Bool,
+    client_public::BigInt,
+)
     DEBUG_OUTPUT("_op_connect")
     # PROTOCOL_VERSION, Arch type (Generic=1), min, max, weight
-    protocols = hex2bytes(string(
-        "ffff800d00000001000000000000000500000008", # 13, 1, 0, 5, 8
-        "ffff800e0000000100000000000000050000000a", # 14, 1, 0, 5, 10
-        "ffff800f0000000100000000000000050000000c", # 15, 1, 0, 5, 12
-        "ffff80100000000100000000000000050000000e", # 16, 1, 0, 5, 14
-        "ffff801100000001000000000000000500000010", # 17, 1, 0, 5, 16
-    ))
+    protocols = hex2bytes(
+        string(
+            "ffff800d00000001000000000000000500000008", # 13, 1, 0, 5, 8
+            "ffff800e0000000100000000000000050000000a", # 14, 1, 0, 5, 10
+            "ffff800f0000000100000000000000050000000c", # 15, 1, 0, 5, 12
+            "ffff80100000000100000000000000050000000e", # 16, 1, 0, 5, 14
+            "ffff801100000001000000000000000500000010", # 17, 1, 0, 5, 16
+        ),
+    )
     protocols_len = div(length(protocols), 20)
 
     pack_uint32(wp, op_connect)
@@ -585,7 +661,14 @@ function _op_connect(wp::WireProtocol, db_name::String, username::String, passwo
     send_packets(wp)
 end
 
-function _op_create(wp::WireProtocol, db_name::String, username::String, password::String, timezone::String, page_size::Int32)
+function _op_create(
+    wp::WireProtocol,
+    db_name::String,
+    username::String,
+    password::String,
+    timezone::String,
+    page_size::Int32,
+)
     DEBUG_OUTPUT("_op_create")
     encode = b"UTF8"
 
@@ -595,28 +678,48 @@ function _op_create(wp::WireProtocol, db_name::String, username::String, passwor
 
     dpb = vcat(
         [isc_dpb_version1],
-        [isc_dpb_set_db_charset, UInt8(length(encode))], encode,
-        [isc_dpb_lc_ctype, UInt8(length(encode))], encode,
-        [isc_dpb_user_name, UInt8(length(username_bytes))], username_bytes,
-        [isc_dpb_password, UInt8(length(password_bytes))], password_bytes,
-        [isc_dpb_sql_dialect, 4], int32_to_bytes(Int32(3)),
-        [isc_dpb_force_write, 4], int32_to_bytes(Int32(1)),
-        [isc_dpb_overwrite, 4], int32_to_bytes(Int32(1)),
-        [isc_dpb_page_size, 4], int32_to_bytes(page_size),
+        [isc_dpb_set_db_charset, UInt8(length(encode))],
+        encode,
+        [isc_dpb_lc_ctype, UInt8(length(encode))],
+        encode,
+        [isc_dpb_user_name, UInt8(length(username_bytes))],
+        username_bytes,
+        [isc_dpb_password, UInt8(length(password_bytes))],
+        password_bytes,
+        [isc_dpb_sql_dialect, 4],
+        int32_to_bytes(Int32(3)),
+        [isc_dpb_force_write, 4],
+        int32_to_bytes(Int32(1)),
+        [isc_dpb_overwrite, 4],
+        int32_to_bytes(Int32(1)),
+        [isc_dpb_page_size, 4],
+        int32_to_bytes(page_size),
     )
     if timezone != ""
         timezone_bytes = Vector{UInt8}(timezone)
-        dpb = vcat(dpb, [isc_dpb_session_time_zone, UInt8(length(timezone_bytes))], timezone_bytes)
+        dpb = vcat(
+            dpb,
+            [isc_dpb_session_time_zone, UInt8(length(timezone_bytes))],
+            timezone_bytes,
+        )
     end
 
     if length(wp.auth_data) != 0
         specific_auth_data = Vector{UInt8}(bytes2hex(wp.auth_data))
-        dpb = vcat(dpb, [isc_dpb_specific_auth_data, length(specific_auth_data)], specific_auth_data)
+        dpb = vcat(
+            dpb,
+            [isc_dpb_specific_auth_data, length(specific_auth_data)],
+            specific_auth_data,
+        )
     end
 
     if wp.timezone != ""
         tzname_bytes = Vector{UInt8}(wp.timezone)
-        dpb = vcat(dpb, [isc_dpb_session_time_zone, UInt8(length(timezone_bytes))], timezone_bytes)
+        dpb = vcat(
+            dpb,
+            [isc_dpb_session_time_zone, UInt8(length(timezone_bytes))],
+            timezone_bytes,
+        )
     end
 
     pack_uint32(wp, op_create)
@@ -626,7 +729,13 @@ function _op_create(wp::WireProtocol, db_name::String, username::String, passwor
     send_packets(wp)
 end
 
-function _op_attach(wp::WireProtocol, db_name::String, username::String, password::String, timezone::String)
+function _op_attach(
+    wp::WireProtocol,
+    db_name::String,
+    username::String,
+    password::String,
+    timezone::String,
+)
     DEBUG_OUTPUT("_op_attach")
     encode = b"UTF8"
 
@@ -635,11 +744,16 @@ function _op_attach(wp::WireProtocol, db_name::String, username::String, passwor
 
     dpb::Vector{UInt8} = vcat(
         [UInt8(isc_dpb_version1)],
-        [UInt8(isc_dpb_set_db_charset), UInt8(length(encode))], encode,
-        [UInt8(isc_dpb_lc_ctype), UInt8(length(encode))], encode,
-        [UInt8(isc_dpb_user_name), UInt8(length(username_bytes))], username_bytes,
-        [UInt8(isc_dpb_password), UInt8(length(password_bytes))], password_bytes,
-        [UInt8(isc_dpb_sql_dialect), UInt8(4)], int32_to_bytes(Int32(3)),
+        [UInt8(isc_dpb_set_db_charset), UInt8(length(encode))],
+        encode,
+        [UInt8(isc_dpb_lc_ctype), UInt8(length(encode))],
+        encode,
+        [UInt8(isc_dpb_user_name), UInt8(length(username_bytes))],
+        username_bytes,
+        [UInt8(isc_dpb_password), UInt8(length(password_bytes))],
+        password_bytes,
+        [UInt8(isc_dpb_sql_dialect), UInt8(4)],
+        int32_to_bytes(Int32(3)),
     )
 
     if timezone != ""
@@ -649,7 +763,11 @@ function _op_attach(wp::WireProtocol, db_name::String, username::String, passwor
 
     if length(wp.auth_data) != 0
         specific_auth_data = Vector{UInt8}(bytes2hex(wp.auth_data))
-        dpb = vcat(dpb, [UInt8(isc_dpb_specific_auth_data), UInt8(length(specific_auth_data))], specific_auth_data)
+        dpb = vcat(
+            dpb,
+            [UInt8(isc_dpb_specific_auth_data), UInt8(length(specific_auth_data))],
+            specific_auth_data,
+        )
     end
 
     if wp.timezone != ""
@@ -664,7 +782,12 @@ function _op_attach(wp::WireProtocol, db_name::String, username::String, passwor
     send_packets(wp)
 end
 
-function _op_cont_auth(wp::WireProtocol, auth_data::Vector{UInt8}, auth_plugin_name::String, keys::String)
+function _op_cont_auth(
+    wp::WireProtocol,
+    auth_data::Vector{UInt8},
+    auth_plugin_name::String,
+    keys::String,
+)
     DEBUG_OUTPUT("_op_cont_auth")
     pack_uint32(wp, op_cont_auth)
     pack_string(wp, bytes2hex(auth_data))
@@ -760,7 +883,12 @@ function _op_free_statement(wp::WireProtocol, stmt_handle::Int32, mode::Int)
     send_packets(wp)
 end
 
-function _op_prepare_statement(wp::WireProtocol, trans_handle::Int32, stmt_handle::Int32, query::String)
+function _op_prepare_statement(
+    wp::WireProtocol,
+    trans_handle::Int32,
+    stmt_handle::Int32,
+    query::String,
+)
     DEBUG_OUTPUT("_op_prepare_statement")
     bs::Vector{UInt8} = vcat([isc_info_sql_stmt_type], INFO_SQL_SELECT_DESCRIBE_VARS())
     pack_uint32(wp, op_prepare_statement)
@@ -810,7 +938,13 @@ function _op_execute(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32, 
 
 end
 
-function _op_execute2(wp::WireProtocol, stmt_handle::Int32, trans_handle::Int32, params, output_blr::Vector{UInt8})
+function _op_execute2(
+    wp::WireProtocol,
+    stmt_handle::Int32,
+    trans_handle::Int32,
+    params,
+    output_blr::Vector{UInt8},
+)
     DEBUG_OUTPUT("_op_execute2")
     pack_uint32(wp, op_execute2)
     pack_uint32(wp, stmt_handle)
@@ -861,7 +995,11 @@ function _op_fetch(wp::WireProtocol, stmt_handle::Int32, blr::Vector{UInt8})
     send_packets(wp)
 end
 
-function _op_fetch_response(wp::WireProtocol, stmt_handle::Int32, xsqlda::Vector{XSQLVAR})::Tuple{Vector{Vector{Any}}, Bool}
+function _op_fetch_response(
+    wp::WireProtocol,
+    stmt_handle::Int32,
+    xsqlda::Vector{XSQLVAR},
+)::Tuple{Vector{Vector{Any}},Bool}
     DEBUG_OUTPUT("_op_fetch_response")
     op_code = bytes_to_bint32(recv_packets(wp, 4))
     while op_code == op_dummy
@@ -894,7 +1032,7 @@ function _op_fetch_response(wp::WireProtocol, stmt_handle::Int32, xsqlda::Vector
             null_indicator += b
         end
         r = Vector{Any}(missing, length(xsqlda))
-        for i in 1:length(xsqlda)
+        for i = 1:length(xsqlda)
             x = xsqlda[i]
             if (null_indicator & (1 << (i-1))) == 0 # not null
                 ln = io_length(x)
@@ -967,7 +1105,7 @@ function _op_put_segment(wp::WireProtocol, blob_handle::Int32, seg_data::Vector{
     pack_uint32(wp, ln)
     append_bytes(wp, seg_data)
     padding = Vector{UInt8}([0, 0, 0])
-    append_bytes(wp, padding[1:((4 - ln) & 3)])
+    append_bytes(wp, padding[1:((4-ln)&3)])
     send_packets(wp)
 end
 
@@ -982,7 +1120,7 @@ function _op_batch_segments(wp::WireProtocol, blob_handle::Int32, seg_data::Vect
     padding = Vector{UInt8}([0, 0, 0])
     pack_bytes(wp, Vector{UInt8}([UInt8(ln & 255), UInt8(ln >> 8)]))  # little endian int 16
     pack_bytes(wp, seg_data)
-    append_bytes(wp, padding[1:((4 - ln) & 3)])
+    append_bytes(wp, padding[1:((4-ln)&3)])
     send_packets(wp)
 end
 
@@ -993,7 +1131,7 @@ function _op_close_blob(wp::WireProtocol, blob_handle::Int32)
     send_packets(wp)
 end
 
-function _op_response(wp::WireProtocol)::Tuple{Int32, Vector{UInt8}, Vector{UInt8}}
+function _op_response(wp::WireProtocol)::Tuple{Int32,Vector{UInt8},Vector{UInt8}}
     DEBUG_OUTPUT("_op_response")
     op_code = bytes_to_bint32(recv_packets(wp, 4))
     while op_code == op_dummy
@@ -1040,7 +1178,7 @@ function _op_sql_response(wp::WireProtocol, xsqlda::XSQLVAR)::Vector{Any}
         null_indicator <<= 8
         null_indicator += 8
     end
-    for i in 1:length(xsqlda)
+    for i = 1:length(xsqlda)
         x = xsqlda[i]
         if (null_indicator & (1 << (i-1))) != 0
             append!(r, nothing)
@@ -1065,7 +1203,7 @@ function create_blob(wp::WireProtocol, b::Vector{UInt8}, trans_handle::Int32)::V
 
     i = 1
     while i < length(b)
-        _op_put_segent(wp, blob_handle, b[i:i+BLOB_SEGMENT_SIZE])
+        _op_put_segent(wp, blob_handle, b[i:(i+BLOB_SEGMENT_SIZE)])
         h, oid, buf = op_response(wp)
         i += BLOB_SEGMENT_SIZE
     end
@@ -1077,14 +1215,18 @@ function create_blob(wp::WireProtocol, b::Vector{UInt8}, trans_handle::Int32)::V
     blob_id
 end
 
-function params_to_blr(wp::WireProtocol, trans_handle::Int32, params)::Tuple{Vector{UInt8}, Vector{UInt8}}
+function params_to_blr(
+    wp::WireProtocol,
+    trans_handle::Int32,
+    params,
+)::Tuple{Vector{UInt8},Vector{UInt8}}
     ln = length(params) * 2
     blr_list::Vector{UInt8} = Vector{UInt8}([5, 2, 4, 0, UInt8(ln & 255), UInt8(ln >> 8)])
     values::Vector{UInt8} = []
 
     # NULL indicator
     null_indicator = 0
-    for i in 1:length(params)
+    for i = 1:length(params)
         if params[i] == nothing
             null_indicator |= (1 << i)
         end
@@ -1096,12 +1238,12 @@ function params_to_blr(wp::WireProtocol, trans_handle::Int32, params)::Tuple{Vec
     if n % 4 != 0   # padding
         n += (4 - n) % 4
     end
-    for i in 1:n
+    for i = 1:n
         append!(values, null_indicator & 255)
         null_indicator >>= 8
     end
 
-    for i in 1:length(params)
+    for i = 1:length(params)
         p = params[i]
         if typeof(p) == String
             p = Vector{UInt8}(params[i])

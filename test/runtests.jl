@@ -23,8 +23,10 @@
 ################################################################################
 using Test, Firebird, TimeZones, DBInterface, Tables, Dates, Decimals
 
-const DEBUG_PRIVATE_KEY = big"0x60975527035CF2AD1989806F0407210BC81EDC04E2762A56AFD529DDDA2D4393"
-const DEBUG_SALT = hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1601C000000054F")
+const DEBUG_PRIVATE_KEY =
+    big"0x60975527035CF2AD1989806F0407210BC81EDC04E2762A56AFD529DDDA2D4393"
+const DEBUG_SALT =
+    hex2bytes("02E268803000000079A478A700000002D1A6979000000026E1601C000000054F")
 const TEST_DB_NAME = string(tempname(), ".fdb")
 
 @testset "connection" begin
@@ -39,74 +41,92 @@ const TEST_DB_NAME = string(tempname(), ".fdb")
         "masterkey"
     end
 
-    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, TEST_DB_NAME; create_new=true, timezone="Asia/Tokyo")
-    DBInterface.execute(
-        conn, raw"""
-            CREATE TABLE foo (
-                a INTEGER NOT NULL,
-                b VARCHAR(30) NOT NULL UNIQUE,
-                c CHAR(1024),
-                d DECIMAL(16,3) DEFAULT -0.123,
-                e DATE DEFAULT '1967-08-11',
-                f TIMESTAMP DEFAULT '1967-08-11 23:45:01.1234',
-                g TIME DEFAULT '23:45:01.1234',
-                h BLOB SUB_TYPE 0,
-                i DOUBLE PRECISION DEFAULT 0.0,
-                j FLOAT DEFAULT 0.0,
-                PRIMARY KEY (a),
-                CONSTRAINT CHECK_A CHECK (a <> 0)
-            )"""
+    conn = DBInterface.connect(
+        Firebird.Connection,
+        "localhost",
+        user,
+        password,
+        TEST_DB_NAME;
+        create_new = true,
+        timezone = "Asia/Tokyo",
     )
     DBInterface.execute(
-        conn, raw"""
-            CREATE TABLE bar (
-                a BIGINT,
-                b BIGINT,
-                c BIGINT,
-                d BIGINT,
-                e BIGINT,
-                f BIGINT,
-                g BIGINT,
-                h BIGINT,
-                i BIGINT,
-                j BIGINT,
-                k BIGINT,
-                l BIGINT,
-                m BIGINT,
-                n BIGINT,
-                o BIGINT,
-                p BIGINT,
-                q BIGINT,
-                r BIGINT,
-                s BIGINT,
-                t BIGINT,
-                u BIGINT,
-                v BIGINT,
-                w BIGINT,
-                x BIGINT,
-                y BIGINT,
-                z BIGINT
-            )"""
+        conn,
+        raw"""
+      CREATE TABLE foo (
+          a INTEGER NOT NULL,
+          b VARCHAR(30) NOT NULL UNIQUE,
+          c CHAR(1024),
+          d DECIMAL(16,3) DEFAULT -0.123,
+          e DATE DEFAULT '1967-08-11',
+          f TIMESTAMP DEFAULT '1967-08-11 23:45:01.1234',
+          g TIME DEFAULT '23:45:01.1234',
+          h BLOB SUB_TYPE 0,
+          i DOUBLE PRECISION DEFAULT 0.0,
+          j FLOAT DEFAULT 0.0,
+          PRIMARY KEY (a),
+          CONSTRAINT CHECK_A CHECK (a <> 0)
+      )""",
+    )
+    DBInterface.execute(
+        conn,
+        raw"""
+      CREATE TABLE bar (
+          a BIGINT,
+          b BIGINT,
+          c BIGINT,
+          d BIGINT,
+          e BIGINT,
+          f BIGINT,
+          g BIGINT,
+          h BIGINT,
+          i BIGINT,
+          j BIGINT,
+          k BIGINT,
+          l BIGINT,
+          m BIGINT,
+          n BIGINT,
+          o BIGINT,
+          p BIGINT,
+          q BIGINT,
+          r BIGINT,
+          s BIGINT,
+          t BIGINT,
+          u BIGINT,
+          v BIGINT,
+          w BIGINT,
+          x BIGINT,
+          y BIGINT,
+          z BIGINT
+      )""",
     )
     DBInterface.close!(conn)
 
-    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, TEST_DB_NAME)
+    conn =
+        DBInterface.connect(Firebird.Connection, "localhost", user, password, TEST_DB_NAME)
     DBInterface.execute(
-        conn, raw"insert into foo(a, b, c, h) values (1, 'a', 'b', 'This is a pen')")
-    DBInterface.execute(
-        conn, raw"insert into foo(a, b, c, h) values (2, 'A', 'B', NULL)")
+        conn,
+        raw"insert into foo(a, b, c, h) values (1, 'a', 'b', 'This is a pen')",
+    )
+    DBInterface.execute(conn, raw"insert into foo(a, b, c, h) values (2, 'A', 'B', NULL)")
 
     expected = (
         A = Int64[1, 2],
         B = String["a", "A"],
-        C = Union{Missing, String}["b", "B"],
-        D = Union{Missing, Decimal}[Decimal(-0.123), Decimal(-0.123)],
-        E = Union{Missing, Dates.Date}[Dates.Date("1967-08-11"), Dates.Date("1967-08-11")],
-        F = Union{Missing, Dates.DateTime}[Dates.DateTime("1967-08-11T23:45:01.123"), Dates.DateTime("1967-08-11T23:45:01.123")],
-        G = Union{Missing, Dates.Time}[Dates.Time("23:45:01.123"), Dates.Time("23:45:01.123")],
-        H = Union{Missing, Vector{UInt8}}[Vector{UInt8}("This is a pen"), missing],
-        I = Union{Missing, Float64}[Float64(0.0), Float64(0.0)],
-        J = Union{Missing, Float32}[Float32(0.0), Float32(0.0)],
+        C = Union{Missing,String}["b", "B"],
+        D = Union{Missing,Decimal}[Decimal(-0.123), Decimal(-0.123)],
+        E = Union{Missing,Dates.Date}[Dates.Date("1967-08-11"), Dates.Date("1967-08-11")],
+        F = Union{Missing,Dates.DateTime}[
+            Dates.DateTime("1967-08-11T23:45:01.123"),
+            Dates.DateTime("1967-08-11T23:45:01.123"),
+        ],
+        G = Union{Missing,Dates.Time}[
+            Dates.Time("23:45:01.123"),
+            Dates.Time("23:45:01.123"),
+        ],
+        H = Union{Missing,Vector{UInt8}}[Vector{UInt8}("This is a pen"), missing],
+        I = Union{Missing,Float64}[Float64(0.0), Float64(0.0)],
+        J = Union{Missing,Float32}[Float32(0.0), Float32(0.0)],
     )
 
     cursor = DBInterface.execute(conn, "SELECT * FROM foo")
@@ -114,7 +134,8 @@ const TEST_DB_NAME = string(tempname(), ".fdb")
     @test Tables.istable(cursor)
     @test Tables.rowaccess(cursor)
     @test Tables.rows(cursor) === cursor
-    @test Tables.schema(cursor) == Tables.Schema(propertynames(expected), eltype.(collect(expected)))
+    @test Tables.schema(cursor) ==
+          Tables.Schema(propertynames(expected), eltype.(collect(expected)))
     @test Base.IteratorSize(typeof(cursor)) == Base.HasLength()
     @test length(cursor) == 2
 
@@ -126,7 +147,7 @@ const TEST_DB_NAME = string(tempname(), ".fdb")
         @test getproperty(row, prop) == row[prop] == row[i] == expected[prop][1]
     end
 
-    res = DBInterface.execute(conn, raw"SELECT * FROM foo where a=?", (1, )) |> columntable
+    res = DBInterface.execute(conn, raw"SELECT * FROM foo where a=?", (1,)) |> columntable
     @test length(res[1]) == 1
 
     # as a prepared statement
@@ -136,7 +157,8 @@ const TEST_DB_NAME = string(tempname(), ".fdb")
     @test Tables.istable(cursor)
     @test Tables.rowaccess(cursor)
     @test Tables.rows(cursor) === cursor
-    @test Tables.schema(cursor) == Tables.Schema(propertynames(expected), eltype.(collect(expected)))
+    @test Tables.schema(cursor) ==
+          Tables.Schema(propertynames(expected), eltype.(collect(expected)))
     @test Base.IteratorSize(typeof(cursor)) == Base.HasLength()
     @test length(cursor) == 2
 
@@ -157,7 +179,7 @@ const TEST_DB_NAME = string(tempname(), ".fdb")
     cursor = DBInterface.execute(stmt, (1,))
     row = first(cursor)
     @test length(row) == length(expected)
-    res = DBInterface.execute(stmt, (1, )) |> columntable
+    res = DBInterface.execute(stmt, (1,)) |> columntable
     @test length(res[1]) == 1
 
     DBInterface.close!(stmt)
@@ -181,9 +203,20 @@ end
         "masterkey"
     end
 
-    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, TEST_DB_NAME; create_new=true, timezone="Asia/Tokyo")
+    conn = DBInterface.connect(
+        Firebird.Connection,
+        "localhost",
+        user,
+        password,
+        TEST_DB_NAME;
+        create_new = true,
+        timezone = "Asia/Tokyo",
+    )
 
-    cursor = DBInterface.execute(conn, raw"SELECT rdb$get_context('SYSTEM', 'ENGINE_VERSION') version from rdb$database")
+    cursor = DBInterface.execute(
+        conn,
+        raw"SELECT rdb$get_context('SYSTEM', 'ENGINE_VERSION') version from rdb$database",
+    )
     row = first(cursor)
     major_version = parse(Int, split(row.VERSION, ".")[1])
     if major_version < 4
@@ -192,28 +225,41 @@ end
     end
 
     DBInterface.execute(
-        conn, raw"""
-            CREATE TABLE tz_test (
-                id INTEGER NOT NULL,
-                t TIME WITH TIME ZONE DEFAULT '12:34:56' NOT NULL,
-                ts TIMESTAMP WITH TIME ZONE DEFAULT '1967-08-11 23:45:01' NOT NULL,
-                PRIMARY KEY (id)
-            )"""
+        conn,
+        raw"""
+      CREATE TABLE tz_test (
+          id INTEGER NOT NULL,
+          t TIME WITH TIME ZONE DEFAULT '12:34:56' NOT NULL,
+          ts TIMESTAMP WITH TIME ZONE DEFAULT '1967-08-11 23:45:01' NOT NULL,
+          PRIMARY KEY (id)
+      )""",
     )
 
-    DBInterface.execute(
-        conn, raw"insert into tz_test (id) values (1)")
+    DBInterface.execute(conn, raw"insert into tz_test (id) values (1)")
     zdt_input = ZonedDateTime(1967, 8, 11, 23, 45, 1, tz"Asia/Seoul")
-    stmt = DBInterface.prepare(conn, raw"insert into tz_test (id, t, ts) values (2, '12:34:56 Asia/Seoul', ?)")
+    stmt = DBInterface.prepare(
+        conn,
+        raw"insert into tz_test (id, t, ts) values (2, '12:34:56 Asia/Seoul', ?)",
+    )
     DBInterface.execute(stmt, (zdt_input,))
 
     DBInterface.execute(
-        conn, raw"insert into tz_test (id, t, ts) values (3, '03:34:56 UTC', '1967-08-11 14:45:01.0000 UTC')")
+        conn,
+        raw"insert into tz_test (id, t, ts) values (3, '03:34:56 UTC', '1967-08-11 14:45:01.0000 UTC')",
+    )
 
     expected = (
         ID = Int64[1, 2, 3],
-        T = TimeZones.ZonedDateTime[TimeZones.ZonedDateTime(0, 1, 1, 12, 53, 55, tz"Asia/Tokyo"), TimeZones.ZonedDateTime(0, 1, 1, 12, 2, 48, tz"Asia/Seoul"), TimeZones.ZonedDateTime(0, 1, 1, 3, 34, 56, tz"UTC")],
-        TS = TimeZones.ZonedDateTime[TimeZones.ZonedDateTime(1967, 8, 11, 23, 45, 1, tz"Asia/Tokyo"), TimeZones.ZonedDateTime(1967, 8, 11, 23, 45, 1, tz"Asia/Seoul"), TimeZones.ZonedDateTime(1967, 8, 11, 14, 45, 1, tz"UTC")]
+        T = TimeZones.ZonedDateTime[
+            TimeZones.ZonedDateTime(0, 1, 1, 12, 53, 55, tz"Asia/Tokyo"),
+            TimeZones.ZonedDateTime(0, 1, 1, 12, 2, 48, tz"Asia/Seoul"),
+            TimeZones.ZonedDateTime(0, 1, 1, 3, 34, 56, tz"UTC"),
+        ],
+        TS = TimeZones.ZonedDateTime[
+            TimeZones.ZonedDateTime(1967, 8, 11, 23, 45, 1, tz"Asia/Tokyo"),
+            TimeZones.ZonedDateTime(1967, 8, 11, 23, 45, 1, tz"Asia/Seoul"),
+            TimeZones.ZonedDateTime(1967, 8, 11, 14, 45, 1, tz"UTC"),
+        ],
     )
 
     cursor = DBInterface.execute(conn, "select * from tz_test")
@@ -221,7 +267,8 @@ end
     @test Tables.istable(cursor)
     @test Tables.rowaccess(cursor)
     @test Tables.rows(cursor) === cursor
-    @test Tables.schema(cursor) == Tables.Schema(propertynames(expected), eltype.(collect(expected)))
+    @test Tables.schema(cursor) ==
+          Tables.Schema(propertynames(expected), eltype.(collect(expected)))
     @test Base.IteratorSize(typeof(cursor)) == Base.HasLength()
     @test length(cursor) == 3
 
@@ -240,7 +287,8 @@ end
     _, client_key = Firebird.get_client_proof(user, password, salt, keyA, keyB, keya, "Srp")
     @test server_key == client_key
 
-    _, client_key = Firebird.get_client_proof(user, password, salt, keyA, keyB, keya, "Srp256")
+    _, client_key =
+        Firebird.get_client_proof(user, password, salt, keyA, keyB, keya, "Srp256")
     @test server_key == client_key
 
     keyA, keya = Firebird.get_client_seed(DEBUG_PRIVATE_KEY)
@@ -248,13 +296,16 @@ end
     v = Firebird.get_verifier(user, password, salt)
     keyB, keyb = Firebird.get_server_seed(v, DEBUG_PRIVATE_KEY)
     server_key = Firebird.get_server_session(user, password, salt, keyA, keyB, keyb)
-    keyM, client_key = Firebird.get_client_proof(user, password, salt, keyA, keyB, keya, "Srp")
+    keyM, client_key =
+        Firebird.get_client_proof(user, password, salt, keyA, keyB, keya, "Srp")
     @test server_key == client_key
     @test keyM == hex2bytes("8c12324bb6e9e683a3ee62e13905b95d69f028a9")
 
-    keyM, client_key = Firebird.get_client_proof(user, password, salt, keyA, keyB, keya, "Srp256")
+    keyM, client_key =
+        Firebird.get_client_proof(user, password, salt, keyA, keyB, keya, "Srp256")
     @test server_key == client_key
-    @test keyM == hex2bytes("4675c18056c04b00cc2b991662324c22c6f08bb90beb3677416b03469a770308")
+    @test keyM ==
+          hex2bytes("4675c18056c04b00cc2b991662324c22c6f08bb90beb3677416b03469a770308")
 end
 
 @testset "arc4" begin
@@ -270,7 +321,8 @@ end
 end
 
 @testset "chacha20" begin
-    session_key = hex2bytes("23AD52B15FA7EBDC4672D72289253D95DC9A4324FC369F593FDCC7733AD77617")
+    session_key =
+        hex2bytes("23AD52B15FA7EBDC4672D72289253D95DC9A4324FC369F593FDCC7733AD77617")
     nonce = hex2bytes("000000005A5F6C13C1F12653")
     enc = hex2bytes("6bd00ba222523f58de196fb471eea08d9fff95b5bbe6123dd3a8b9026ac0fa84")
     chacha = Firebird.ChaCha20(session_key, nonce, Int32(0))
@@ -297,12 +349,16 @@ end
         "masterkey"
     end
 
-    conn = DBInterface.connect(Firebird.Connection, "localhost", user, password, TEST_DB_NAME; create_new=true)
-    DBInterface.execute(
-        conn, raw"CREATE TABLE issue3 (dt TIMESTAMP)"
+    conn = DBInterface.connect(
+        Firebird.Connection,
+        "localhost",
+        user,
+        password,
+        TEST_DB_NAME;
+        create_new = true,
     )
-    DBInterface.execute(
-        conn, raw"insert into issue3 (dt) values ('2014-04-13 11:21:22')")
+    DBInterface.execute(conn, raw"CREATE TABLE issue3 (dt TIMESTAMP)")
+    DBInterface.execute(conn, raw"insert into issue3 (dt) values ('2014-04-13 11:21:22')")
 
     cursor = DBInterface.execute(conn, raw"SELECT dt from issue3")
     @test first(cursor)[1] == Dates.DateTime("2014-04-13T11:21:22")

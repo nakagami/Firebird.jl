@@ -35,8 +35,8 @@ mutable struct ChaCha20
         @assert length(block_bytes) == 64
 
         block::Vector{UInt32} = []
-        for i in range(1, length(block_bytes), step=4)
-            append!(block, bytes_to_uint32(block_bytes[i:i+3]))
+        for i in range(1, length(block_bytes), step = 4)
+            append!(block, bytes_to_uint32(block_bytes[i:(i+3)]))
         end
         xor_table = chacha20_round_bytes(block)
 
@@ -74,7 +74,7 @@ end
 function chacha20_round_bytes(block::Vector{UInt32})::Vector{UInt8}
     x = copy(block)
 
-    for _ in range(1, length=10)
+    for _ in range(1, length = 10)
         # column rounds
         x[1], x[5], x[9], x[13] = quaterround(x[1], x[5], x[9], x[13])
         x[2], x[6], x[10], x[14] = quaterround(x[2], x[6], x[10], x[14])
@@ -87,7 +87,7 @@ function chacha20_round_bytes(block::Vector{UInt32})::Vector{UInt8}
         x[4], x[5], x[10], x[15] = quaterround(x[4], x[5], x[10], x[15])
     end
 
-    for i in range(1, length=16)
+    for i in range(1, length = 16)
         x[i] += block[i]
     end
 
@@ -102,7 +102,7 @@ end
 function translate(chacha20::ChaCha20, plain::Vector{UInt8})
     enc::Vector{UInt8} = []
 
-    for i in range(1, length=length(plain))
+    for i in range(1, length = length(plain))
         append!(enc, xor(plain[i], chacha20.xor_table[chacha20.xor_table_pos]))
         chacha20.xor_table_pos += 1
         if chacha20.xor_table_pos > length(chacha20.xor_table)

@@ -28,9 +28,8 @@ mutable struct Transaction
     need_begin::Bool
 
     function Transaction(wp::WireProtocol)
-        tpb::Vector{UInt8} = [
-            isc_tpb_version3, isc_tpb_write, isc_tpb_wait, isc_tpb_autocommit
-        ]
+        tpb::Vector{UInt8} =
+            [isc_tpb_version3, isc_tpb_write, isc_tpb_wait, isc_tpb_autocommit]
         _op_transaction(wp, tpb)
         trans_handle, _, _ = _op_response(wp)
         if trans_handle < 0

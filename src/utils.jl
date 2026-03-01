@@ -54,10 +54,7 @@ function int32_to_bytes(i32::Int32)::Vector{UInt8}
 end
 
 function int16_to_bytes(i16::Int16)::Vector{UInt8}
-    vcat(
-        UInt8(i16 & 0xFF),
-        UInt8(i16 >> 8 & 0xFF),
-    )
+    vcat(UInt8(i16 & 0xFF), UInt8(i16 >> 8 & 0xFF))
 end
 
 function bint64_to_bytes(i64::Int64)::Vector{UInt8}
@@ -84,10 +81,7 @@ end
 
 
 function bint16_to_bytes(i16::Int16)::Vector{UInt8}
-    vcat(
-        UInt8(i16 >> 8 & 0xFF),
-        UInt8(i16 & 0xFF),
-    )
+    vcat(UInt8(i16 >> 8 & 0xFF), UInt8(i16 & 0xFF))
 end
 
 function bytes_to_uint128(b::Vector{UInt8})::UInt128
@@ -163,21 +157,21 @@ function xdr_bytes(bs::Vector{UInt8})::Vector{UInt8}
     buf[2] = UInt8(n >> 16 & 0xFF)
     buf[3] = UInt8(n >> 8 & 0xFF)
     buf[4] = UInt8(n & 0xFF)
-    for i in 1:length(bs)
-        buf[4 + i] = bs[i]
+    for i = 1:length(bs)
+        buf[4+i] = bs[i]
     end
     buf
 end
 
-function to_blr(i64::Int64)::Tuple{Vector{UInt8}, Vector{UInt8}}
+function to_blr(i64::Int64)::Tuple{Vector{UInt8},Vector{UInt8}}
     bint64_to_bytes(i64), UInt8[16, 0]
 end
 
-function to_blr(i32::Int32)::Tuple{Vector{UInt8}, Vector{UInt8}}
+function to_blr(i32::Int32)::Tuple{Vector{UInt8},Vector{UInt8}}
     bint32_to_bytes(i32), UInt8[8, 0]
 end
 
-function to_blr(f64::Float64)::Tuple{Vector{UInt8}, Vector{UInt8}}
+function to_blr(f64::Float64)::Tuple{Vector{UInt8},Vector{UInt8}}
     buf = IOBuffer()
     write(buf, f64)
     seek(buf, 0)
@@ -185,7 +179,7 @@ function to_blr(f64::Float64)::Tuple{Vector{UInt8}, Vector{UInt8}}
     v, UInt8[27]
 end
 
-function to_blr(bytes::Vector{UInt8})::Tuple{Vector{UInt8}, Vector{UInt8}}
+function to_blr(bytes::Vector{UInt8})::Tuple{Vector{UInt8},Vector{UInt8}}
     nbytes = length(bytes)
     pad_length = ((4 - nbytes) & 3)
     padding = Vector{UInt8}([0, 0, 0])
@@ -209,7 +203,10 @@ function _convert_date(d::Date)::Vector{UInt8}
 end
 
 function _convert_time(t::Time)::Vector{UInt8}
-    v = (Dates.hour(t)*3600 + Dates.minute(t)*60 + Dates.second(t))*10000 + div(Dates.microsecond(t), 100) + div(Dates.nanosecond(t), 100000)
+    v =
+        (Dates.hour(t)*3600 + Dates.minute(t)*60 + Dates.second(t))*10000 +
+        div(Dates.microsecond(t), 100) +
+        div(Dates.nanosecond(t), 100000)
 
     bint32_to_bytes(Int32(v))
 end
@@ -217,10 +214,7 @@ end
 function _convert_timestamp(dt::DateTime)::Vector{UInt8}
     d = _convert_date(Date(dt))
     t = _convert_time(Time(dt))
-    vcat(
-        d,
-        t,
-    )
+    vcat(d, t)
 end
 
 function _convert_timestamp_tz(dt_tz::ZonedDateTime)::Vector{UInt8}
@@ -233,27 +227,27 @@ function _convert_timestamp_tz(dt_tz::ZonedDateTime)::Vector{UInt8}
     vcat(d, t, tz)
 end
 
-function to_blr(d::Date)::Tuple{Vector{UInt8}, Vector{Uint8}}
+function to_blr(d::Date)::Tuple{Vector{UInt8},Vector{Uint8}}
     v = _convert_date(d)
     v, UInt8[12]
 end
 
-function to_blr(t::Time)::Tuple{Vector{UInt8}, Vector{UInt8}}
+function to_blr(t::Time)::Tuple{Vector{UInt8},Vector{UInt8}}
     v = _convert_time(t)
     v, UInt8[13]
 end
 
-function to_blr(dt::DateTime)::Tuple{Vector{UInt8}, Vector{UInt8}}
+function to_blr(dt::DateTime)::Tuple{Vector{UInt8},Vector{UInt8}}
     v = _convert_timestamp(dt)
     v, UInt8[35]
 end
 
-function to_blr(dt_tz::ZonedDateTime)::Tuple{Vector{UInt8}, Vector{UInt8}}
+function to_blr(dt_tz::ZonedDateTime)::Tuple{Vector{UInt8},Vector{UInt8}}
     v = _convert_timestamp_tz(dt_tz)
     v, UInt8[29]
 end
 
-function to_blr(b::Bool)::Tuple{Vector{UInt8}, Vector{UInt8}}
+function to_blr(b::Bool)::Tuple{Vector{UInt8},Vector{UInt8}}
     if b
         UInt8[1, 0, 0, 0], UInt8[23]
     else
@@ -261,7 +255,7 @@ function to_blr(b::Bool)::Tuple{Vector{UInt8}, Vector{UInt8}}
     end
 end
 
-function to_blr(Nothing)::Tuple{Vector{UInt8}, Vector{UInt8}}
+function to_blr(Nothing)::Tuple{Vector{UInt8},Vector{UInt8}}
     [], UInt8[14, 0, 0]
 end
 
