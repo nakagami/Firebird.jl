@@ -1044,7 +1044,19 @@ function _op_fetch_response(
             end
         end
         rows = vcat(rows, [r])
+
+        # Read the next op_code first before committing to more bytes.
+        # Firebird can send op_response (an error) here instead of another
+        # op_fetch_response continuation header.
         op_code = bytes_to_bint32(recv_packets(wp, 4))
+        if op_code == op_response
+            parse_op_response(wp)
+            # op_response with an empty status vector is still unexpected here.
+            throw(DomainError("op_fetch_response:Internal Error"))
+        end
+        if op_code != op_fetch_response
+            throw(DomainError("op_fetch_response: unexpected op_code=$(op_code)"))
+        end
         status = bytes_to_bint32(recv_packets(wp, 4))
         count = bytes_to_bint32(recv_packets(wp, 4))
     end

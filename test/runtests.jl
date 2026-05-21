@@ -365,3 +365,52 @@ end
 
     DBInterface.close!(conn)
 end
+
+# Verifies that when a server-side error occurs on a subsequent fetch (after at
+# least one row has been returned successfully), the actual Firebird error message
+# is propagated instead of an opaque internal error.
+@testset "issue264" begin
+    user = if haskey(ENV, "ISC_USER")
+        ENV["ISC_USER"]
+    else
+        "sysdba"
+    end
+    password = if haskey(ENV, "ISC_PASSWORD")
+        ENV["ISC_PASSWORD"]
+    else
+        "masterkey"
+    end
+
+    conn = DBInterface.connect(
+        Firebird.Connection,
+        "localhost",
+        user,
+        password,
+        TEST_DB_NAME;
+        create_new = true,
+    )
+    DBInterface.execute(conn, raw"CREATE EXCEPTION EX_ISSUE264 'issue264 error message'")
+    # Selectable procedure: returns one row successfully, then raises an exception.
+    # Firebird sends op_response (the exception) directly after the row data
+    # without a separate count=0 op_fetch_response trailer.
+    DBInterface.execute(conn, raw"""
+        CREATE PROCEDURE PROC_ISSUE264
+        RETURNS (N INTEGER)
+        AS
+        BEGIN
+          N = 1;
+          SUSPEND;
+          EXCEPTION EX_ISSUE264 'issue264 error message';
+        END""")
+
+    err = nothing
+    try
+        DBInterface.execute(conn, raw"SELECT * FROM PROC_ISSUE264")
+    catch e
+        err = e
+    end
+    @test err !== nothing
+    @test occursin("issue264 error message", err.msg)
+
+    DBInterface.close!(conn)
+end
