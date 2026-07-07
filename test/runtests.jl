@@ -64,6 +64,7 @@ const TEST_DB_NAME = string(tempname(), ".fdb")
           h BLOB SUB_TYPE 0,
           i DOUBLE PRECISION DEFAULT 0.0,
           j FLOAT DEFAULT 0.0,
+          k BOOLEAN DEFAULT TRUE,
           PRIMARY KEY (a),
           CONSTRAINT CHECK_A CHECK (a <> 0)
       )""",
@@ -106,12 +107,12 @@ const TEST_DB_NAME = string(tempname(), ".fdb")
         DBInterface.connect(Firebird.Connection, "localhost", user, password, TEST_DB_NAME)
     DBInterface.execute(
         conn,
-        raw"insert into foo(a, b, c, h) values (1, 'a', 'b', 'This is a pen')",
+        raw"insert into foo(a, b, c, h, k) values (1, 'a', 'b', 'This is a pen', TRUE)",
     )
-    DBInterface.execute(conn, raw"insert into foo(a, b, c, h) values (2, 'A', 'B', NULL)")
+    DBInterface.execute(conn, raw"insert into foo(a, b, c, h, k) values (2, 'A', 'B', NULL, FALSE)")
 
     expected = (
-        A = Int64[1, 2],
+        A = Int32[1, 2],
         B = String["a", "A"],
         C = Union{Missing,String}["b", "B"],
         D = Union{Missing,Decimal}[Decimal(-0.123), Decimal(-0.123)],
@@ -127,6 +128,7 @@ const TEST_DB_NAME = string(tempname(), ".fdb")
         H = Union{Missing,Vector{UInt8}}[Vector{UInt8}("This is a pen"), missing],
         I = Union{Missing,Float64}[Float64(0.0), Float64(0.0)],
         J = Union{Missing,Float32}[Float32(0.0), Float32(0.0)],
+        K = Union{Missing,Bool}[true, false],
     )
 
     cursor = DBInterface.execute(conn, "SELECT * FROM foo")
@@ -171,7 +173,7 @@ const TEST_DB_NAME = string(tempname(), ".fdb")
     end
 
     res = DBInterface.execute(stmt) |> columntable
-    @test length(res) == 10
+    @test length(res) == 11
     @test length(res[1]) == 2
     @test isequal(res, expected)
 
@@ -249,7 +251,7 @@ end
     )
 
     expected = (
-        ID = Int64[1, 2, 3],
+        ID = Int32[1, 2, 3],
         T = TimeZones.ZonedDateTime[
             TimeZones.ZonedDateTime(0, 1, 1, 12, 53, 55, tz"Asia/Tokyo"),
             TimeZones.ZonedDateTime(0, 1, 1, 12, 2, 48, tz"Asia/Seoul"),
@@ -271,6 +273,71 @@ end
           Tables.Schema(propertynames(expected), eltype.(collect(expected)))
     @test Base.IteratorSize(typeof(cursor)) == Base.HasLength()
     @test length(cursor) == 3
+
+    DBInterface.close!(conn)
+end
+
+@testset "decfloat" begin
+    user = if haskey(ENV, "ISC_USER")
+        ENV["ISC_USER"]
+    else
+        "sysdba"
+    end
+    password = if haskey(ENV, "ISC_PASSWORD")
+        ENV["ISC_PASSWORD"]
+    else
+        "masterkey"
+    end
+
+    conn = DBInterface.connect(
+        Firebird.Connection,
+        "localhost",
+        user,
+        password,
+        TEST_DB_NAME;
+        create_new = true,
+    )
+
+    cursor = DBInterface.execute(
+        conn,
+        raw"SELECT rdb$get_context('SYSTEM', 'ENGINE_VERSION') version from rdb$database",
+    )
+    row = first(cursor)
+    major_version = parse(Int, split(row.VERSION, ".")[1])
+    if major_version < 4
+        DBInterface.close!(conn)
+        return
+    end
+
+    DBInterface.execute(
+        conn,
+        raw"""
+      CREATE TABLE decfloat_test (
+          id INTEGER NOT NULL,
+          d16 DECFLOAT(16) DEFAULT 1.5,
+          d34 DECFLOAT(34) DEFAULT -2.5,
+          PRIMARY KEY (id)
+      )""",
+    )
+    DBInterface.execute(
+        conn,
+        raw"insert into decfloat_test (id, d16, d34) values (1, 123.45, -987.654321)",
+    )
+
+    expected = (
+        ID = Int32[1],
+        D16 = Union{Missing,Decimal}[Decimal(123.45)],
+        D34 = Union{Missing,Decimal}[Decimal(-987.654321)],
+    )
+
+    cursor = DBInterface.execute(conn, raw"SELECT * FROM decfloat_test")
+    @test Tables.schema(cursor) ==
+          Tables.Schema(propertynames(expected), eltype.(collect(expected)))
+    @test length(cursor) == 1
+    row = first(cursor)
+    @test row.ID == 1
+    @test row.D16 == Decimal(123.45)
+    @test row.D34 == Decimal(-987.654321)
 
     DBInterface.close!(conn)
 end
@@ -306,6 +373,22 @@ end
     @test server_key == client_key
     @test keyM ==
           hex2bytes("4675c18056c04b00cc2b991662324c22c6f08bb90beb3677416b03469a770308")
+end
+
+@testset "decfloat_unit" begin
+    # DPD decoding
+    @test Firebird.dpd_to_int(UInt(0b0000000000)) == 0
+    @test Firebird.dpd_to_int(UInt(0b1001111011)) == 497
+    @test Firebird.dpd_to_int(UInt(0b1111111111)) == 999
+
+    # decimal64 zero
+    @test Firebird.decimal64_to_decimal(hex2bytes("2238000000000000")) == Decimal(0)
+    # decimal128 zero
+    @test Firebird.decimal128_to_decimal(hex2bytes("22380000000000000000000000000000")) == Decimal(0)
+
+    # NaN/Infinity are not supported by Decimals.jl
+    @test_throws DomainError Firebird.decimal64_to_decimal(hex2bytes("7c00000000000000"))
+    @test_throws DomainError Firebird.decimal128_to_decimal(hex2bytes("7c000000000000000000000000000000"))
 end
 
 @testset "arc4" begin

@@ -248,13 +248,13 @@ function value(x::XSQLVAR, raw_value::Vector{UInt8})
     elseif x.sqltype == SQL_TYPE_TIME_TZ
         parse_time_tz(raw_value)
     elseif x.sqltype == SQL_TYPE_DEC_FIXED
-        decimal_fiexed_to_decimal(value_value)
+        decimal_fixed_to_decimal(raw_value, x.sqlscale)
     elseif x.sqltype == SQL_TYPE_DEC64
-        decimal64_to_decimal(value_value)
+        decimal64_to_decimal(raw_value)
     elseif x.sqltype == SQL_TYPE_DEC128
-        decimal128_to_decimal(value_value)
+        decimal128_to_decimal(raw_value)
     elseif x.sqltype == SQL_TYPE_BOOLEAN
-        raw_value[0] != 0
+        raw_value[1] != 0
     elseif x.sqltype == SQL_TYPE_NULL
         missing
     end
@@ -280,7 +280,11 @@ function juliatype(x::XSQLVAR)
             T = Int16
         end
     elseif x.sqltype == SQL_TYPE_LONG
-        T = Int64
+        if x.sqlscale != 0
+            T = Decimal
+        else
+            T = Int32
+        end
     elseif x.sqltype == SQL_TYPE_FLOAT
         T = Float32
     elseif x.sqltype == SQL_TYPE_DOUBLE
