@@ -17,7 +17,7 @@ TimeZones = "f269a46b-ccf7-5d73-abea-4c690281aa53"
 [compat]
 DBInterface = "2.4"
 DecFP = "1.1"
-Decimals = "0.4"
+Decimals = "0.5"
 Parsers = "2"
 Tables = "1"
 TimeZones = "1.22"

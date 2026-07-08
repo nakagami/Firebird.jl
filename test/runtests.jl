@@ -115,7 +115,10 @@ const TEST_DB_NAME = string(tempname(), ".fdb")
         A = Int32[1, 2],
         B = String["a", "A"],
         C = Union{Missing,String}["b", "B"],
-        D = Union{Missing,Decimal}[Decimal(-0.123), Decimal(-0.123)],
+        D = Union{Missing,Decimal}[
+            parse(Decimal, "-0.123"),
+            parse(Decimal, "-0.123"),
+        ],
         E = Union{Missing,Dates.Date}[Dates.Date("1967-08-11"), Dates.Date("1967-08-11")],
         F = Union{Missing,Dates.DateTime}[
             Dates.DateTime("1967-08-11T23:45:01.123"),
@@ -326,8 +329,8 @@ end
 
     expected = (
         ID = Int32[1],
-        D16 = Union{Missing,Decimal}[Decimal(123.45)],
-        D34 = Union{Missing,Decimal}[Decimal(-987.654321)],
+        D16 = Union{Missing,Decimal}[parse(Decimal, "123.45")],
+        D34 = Union{Missing,Decimal}[parse(Decimal, "-987.654321")],
     )
 
     cursor = DBInterface.execute(conn, raw"SELECT * FROM decfloat_test")
@@ -336,8 +339,8 @@ end
     @test length(cursor) == 1
     row = first(cursor)
     @test row.ID == 1
-    @test row.D16 == Decimal(123.45)
-    @test row.D34 == Decimal(-987.654321)
+    @test row.D16 == parse(Decimal, "123.45")
+    @test row.D34 == parse(Decimal, "-987.654321")
 
     DBInterface.close!(conn)
 end
