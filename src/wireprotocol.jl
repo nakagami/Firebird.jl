@@ -198,8 +198,6 @@ function get_srp_client_public_bytes(client_public::BigInt)::Vector{UInt8}
     else
         vcat(
             UInt8[CNCT_specific_data, length(b)+1, 0],
-            b[1:(length(b)+1)],
-            UInt8[CNCT_specific_data, length(b)-254+1, 1],
             b,
         )
     end
