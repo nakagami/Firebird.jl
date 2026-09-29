@@ -3,7 +3,8 @@
 # License Version 1.0 (the "License"); you may not use this file
 # except in compliance with the License. You may obtain a copy
 # of the License at http://www.Inprise.com/IPL.html
-#n# Software distributed under the License is distributed on an
+#
+# Software distributed under the License is distributed on an
 # "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express
 # or implied. See the License for the specific language governing
 # rights and limitations under the License.
@@ -43,7 +44,7 @@ function get_errmsgs()::Dict{UInt32,String}
         335544347 => raw"""validation error for column @1, value "@2"\n""",
         335544348 => raw"""no current record for fetch operation\n""",
         335544349 =>
-            raw"""attempt to store duplicate value (visible to active transactions) in unique index "@1"\n""",
+            raw"""attempt to store duplicate value (visible to active transactions) in unique index @1\n""",
         335544350 => raw"""program attempted to exit without finishing database\n""",
         335544351 => raw"""unsuccessful metadata update\n""",
         335544352 => raw"""no permission for @1 access to @2 @3\n""",
@@ -132,7 +133,7 @@ function get_errmsgs()::Dict{UInt32,String}
         335544431 => raw"""blocking signal has been received\n""",
         335544432 => raw"""lock manager error\n""",
         335544433 => raw"""communication error with journal "@1"\n""",
-        335544434 => raw"""key size exceeds implementation restriction for index "@1"\n""",
+        335544434 => raw"""key size exceeds implementation restriction for index @1\n""",
         335544435 => raw"""null segment of UNIQUE KEY\n""",
         335544436 => raw"""SQL error code = @1\n""",
         335544437 => raw"""wrong DYN version\n""",
@@ -165,7 +166,7 @@ function get_errmsgs()::Dict{UInt32,String}
         335544463 => raw"""generator @1 is not defined\n""",
         335544464 => raw"""secondary server attachments cannot start logging\n""",
         335544465 => raw"""invalid BLOB type for operation\n""",
-        335544466 => raw"""violation of FOREIGN KEY constraint "@1" on table "@2"\n""",
+        335544466 => raw"""violation of FOREIGN KEY constraint @1 on table @2\n""",
         335544467 => raw"""minor version too high found @1 expected @2\n""",
         335544468 => raw"""transaction @1 is @2\n""",
         335544469 => raw"""transaction marked invalid and cannot be committed\n""",
@@ -216,7 +217,7 @@ function get_errmsgs()::Dict{UInt32,String}
         335544509 => raw"""CHARACTER SET @1 is not defined\n""",
         335544510 => raw"""lock time-out on wait transaction\n""",
         335544511 => raw"""procedure @1 is not defined\n""",
-        335544512 => raw"""Input parameter mismatch for procedure @1\n""",
+        335544512 => raw"""Parameter mismatch for procedure @1\n""",
         335544513 => raw"""Database @1: WAL subsystem bug for pid @2\n@3\n""",
         335544514 => raw"""Could not expand the WAL segment for database @1\n""",
         335544515 => raw"""status code @1 unknown\n""",
@@ -308,7 +309,7 @@ function get_errmsgs()::Dict{UInt32,String}
         335544594 => raw"""Illegal array dimension range\n""",
         335544595 => raw"""Trigger unknown\n""",
         335544596 => raw"""Subselect illegal in this context\n""",
-        335544597 => raw"""Cannot prepare a CREATE DATABASE/SCHEMA statement\n""",
+        335544597 => raw"""Cannot prepare a CREATE DATABASE statement\n""",
         335544598 => raw"""must specify column name for view select expression\n""",
         335544599 => raw"""number of columns does not match select list\n""",
         335544600 =>
@@ -387,7 +388,7 @@ function get_errmsgs()::Dict{UInt32,String}
         335544663 => raw"""Too many concurrent executions of the same request\n""",
         335544664 => raw"""duplicate specification of @1 - not supported\n""",
         335544665 =>
-            raw"""violation of PRIMARY or UNIQUE KEY constraint "@1" on table "@2"\n""",
+            raw"""violation of PRIMARY or UNIQUE KEY constraint @1 on table @2\n""",
         335544666 =>
             raw"""server version too old to support all CREATE DATABASE options\n""",
         335544667 => raw"""drop database completed with errors\n""",
@@ -446,7 +447,7 @@ function get_errmsgs()::Dict{UInt32,String}
         335544714 => raw"""invalid blob id\n""",
         335544715 => raw"""Operation not supported for EXTERNAL FILE table @1\n""",
         335544716 => raw"""Service is currently busy: @1\n""",
-        335544717 => raw"""stack size insufficent to execute current request\n""",
+        335544717 => raw"""stack size insufficient to execute current request\n""",
         335544718 => raw"""Invalid key for find operation\n""",
         335544719 => raw"""Error initializing the network software.\n""",
         335544720 => raw"""Unable to load required library @1.\n""",
@@ -960,7 +961,7 @@ function get_errmsgs()::Dict{UInt32,String}
         335545099 =>
             raw"""CREATE DATABASE grants check is not possible when table RDB$DB_CREATORS is not present in database @1\n""",
         335545100 => raw"""Interface @3 version too old: expected @1, found @2\n""",
-        335545101 => raw"""Input parameter mismatch for function @1\n""",
+        335545101 => raw"""Parameter mismatch for function @1\n""",
         335545102 => raw"""Error during savepoint backout - transaction invalidated\n""",
         335545103 =>
             raw"""Domain used in the PRIMARY KEY constraint of table @1 must be NOT NULL\n""",
@@ -987,7 +988,7 @@ function get_errmsgs()::Dict{UInt32,String}
         335545118 =>
             raw"""RANGE based window with <offset> PRECEDING/FOLLOWING must have a single ORDER BY key of numerical, date, time or timestamp types\n""",
         335545119 =>
-            raw"""Window RANGE/ROWS PRECEDING/FOLLOWING value must be of a numerical type\n""",
+            raw"""Window RANGE/ROWS/GROUPS PRECEDING/FOLLOWING value must be of a numerical type\n""",
         335545120 =>
             raw"""Invalid PRECEDING or FOLLOWING offset in window function: cannot be negative\n""",
         335545121 => raw"""Window @1 not found\n""",
@@ -1038,7 +1039,7 @@ function get_errmsgs()::Dict{UInt32,String}
         335545150 => raw"""Sub-function @1 was declared but not implemented\n""",
         335545151 => raw"""Sub-procedure @1 was declared but not implemented\n""",
         335545152 => raw"""Invalid HASH algorithm @1\n""",
-        335545153 => raw"""Expression evaluation error for index "@1" on table "@2"\n""",
+        335545153 => raw"""Expression evaluation error for index @1 on table @2\n""",
         335545154 => raw"""Invalid decfloat trap state @1\n""",
         335545155 => raw"""Invalid decfloat rounding mode @1\n""",
         335545156 => raw"""Invalid part @1 to calculate the @1 of a DATE/TIMESTAMP\n""",
@@ -1195,6 +1196,75 @@ function get_errmsgs()::Dict{UInt32,String}
             raw"""Wrong parallel workers value @1, valid range are from 1 to @2\n""",
         335545287 => raw"""Definition of index expression is not found for index @1\n""",
         335545288 => raw"""Definition of index condition is not found for index @1\n""",
+        335545289 => raw"""Variable @1 is not initialized\n""",
+        335545290 => raw"""Parameter @1 does not exist\n""",
+        335545291 =>
+            raw"""Parameter @1 has no default value and was not specified or was specified with DEFAULT\n""",
+        335545292 => raw"""Parameter @1 has multiple assignments\n""",
+        335545293 => raw"""Cannot recognize "@1" part of date format\n""",
+        335545294 => raw"""Cannot find closing " for raw text in date format\n""",
+        335545295 =>
+            raw"""It is not possible to use this data type for date formatting\n""",
+        335545296 => raw"""Cannot use "@1" format with current date type\n""",
+        335545297 => raw"""Value for @1 pattern is out of range [@2, @3]\n""",
+        335545298 => raw"""@1 is not MONTH\n""",
+        335545299 => raw"""@1 is incorrect period for 12H, it should be A.M. or P.M.\n""",
+        335545300 =>
+            raw"""All data has been read, but format pattern wants more. Unfilled patterns: "@1"\n""",
+        335545301 =>
+            raw"""There is a trailing part of input string that does not fit into FORMAT: "@1"\n""",
+        335545302 => raw"""@1 can't be used without @2\n""",
+        335545303 => raw"""@1 can't be used without @2 and vice versa\n""",
+        335545304 => raw"""@1 incompatible with @2\n""",
+        335545305 => raw"""Can use only one of these patterns @1\n""",
+        335545306 => raw"""Cannot use the same pattern twice: @1\n""",
+        335545307 => raw"""Invalid GEN_UUID version (@1). Must be 4 or 7\n""",
+        335545308 => raw"""Unable to run sweep\n""",
+        335545309 => raw"""Another instance of sweep is already running\n""",
+        335545310 => raw"""Database in read only state\n""",
+        335545311 => raw"""Attachment has no cleanup flag set\n""",
+        335545312 => raw"""Invalid time zone region or displacement: @1\n""",
+        335545313 => raw"""Arguments for range-based FOR must be exact numeric types\n""",
+        335545314 => raw"""Range-based FOR BY argument must be positive\n""",
+        335545315 => raw"""Cannot find value in input string for "@1" pattern\n""",
+        335545316 => raw"""Invalid name: @1\n""",
+        335545317 => raw"""Invalid list of unqualified names: @1\n""",
+        335545318 =>
+            raw"""User attachments are not allowed for the database being restored\n""",
+        335545319 => raw"""Argument STEP must be different than zero for function @1\n""",
+        335545320 => raw"""Arguments for @1 function must be exact numeric types\n""",
+        335545321 => raw"""Argument for @1 must be in the range [0, 1]\n""",
+        335545322 => raw"""Argument for @1 function must be numeric types\n""",
+        335545323 =>
+            raw"""The PERCENTILE_DISC and PERENTILE_CONT functions support only one sort item in WITHIN GROUP\n""",
+        335545324 => raw"""Argument for @1 function must be constant within each group\n""",
+        335545325 =>
+            raw"""UPDATE will overwrite changes made by the trigger or by the another UPDATE in the same cursor\n""",
+        335545326 =>
+            raw"""Plugin @1 can not be loaded - name should not contain directory separator and path component\n""",
+        335545327 => raw"""The constant @1 is private\n""",
+        335545328 => raw"""Use an alias to resolve the conflict\n""",
+        335545329 => raw"""Error while parsing BLR value of the constant @1\n""",
+        335545330 => raw"""Error while reading type of the constant with name @1\n""",
+        335545331 => raw"""Constant @1 cannot be found\n""",
+        335545332 => raw"""@1 is not supported to be a constant type\n""",
+        335545333 => raw"""The constant @1 is not defined\n""",
+        335545334 => raw"""CONSTANT @1\n""",
+        335545335 => raw"""Table @1 is private to package @2\n""",
+        335545336 =>
+            raw"""Invalid position to read/write in a temporary file (positon: @1, size: @2)\n""",
+        335545337 =>
+            raw"""Aggregate function @1 cannot be used in non-aggregate context\n""",
+        335545338 =>
+            raw"""Aggregate function input parameters may be referenced only in ON ACCUMULATE DO\n""",
+        335545339 =>
+            raw"""EXIT is not allowed in ON GROUP DO section of aggregate function\n""",
+        335545340 =>
+            raw"""RETURN is not allowed in ON START DO, ON ACCUMULATE DO or ON FINISH DO sections of aggregate function; use EXIT instead\n""",
+        335545341 =>
+            raw"""Number of arguments of hypothetical-set aggregate function @1 must match number of sort items in WITHIN GROUP clause\n""",
+        335545342 => raw"""Statement format outdated, need to be reprepared\n""",
+        335545343 => raw"""Running under user savepoint @1, DDL prohibited\n""",
         335740929 => raw"""data base file name (@1) already given\n""",
         335740930 => raw"""invalid switch @1\n""",
         335740932 => raw"""incompatible switch combination\n""",
@@ -1254,7 +1324,7 @@ function get_errmsgs()::Dict{UInt32,String}
         336003094 => raw"""Relation @1 is not found in cursor @2\n""",
         336003095 => raw"""Cursor is not open\n""",
         336003096 =>
-            raw"""Data type @1 is not supported for EXTERNAL TABLES. Relation '@2', field '@3'\n""",
+            raw"""Data type @1 is not supported for EXTERNAL TABLES. Relation @2, field @3\n""",
         336003097 => raw"""Feature not supported on ODS version older than @1.@2\n""",
         336003098 => raw"""Primary key required on table @1\n""",
         336003099 =>
@@ -1276,6 +1346,8 @@ function get_errmsgs()::Dict{UInt32,String}
         336003112 => raw"""Invalid DROP SQL SECURITY clause\n""",
         336003113 =>
             raw"""UPDATE OR INSERT value for field @1, part of the implicit or explicit MATCHING clause, cannot be DEFAULT\n""",
+        336003114 => raw"""LOCAL TEMPORARY TABLE @1 cannot be referenced in @2\n""",
+        336003115 => raw"""USING statement must contain at least one clause\n""",
         336068645 => raw"""BLOB Filter @1 not found\n""",
         336068649 => raw"""Function @1 not found\n""",
         336068656 => raw"""Index not found\n""",
@@ -1381,6 +1453,17 @@ function get_errmsgs()::Dict{UInt32,String}
         336068915 => raw"""Exception @1 does not exist\n""",
         336068916 => raw"""Generator/Sequence @1 does not exist\n""",
         336068917 => raw"""Field @1 of table @2 does not exist\n""",
+        336068922 => raw"""Index schema (@1) must match table schema (@2)\n""",
+        336068923 => raw"""Trigger schema (@1) must match table schema (@2)\n""",
+        336068925 => raw"""Cannot ALTER or DROP SYSTEM schema\n""",
+        336068926 => raw"""Cannot DROP schema @1 because it has objects\n""",
+        336068927 => raw"""Cannot CREATE/ALTER/DROP @1 in SYSTEM schema\n""",
+        336068928 => raw"""Schema name @1 is reserved and cannot be created\n""",
+        336068929 =>
+            raw"""Cannot infer schema name as there is no valid schema in the search path\n""",
+        336068931 => raw"""Column @1 already exists in table @2\n""",
+        336068935 =>
+            raw"""Function @1 cannot change between aggregate and non-aggregate\n""",
         336330753 => raw"""found unknown switch\n""",
         336330754 => raw"""page size parameter missing\n""",
         336330755 => raw"""Page size specified (@1) greater than limit (32768 bytes)\n""",
@@ -1487,6 +1570,15 @@ function get_errmsgs()::Dict{UInt32,String}
         336331094 => raw"""Invalid data detected. Use -FIX_FSS_DATA option.\n""",
         336331096 => raw"""Expected backup version @2..@3.  Found @1\n""",
         336331100 => raw"""database format @1 is too old to backup\n""",
+        336331175 => raw"""writing constants\n""",
+        336331176 => raw"""writing constant %s\n""",
+        336331177 => raw"""constant (in RDB$CONSTANTS)\n""",
+        336331178 => raw"""restoring constant %s\n""",
+        336331180 => raw"""invalid column @1 in table @2: @3\n""",
+        336331181 => raw"""invalid record length for table @1\n""",
+        336331182 => raw"""FAST_PATH requires the -service option\n""",
+        336331184 =>
+            raw"""cannot obtain transaction snapshot number for FAST_PATH backup\n""",
         336397205 => raw"""ODS versions before ODS@1 are not supported\n""",
         336397206 => raw"""Table @1 does not exist\n""",
         336397207 => raw"""View @1 does not exist\n""",
@@ -1635,6 +1727,16 @@ function get_errmsgs()::Dict{UInt32,String}
             raw"""String literal with @1 characters exceeds the maximum length of @2 characters for the @3 character set\n""",
         336397333 => raw"""Too many BEGIN...END nesting. Maximum level is @1\n""",
         336397334 => raw"""RECREATE USER @1 failed\n""",
+        336397335 =>
+            raw"""the number of fields exceeds the limit for the @1 operator. Expected @2, received @3\n""",
+        336397336 => raw"""CREATE SCHEMA @1 failed\n""",
+        336397337 => raw"""DROP SCHEMA @1 failed\n""",
+        336397338 => raw"""RECREATE SCHEMA @1 failed\n""",
+        336397339 => raw"""ALTER SCHEMA @1 failed\n""",
+        336397340 => raw"""CREATE OR ALTER SCHEMA @1 failed\n""",
+        336397341 => raw"""CREATE CONSTANT @1 failed\n""",
+        336397342 => raw"""ALTER CONSTANT @1 failed\n""",
+        336397343 => raw"""CREATE OR ALTER CONSTANT @1 failed\n""",
         336723983 => raw"""unable to open database\n""",
         336723984 => raw"""error in switch specifications\n""",
         336723985 => raw"""no operation specified\n""",
