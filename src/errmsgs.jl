@@ -1202,6 +1202,8 @@ function get_errmsgs()::Dict{UInt32,String}
         335545311 => raw"""Attachment has no cleanup flag set\n""",
         335545318 =>
             raw"""User attachments are not allowed for the database being restored\n""",
+        335545325 =>
+            raw"""UPDATE will overwrite changes made by the trigger or by the another UPDATE in the same cursor\n""",
         335740929 => raw"""data base file name (@1) already given\n""",
         335740930 => raw"""invalid switch @1\n""",
         335740932 => raw"""incompatible switch combination\n""",

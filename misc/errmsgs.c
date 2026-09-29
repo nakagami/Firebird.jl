@@ -22,7 +22,7 @@
  * SOFTWARE.
 */
 
-// 1. Get copy of Firebird 5 sources (e.g. tag v5.0.3) or at least src/include from Firebird 5 sources
+// 1. Get copy of Firebird 5 sources (e.g. tag v5.0.4) or at least src/include from Firebird 5 sources
 // 2. cc -I/path/to/firebird/src/include errmsgs.c
 // 3. ./a.out
 // 4. perl -pi -e 's/\\"/"/g' ../src/errmsgs.jl
