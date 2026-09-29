@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        julia-version: ['1.10', '1.11', '1.12']
+        julia-version: ['1.10', '1.11', '1.12', '1.13']
         firebird-version: ['3', '4', '5']
 
     services:
