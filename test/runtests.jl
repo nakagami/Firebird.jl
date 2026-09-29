@@ -21,7 +21,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ################################################################################
-using Test, Firebird, TimeZones, DBInterface, Tables, Dates, Decimals
+using Test, Firebird, TimeZones, DBInterface, Tables, Dates, Decimals, Sockets
 
 const DEBUG_PRIVATE_KEY =
     big"0x60975527035CF2AD1989806F0407210BC81EDC04E2762A56AFD529DDDA2D4393"
@@ -499,4 +499,32 @@ end
     @test occursin("issue264 error message", err.msg)
 
     DBInterface.close!(conn)
+end
+
+@testset "unknown_error_code" begin
+    # Feed a status vector through a local socket: an error code missing from
+    # errmsgs.jl followed by a known one with a string argument.
+    port, server = listenany(ip"127.0.0.1", 30000)
+    wp = Firebird.WireProtocol("127.0.0.1", "", "", UInt16(port))
+    peer = accept(server)
+    u32(x) = reinterpret(UInt8, [hton(UInt32(x))])
+    write(
+        peer,
+        vcat(
+            u32(Firebird.isc_arg_gds), u32(335599999),
+            u32(Firebird.isc_arg_gds), u32(335544323),
+            u32(Firebird.isc_arg_string), u32(7), Vector{UInt8}("foo.fdb\0"),
+            u32(Firebird.isc_arg_end),
+        ),
+    )
+
+    gds_codes, sql_code, message = Firebird.parse_status_vector(wp)
+    @test gds_codes == [335599999, 335544323]
+    @test sql_code == 0
+    @test message ==
+          "unknown ISC error code 335599999\nfile foo.fdb is not a valid database\n"
+
+    close(peer)
+    close(server)
+    Firebird.close!(wp.chan)
 end

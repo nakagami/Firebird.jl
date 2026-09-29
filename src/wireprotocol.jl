@@ -293,7 +293,7 @@ function parse_status_vector(wp::WireProtocol)::Tuple{Vector{UInt32},Int,String}
             gds_code = bytes_to_buint32(recv_packets(wp, 4))
             if gds_code != 0
                 push!(gds_codes, gds_code)
-                message *= errmsgs[gds_code]
+                message *= get(errmsgs, gds_code, "unknown ISC error code $(gds_code)\n")
                 num_arg = 0
             end
         elseif n == isc_arg_number
