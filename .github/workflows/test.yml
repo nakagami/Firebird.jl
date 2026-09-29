@@ -15,7 +15,7 @@ jobs:
         julia-version: ['1.10', '1.11', '1.12']
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Set up Firebird
       run: |
