@@ -3,7 +3,8 @@
 # License Version 1.0 (the "License"); you may not use this file
 # except in compliance with the License. You may obtain a copy
 # of the License at http://www.Inprise.com/IPL.html
-#n# Software distributed under the License is distributed on an
+#
+# Software distributed under the License is distributed on an
 # "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express
 # or implied. See the License for the specific language governing
 # rights and limitations under the License.
@@ -1195,6 +1196,14 @@ function get_errmsgs()::Dict{UInt32,String}
             raw"""Wrong parallel workers value @1, valid range are from 1 to @2\n""",
         335545287 => raw"""Definition of index expression is not found for index @1\n""",
         335545288 => raw"""Definition of index condition is not found for index @1\n""",
+        335545308 => raw"""Unable to run sweep\n""",
+        335545309 => raw"""Another instance of sweep is already running\n""",
+        335545310 => raw"""Database in read only state\n""",
+        335545311 => raw"""Attachment has no cleanup flag set\n""",
+        335545318 =>
+            raw"""User attachments are not allowed for the database being restored\n""",
+        335545325 =>
+            raw"""UPDATE will overwrite changes made by the trigger or by the another UPDATE in the same cursor\n""",
         335740929 => raw"""data base file name (@1) already given\n""",
         335740930 => raw"""invalid switch @1\n""",
         335740932 => raw"""incompatible switch combination\n""",

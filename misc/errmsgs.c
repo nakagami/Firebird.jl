@@ -22,7 +22,7 @@
  * SOFTWARE.
 */
 
-// 1. Get copy of Firebird 5 sources or at least src/include from Firebird 5 sources
+// 1. Get copy of Firebird 5 sources (e.g. tag v5.0.4) or at least src/include from Firebird 5 sources
 // 2. cc -I/path/to/firebird/src/include errmsgs.c
 // 3. ./a.out
 // 4. perl -pi -e 's/\\"/"/g' ../src/errmsgs.jl
@@ -47,6 +47,8 @@ FILE *fp;
 
 #define FB_IMPL_MSG(facility, number, symbol, sqlCode, sqlClass, sqlSubClass, text) \
     output_message(make_isc_code(FB_IMPL_MSG_FACILITY_##facility, number), stringify_literal(text));
+
+void output_message(int code, char* msg);
 
 int make_isc_code(int facility, int code) {
     ISC_USHORT t1 = facility;
@@ -77,7 +79,7 @@ int main(int argc, char *argv[])
 # License Version 1.0 (the \"License\"); you may not use this file\n\
 # except in compliance with the License. You may obtain a copy\n\
 # of the License at http://www.Inprise.com/IPL.html\n\
-#n\
+#\n\
 # Software distributed under the License is distributed on an\n\
 # \"AS IS\" basis, WITHOUT WARRANTY OF ANY KIND, either express\n\
 # or implied. See the License for the specific language governing\n\
