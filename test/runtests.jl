@@ -522,9 +522,88 @@ end
     @test gds_codes == [335599999, 335544323]
     @test sql_code == 0
     @test message ==
-          "unknown ISC error code 335599999\nfile foo.fdb is not a valid database\n"
+          raw"""unknown ISC error code 335599999\nfile foo.fdb is not a valid database\n"""
 
     close(peer)
     close(server)
     Firebird.close!(wp.chan)
+end
+
+@testset "issue5" begin
+    user = if haskey(ENV, "ISC_USER")
+        ENV["ISC_USER"]
+    else
+        "sysdba"
+    end
+    password = if haskey(ENV, "ISC_PASSWORD")
+        ENV["ISC_PASSWORD"]
+    else
+        "masterkey"
+    end
+
+    conn = DBInterface.connect(
+        Firebird.Connection,
+        "localhost",
+        user,
+        password,
+        TEST_DB_NAME;
+        create_new = true,
+    )
+    DBInterface.execute(
+        conn,
+        raw"""
+        CREATE TABLE issue5_t1 (
+            id INTEGER NOT NULL PRIMARY KEY,
+            step_id INTEGER,
+            entry_date TIMESTAMP
+        )""",
+    )
+    DBInterface.execute(
+        conn,
+        raw"""
+        CREATE TABLE issue5_t2 (
+            id INTEGER NOT NULL PRIMARY KEY,
+            t1_id INTEGER,
+            name VARCHAR(50)
+        )""",
+    )
+    DBInterface.execute(
+        conn,
+        raw"INSERT INTO issue5_t1 (id, step_id, entry_date) VALUES (1, -1, '2023-12-28 12:00:00')",
+    )
+    DBInterface.execute(
+        conn,
+        raw"INSERT INTO issue5_t1 (id, step_id, entry_date) VALUES (2, 1, '2023-12-29 12:00:00')",
+    )
+    DBInterface.execute(
+        conn,
+        raw"INSERT INTO issue5_t2 (id, t1_id, name) VALUES (1, 1, 'item1')",
+    )
+    DBInterface.execute(
+        conn,
+        raw"INSERT INTO issue5_t2 (id, t1_id, name) VALUES (2, 2, 'item2')",
+    )
+
+    cursor = DBInterface.execute(
+        conn,
+        raw"""
+        SELECT
+            t1.id,
+            t2.name,
+            CASE WHEN t1.step_id = -1 THEN t1.entry_date ELSE NULL END AS rejected_ts
+        FROM issue5_t1 t1
+        LEFT JOIN issue5_t2 t2 ON t1.id = t2.t1_id
+        ORDER BY t1.id
+        """,
+    )
+    rows = collect(cursor)
+    @test length(rows) == 2
+    @test rows[1].ID == 1
+    @test rows[1].NAME == "item1"
+    @test rows[1].REJECTED_TS == Dates.DateTime("2023-12-28T12:00:00")
+    @test rows[2].ID == 2
+    @test rows[2].NAME == "item2"
+    @test ismissing(rows[2].REJECTED_TS)
+
+    DBInterface.close!(conn)
 end

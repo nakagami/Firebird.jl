@@ -293,7 +293,7 @@ function parse_status_vector(wp::WireProtocol)::Tuple{Vector{UInt32},Int,String}
             gds_code = bytes_to_buint32(recv_packets(wp, 4))
             if gds_code != 0
                 push!(gds_codes, gds_code)
-                message *= get(errmsgs, gds_code, "unknown ISC error code $(gds_code)\n")
+                message *= get(errmsgs, gds_code, "unknown ISC error code $(gds_code)\\n")
                 num_arg = 0
             end
         elseif n == isc_arg_number
@@ -302,12 +302,12 @@ function parse_status_vector(wp::WireProtocol)::Tuple{Vector{UInt32},Int,String}
                 sql_code = num
             end
             num_arg += 1
-            message = replace.(message, [string("@", num_arg)=>num])[1]
+            message = replace(message, string("@", num_arg) => string(num))
         elseif n == isc_arg_string
             nbytes = bytes_to_buint32(recv_packets(wp, 4))
             s = String(recv_packets_alignment(wp, nbytes))
             num_arg += 1
-            message = replace.(message, [string("@", num_arg)=>s])[1]
+            message = replace(message, string("@", num_arg) => s)
         elseif n == isc_arg_interpreted
             nbytes = bytes_to_buint32(recv_packets(wp, 4))
             message *= String(recv_packets_alignment(wp, nbytes))
@@ -470,9 +470,11 @@ function parse_select_items(
     index = 0
     i = 1
 
-    item = buf[i]
-    while i <= length(buf) && buf[i] != isc_info_end
+    while i <= length(buf)
         item = buf[i]
+        if item == isc_info_end
+            break
+        end
         i += 1
         if item == isc_info_sql_sqlda_seq
             ln = bytes_to_int16(buf[i:(i+1)])
@@ -569,7 +571,7 @@ function parse_xsqlda(
                     xsqlvar = XSQLVAR(0, 0, 0, 0, false, "", "", "", "")
                     push!(xsqlda, xsqlvar)
                 end
-                next_index = parse_select_items(wp, buf[(i+ln):(length(buf)-1)], xsqlda)
+                next_index = parse_select_items(wp, buf[(i+ln):length(buf)], xsqlda)
                 while next_index > 0    # more describe vars
                     _op_info_sql(
                         wp,
@@ -584,7 +586,7 @@ function parse_xsqlda(
                     # buf[1:2] == [0x04,0x07]
                     ln = bytes_to_int16(buf[3:4])
                     # bytes_to_int(buf[5:5+ln]) == col_len
-                    next_index = parse_select_items(wp, buf[(5+ln):(length(buf)-1)], xsqlda)
+                    next_index = parse_select_items(wp, buf[(5+ln):length(buf)], xsqlda)
                 end
             end
         else
@@ -1005,14 +1007,17 @@ function _op_fetch_response(
     end
     while op_code == op_response && wp.lazy_response_count > 0
         wp.lazy_response_count -= 1
+        parse_op_response(wp)
         op_code = bytes_to_bint32(recv_packets(wp, 4))
     end
 
     if op_code != op_fetch_response
         if op_code == op_response
             parse_op_response(wp)
+            # op_response with an empty status vector is still unexpected here.
+            throw(DomainError("op_fetch_response:Internal Error"))
         end
-        throw(DomainError("op_fetch_resonse:op_code=$(op_code)"))
+        throw(DomainError("op_fetch_response:op_code=$(op_code)"))
     end
 
     status = bytes_to_bint32(recv_packets(wp, 4))
